@@ -168,36 +168,28 @@ const BookingForm: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Car Type *
-                        </label>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {carTypes.map((car) => (
-                                <label
-                                    key={car.id}
-                                    className="relative flex cursor-pointer rounded-lg border border-gray-300 p-4 focus:outline-none hover:border-primary-500"
-                                >
-                                    <input
-                                        type="radio"
-                                        {...register('carType', { required: 'Please select a car type' })}
-                                        value={car.id}
-                                        className="sr-only"
-                                    />
-                                    <div className="flex w-full items-center justify-between">
-                                        <div className="flex items-center">
-                                            <div className="text-sm">
-                                                <p className="font-medium text-gray-900">{car.name}</p>
-                                                <p className="text-gray-500">{car.description}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </label>
-                            ))}
-                        </div>
-                        {errors.carType && (
-                            <p className="mt-1 text-sm text-red-600">{errors.carType.message}</p>
-                        )}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {carTypes.map((car) => (
+                            <label
+                                key={car.id}
+                                className="relative flex cursor-pointer rounded-lg border p-4 transition
+                 border-gray-300 hover:border-primary-500
+                 peer-checked:border-primary-600
+                 peer-checked:ring-2 peer-checked:ring-primary-500"
+                            >
+                                <input
+                                    type="radio"
+                                    value={car.id}
+                                    {...register('carType', { required: 'Please select a car type' })}
+                                    className="peer sr-only"
+                                />
+
+                                <div className="w-full">
+                                    <p className="font-medium text-gray-900">{car.name}</p>
+                                    <p className="text-sm text-gray-500">{car.description}</p>
+                                </div>
+                            </label>
+                        ))}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

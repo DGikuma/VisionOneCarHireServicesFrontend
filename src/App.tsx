@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { HelmetProvider } from 'react-helmet-async';
 import 'react-toastify/dist/ReactToastify.css';
+import { useState, useEffect } from 'react';
 
 // Layout Components
 import Navbar from './components/Navbar';
@@ -23,7 +24,27 @@ import SingleBlogPage from './pages/SingleBlogPage';
 import LocationsPage from './pages/LocationsPage';
 import NotFoundPage from './pages/NotFoundPage';
 
+// Loader Component - Assuming it's named SolarFlareLoader
+import SolarFlareLoader from './components/SolarFlareLoader';
+
 function App() {
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        // Delay loader for 7 seconds
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 8000);
+
+        // Clean up timer
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Show loader while loading
+    if (isLoading) {
+        return <SolarFlareLoader />;
+    }
+
     return (
         <HelmetProvider>
             <Router>

@@ -86,7 +86,7 @@ const ContactPage: React.FC = () => {
         {
             icon: PhoneIcon,
             title: 'Executive Support',
-            details: ['+1 (888) 888-8888', '+1 (888) 888-8889'],
+            details: ['+254 (705) 336 311', '+1 +44 (7397) 549 590'],
             description: '24/7 premium concierge service for urgent matters',
             color: 'from-[#FF6B35] to-[#FF8B35]',
             action: 'Call Now'
@@ -94,7 +94,7 @@ const ContactPage: React.FC = () => {
         {
             icon: EnvelopeIcon,
             title: 'Email Communications',
-            details: ['executive@visionone.com', 'support@visionone.com'],
+            details: ['executive@visionone.com', 'vison1servicesltd@gmail.com'],
             description: 'Guaranteed response within 2 business hours',
             color: 'from-[#FF8B35] to-[#FF7B35]',
             action: 'Send Email'
@@ -121,32 +121,32 @@ const ContactPage: React.FC = () => {
         {
             id: 'general',
             name: 'Executive Office',
-            email: 'executive@visionone.com',
-            phone: '(888) 888-8801',
+            email: 'vison1servicesltd@gmail.com',
+            phone: '+254 (705) 336 311',
             description: 'For strategic partnerships and executive-level inquiries',
             icon: BuildingOfficeIcon
         },
         {
             id: 'booking',
             name: 'Premium Reservations',
-            email: 'reservations@visionone.com',
-            phone: '(888) 888-8802',
+            email: 'vison1servicesltd@gmail.com',
+            phone: '+254 (705) 336 311',
             description: 'Personalized booking assistance and itinerary planning',
             icon: DocumentTextIcon
         },
         {
             id: 'corporate',
             name: 'Corporate Services',
-            email: 'corporate@visionone.com',
-            phone: '(888) 888-8803',
+            email: 'vison1servicesltd@gmail.com',
+            phone: '+254 (705) 336 311',
             description: 'Enterprise fleet management and corporate accounts',
             icon: UserGroupIcon
         },
         {
             id: 'support',
             name: 'Premium Support',
-            email: 'support@visionone.com',
-            phone: '(888) 888-8804',
+            email: 'vison1servicesltd@gmail.com',
+            phone: '+254 (705) 336 311',
             description: '24/7 concierge service and roadside assistance',
             icon: ShieldCheckIcon
         }
@@ -154,39 +154,21 @@ const ContactPage: React.FC = () => {
 
     const globalLocations = [
         {
-            city: 'New York',
-            country: 'United States',
-            address: 'One Executive Plaza, Suite 1000, NY 10001',
-            phone: '(888) 888-8901',
+            city: 'Kilimani, Nairobi',
+            country: 'Kenya',
+            address: 'Equity Building 1st Floor, Opp. Yaya Center',
+            phone: '+254 (705) 336 311',
             hours: '24/7 Premium Lounge',
             features: ['Executive Lounge', 'Premium Valet', 'Conference Facilities'],
             featured: true
         },
         {
-            city: 'Los Angeles',
-            country: 'United States',
+            city: 'Kent',
+            country: 'United Kingdom',
             address: '456 Sunset Boulevard, Beverly Hills, CA 90210',
-            phone: '(888) 888-8902',
+            phone: '+44 (7397) 549 590',
             hours: '24/7 Premium Lounge',
             features: ['Private Showroom', 'Luxury Detailing', 'Chauffeur Services'],
-            featured: false
-        },
-        {
-            city: 'London',
-            country: 'United Kingdom',
-            address: '100 Mayfair, London W1K 4LA',
-            phone: '+44 20 7946 0958',
-            hours: '24/7 Premium Lounge',
-            features: ['Global Access', 'Premium Fleet', 'Corporate Hub'],
-            featured: false
-        },
-        {
-            city: 'Dubai',
-            country: 'UAE',
-            address: 'Emirates Towers, Sheikh Zayed Road, Dubai',
-            phone: '+971 4 319 7643',
-            hours: '24/7 Premium Lounge',
-            features: ['Luxury Fleet', 'VIP Services', 'Global Network'],
             featured: false
         }
     ];
@@ -486,7 +468,7 @@ const ContactPage: React.FC = () => {
                                                     value={formData.phone}
                                                     onChange={handleChange}
                                                     className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none"
-                                                    placeholder="+44 (7397) 549 590"
+                                                    placeholder="+13232423423432"
                                                 />
                                             </div>
 
