@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="Vision One Car Hire Services - Premium car rental with luxury vehicles, SUVs, electric cars. Best rates, 24/7 support, nationwide locations.">
+    <meta name="keywords"
+        content="car hire, car rental, luxury car rental, SUV rental, electric car rental, premium vehicles, business car hire, family car rental">
+    <meta name="author" content="Vision One Car Hire Services">
+    <meta property="og:title" content="Vision One Car Hire Services | Premium Vehicle Rental">
+    <meta property="og:description"
+        content="Experience premium car hire with our luxury fleet. Best rates, exceptional service, nationwide coverage.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/images/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Vision One Car Hire Services">
+    <meta name="twitter:description"
+        content="Premium car hire services with luxury vehicles and exceptional customer experience.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#3b82f6">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <meta name="msapplication-TileColor" content="#3b82f6">
+    <meta name="theme-color" content="#3b82f6">
+
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CarRental",
+      "name": "Vision One Car Hire Services",
+      "url": "https://visiononecarhire.com",
+      "logo": "https://visiononecarhire.com/images/logo.png",
+      "description": "Premium car hire services offering luxury vehicles, SUVs, electric cars, and family vehicles for business, leisure, and special occasions.",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "123 Main Street",
+        "addressLocality": "City",
+        "addressRegion": "State",
+        "postalCode": "12345",
+        "addressCountry": "US"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 40.7128,
+        "longitude": -74.0060
+      },
+      "openingHours": "Mo-Su 00:00-23:59",
+      "telephone": "+1-555-123-4567",
+      "email": "vison1servicesltd@gmail.com",
+      "priceRange": "$$$",
+      "sameAs": [
+        "https://facebook.com/visiononecarhire",
+        "https://twitter.com/visiononecarhire",
+        "https://instagram.com/visiononecarhire",
+        "https://linkedin.com/company/visiononecarhire"
+      ]
+    }
+    </script>
+
+    <title>Vision One Car Hire Services | Premium Vehicle Rental</title>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Loading animation -->
+    <div id="loading">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading Vision One Car Hire...</p>
+        </div>
+    </div>
+
+    <style>
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            color: white;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #loading.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+
+    <script>
+        // Hide loading screen when page is loaded
+        window.addEventListener('load', function () {
+            const loading = document.getElementById('loading');
+            setTimeout(() => {
+                loading.classList.add('fade-out');
+                setTimeout(() => {
+                    loading.style.display = 'none';
+                }, 500);
+            }, 1000);
+        });
+    </script>
+</body>
+
+</html>
