@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useState } from 'react';
-import BookingForm from '../components/BookingForm';
+import { useState, useRef } from 'react';
+import BookingForm, { BookingFormRef } from '../components/BookingForm';
 import {
     ShieldCheckIcon,
     DocumentTextIcon,
@@ -18,6 +18,35 @@ import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
 const BookingPage: React.FC = () => {
     const [activeStep, setActiveStep] = useState<number>(1);
+    const formRef = useRef<BookingFormRef>(null);
+
+    const handleNextStep = async () => {
+        if (formRef.current) {
+            const isValid = await formRef.current.validateStep();
+            if (isValid && activeStep < 3) {
+                setActiveStep(activeStep + 1);
+            }
+        }
+    };
+
+    const handlePrevStep = () => {
+        if (activeStep > 1) {
+            setActiveStep(activeStep - 1);
+        }
+    };
+
+    const handleStepClick = async (step: number) => {
+        if (step < activeStep) {
+            // Allow going back without validation
+            setActiveStep(step);
+        } else if (step > activeStep && formRef.current) {
+            // Validate current step before moving forward
+            const isValid = await formRef.current.validateStep();
+            if (isValid) {
+                setActiveStep(step);
+            }
+        }
+    };
 
     const processSteps = [
         {
@@ -141,7 +170,7 @@ const BookingPage: React.FC = () => {
                                         key={step.step}
                                         className={`relative group cursor-pointer transition-all duration-300 ${activeStep === step.step ? 'transform scale-105' : ''
                                             }`}
-                                        onClick={() => setActiveStep(step.step)}
+                                        onClick={() => handleStepClick(step.step)}
                                     >
                                         <div className="flex flex-col items-center text-center">
                                             {/* Step Circle */}
@@ -306,7 +335,12 @@ const BookingPage: React.FC = () => {
 
                             {/* Form Content */}
                             <div className="p-8">
-                                <BookingForm />
+                                <BookingForm
+                                    ref={formRef}
+                                    activeStep={activeStep}
+                                    onNextStep={handleNextStep}
+                                    onPrevStep={handlePrevStep}
+                                />
                             </div>
 
                             {/* Form Footer */}
