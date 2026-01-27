@@ -246,7 +246,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                     }
                                 })}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300"
-                                placeholder="John Doe"
+                                placeholder="Enter Your Full Name"
                             />
                             {errors.customerName && (
                                 <p className="mt-2 text-sm text-red-600">{errors.customerName.message}</p>
@@ -269,7 +269,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                         },
                                     })}
                                     className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300"
-                                    placeholder="john@example.com"
+                                    placeholder="Enter Your Email Address"
                                 />
                             </div>
                             {errors.email && (
@@ -293,7 +293,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                         },
                                     })}
                                     className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300"
-                                    placeholder="+1234567890"
+                                    placeholder="Enter Your Phone Number"
                                 />
                             </div>
                             {errors.phone && (
