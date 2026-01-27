@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { HelmetProvider } from 'react-helmet-async';
+import { Suspense, useEffect, useState } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
-import { useState, useEffect } from 'react';
 
 // Layout Components
 import Navbar from './components/Navbar';
@@ -24,59 +24,94 @@ import SingleBlogPage from './pages/SingleBlogPage';
 import LocationsPage from './pages/LocationsPage';
 import NotFoundPage from './pages/NotFoundPage';
 
-// Loader Component - Assuming it's named SolarFlareLoader
+// Loader
 import SolarFlareLoader from './components/SolarFlareLoader';
 
 function App() {
-    const [isLoading, setIsLoading] = useState(true);
+    const [isAppReady, setIsAppReady] = useState(false);
+    const [showLoader, setShowLoader] = useState(true);
 
     useEffect(() => {
-        // Delay loader for 7 seconds
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 8000);
+        let loadFinished = false;
+        let minDelayFinished = false;
 
-        // Clean up timer
-        return () => clearTimeout(timer);
+        const checkReady = () => {
+            if (loadFinished && minDelayFinished) {
+                setIsAppReady(true);
+
+                // Keep loader visible for a tiny fade duration (0.5s)
+                setTimeout(() => {
+                    setShowLoader(false);
+                }, 500);
+            }
+        };
+
+        // Minimum 5-second delay
+        const delayTimer = setTimeout(() => {
+            minDelayFinished = true;
+            checkReady();
+        }, 1000);
+
+        // Wait for browser load
+        const handleLoad = () => {
+            loadFinished = true;
+            checkReady();
+        };
+
+        if (document.readyState === 'complete') {
+            handleLoad();
+        } else {
+            window.addEventListener('load', handleLoad);
+        }
+
+        return () => {
+            clearTimeout(delayTimer);
+            window.removeEventListener('load', handleLoad);
+        };
     }, []);
-
-    // Show loader while loading
-    if (isLoading) {
-        return <SolarFlareLoader />;
-    }
 
     return (
         <HelmetProvider>
             <Router>
-                <div className="min-h-screen bg-gray-50 flex flex-col">
-                    <Navbar />
-                    <main className="flex-grow">
-                        <Routes>
-                            {/* Core Pages */}
-                            <Route path="/" element={<HomePage />} />
-                            <Route path="/booking" element={<BookingPage />} />
-                            <Route path="/fleet" element={<FleetPage />} />
-                            <Route path="/services" element={<ServicesPage />} />
-                            <Route path="/about" element={<AboutPage />} />
-                            <Route path="/contact" element={<ContactPage />} />
-                            <Route path="/locations" element={<LocationsPage />} />
+                <div className="min-h-screen bg-gray-50 flex flex-col relative">
+                    {/* Page content */}
+                    {isAppReady && (
+                        <>
+                            <Navbar />
+                            <main className="flex-grow">
+                                <Suspense fallback={<SolarFlareLoader />}>
+                                    <Routes>
+                                        <Route path="/" element={<HomePage />} />
+                                        <Route path="/booking" element={<BookingPage />} />
+                                        <Route path="/fleet" element={<FleetPage />} />
+                                        <Route path="/services" element={<ServicesPage />} />
+                                        <Route path="/about" element={<AboutPage />} />
+                                        <Route path="/contact" element={<ContactPage />} />
+                                        <Route path="/locations" element={<LocationsPage />} />
+                                        <Route path="/blog" element={<BlogPage />} />
+                                        <Route path="/blog/:id" element={<SingleBlogPage />} />
+                                        <Route path="/terms" element={<TermsPage />} />
+                                        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                                        <Route path="/faq" element={<FAQPage />} />
+                                        <Route path="/seo" element={<SEOPage />} />
+                                        <Route path="*" element={<NotFoundPage />} />
+                                    </Routes>
+                                </Suspense>
+                            </main>
+                            <Footer />
+                            <ToastContainer position="top-right" autoClose={5000} />
+                        </>
+                    )}
 
-                            {/* Blog Pages */}
-                            <Route path="/blog" element={<BlogPage />} />
-                            <Route path="/blog/:id" element={<SingleBlogPage />} />
-
-                            {/* Legal Pages */}
-                            <Route path="/terms" element={<TermsPage />} />
-                            <Route path="/privacy" element={<PrivacyPolicyPage />} />
-                            <Route path="/faq" element={<FAQPage />} />
-                            <Route path="/seo" element={<SEOPage />} />
-
-                            {/* Error Page */}
-                            <Route path="*" element={<NotFoundPage />} />
-                        </Routes>
-                    </main>
-                    <Footer />
-                    <ToastContainer position="top-right" autoClose={5000} />
+                    {/* Loader overlay */}
+                    {showLoader && (
+                        <div
+                            className={`absolute inset-0 z-50 transition-opacity duration-500 ${isAppReady ? 'opacity-0 pointer-events-none' : 'opacity-100'
+                                }`}
+                        >
+                            <SolarFlareLoader />
+                        </div>
+                    )}
                 </div>
             </Router>
         </HelmetProvider>
