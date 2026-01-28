@@ -6,23 +6,24 @@ import {
     DocumentTextIcon,
     CheckBadgeIcon,
     SparklesIcon,
-    ArrowRightIcon,
     LockClosedIcon,
     CalendarIcon,
     MapPinIcon,
     UserIcon,
     CreditCardIcon,
-    ChatBubbleLeftRightIcon
+    ChatBubbleLeftRightIcon,
+    PhoneIcon
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
 const BookingPage: React.FC = () => {
     const [activeStep, setActiveStep] = useState<number>(1);
-    const formRef = useRef<BookingFormRef>(null);
+    const bookingFormRef = useRef<BookingFormRef>(null);
+    // Fixed: Removed duplicate formRef since we're using bookingFormRef
 
     const handleNextStep = async () => {
-        if (formRef.current) {
-            const isValid = await formRef.current.validateStep();
+        if (bookingFormRef.current) {
+            const isValid = await bookingFormRef.current.validateStep();
             if (isValid && activeStep < 3) {
                 setActiveStep(activeStep + 1);
             }
@@ -35,13 +36,21 @@ const BookingPage: React.FC = () => {
         }
     };
 
+    const handleComplete = () => {
+        // Reset form and steps
+        if (bookingFormRef.current) {
+            bookingFormRef.current.resetForm();
+        }
+        setActiveStep(1);
+    };
+
     const handleStepClick = async (step: number) => {
         if (step < activeStep) {
             // Allow going back without validation
             setActiveStep(step);
-        } else if (step > activeStep && formRef.current) {
+        } else if (step > activeStep && bookingFormRef.current) {
             // Validate current step before moving forward
-            const isValid = await formRef.current.validateStep();
+            const isValid = await bookingFormRef.current.validateStep();
             if (isValid) {
                 setActiveStep(step);
             }
@@ -168,7 +177,7 @@ const BookingPage: React.FC = () => {
                                 {processSteps.map((step) => (
                                     <div
                                         key={step.step}
-                                        className={`relative group cursor-pointer transition-all duration-300 ${activeStep === step.step ? 'transform scale-105' : ''
+                                        className={`relative group transition-all duration-300 ${activeStep === step.step ? 'transform scale-105' : ''
                                             }`}
                                         onClick={() => handleStepClick(step.step)}
                                     >
@@ -177,7 +186,7 @@ const BookingPage: React.FC = () => {
                                             <div className={`relative w-16 h-16 rounded-full flex items-center justify-center mb-4 ${activeStep === step.step
                                                 ? `bg-gradient-to-br ${step.color} shadow-lg shadow-[#FF6B35]/30`
                                                 : 'bg-gray-100 border-2 border-gray-200'
-                                                } transition-all duration-300`}>
+                                                } transition-all duration-300 cursor-pointer`}>
                                                 {activeStep > step.step ? (
                                                     <CheckCircleIcon className="h-8 w-8 text-white" />
                                                 ) : (
@@ -336,28 +345,12 @@ const BookingPage: React.FC = () => {
                             {/* Form Content */}
                             <div className="p-8">
                                 <BookingForm
-                                    ref={formRef}
+                                    ref={bookingFormRef}
                                     activeStep={activeStep}
                                     onNextStep={handleNextStep}
                                     onPrevStep={handlePrevStep}
+                                    onComplete={handleComplete}
                                 />
-                            </div>
-
-                            {/* Form Footer */}
-                            <div className="bg-gray-50 px-8 py-6 border-t border-gray-200">
-                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                                    <div className="text-sm text-gray-600">
-                                        <div className="flex items-center gap-2">
-                                            <LockClosedIcon className="h-4 w-4 text-green-500" />
-                                            <span>Your information is secured with 256-bit SSL encryption</span>
-                                        </div>
-                                    </div>
-
-                                    <button className="group flex items-center px-8 py-3.5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5">
-                                        <span>Complete Reservation</span>
-                                        <ArrowRightIcon className="ml-3 h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" />
-                                    </button>
-                                </div>
                             </div>
                         </div>
 
@@ -374,14 +367,19 @@ const BookingPage: React.FC = () => {
                                 </div>
 
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    <button className="px-6 py-3 bg-white text-gray-900 font-semibold rounded-xl border-2 border-gray-300 hover:border-[#FF6B35] hover:text-[#FF6B35] transition-all duration-300">
-                                        Live Chat Support
+                                    <button
+                                        onClick={() => window.open('tel:+254705336311')}
+                                        className="group px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#FF6B35]/20 transition-all duration-300 flex items-center justify-center"
+                                    >
+                                        <PhoneIcon className="h-5 w-5 mr-2" />
+                                        Call: +254 (705) 336 311
                                     </button>
-                                    <button className="px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#FF6B35]/20 transition-all duration-300">
-                                        Call: (888) 888-8888
-                                    </button>
-                                    <button className="px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#FF6B35]/20 transition-all duration-300">
-                                        Call: (888) 888-8888
+                                    <button
+                                        onClick={() => window.open('tel:+447397549590')}
+                                        className="group px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#FF6B35]/20 transition-all duration-300 flex items-center justify-center"
+                                    >
+                                        <PhoneIcon className="h-5 w-5 mr-2" />
+                                        Call: +44 (7397) 549 590
                                     </button>
                                 </div>
                             </div>

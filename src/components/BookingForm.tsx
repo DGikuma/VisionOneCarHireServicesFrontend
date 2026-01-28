@@ -1,9 +1,12 @@
-import { useState, forwardRef, useImperativeHandle } from 'react';
+import { useState, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { CalendarIcon, UserIcon, PhoneIcon, EnvelopeIcon, MapPinIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { format } from 'date-fns';
+
+// API base URL from environment variables or default
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://visiononecarhireservicesbackend-1.onrender.com';
 
 interface BookingFormData {
     customerName: string;
@@ -21,14 +24,40 @@ interface BookingFormProps {
     activeStep: number;
     onNextStep?: () => void;
     onPrevStep?: () => void;
+    onComplete?: () => void;
 }
 
 export interface BookingFormRef {
     validateStep: () => Promise<boolean>;
     getFormData: () => BookingFormData | null;
+    resetForm: () => void;
 }
 
-const carTypes = [
+interface BookingResponse {
+    message: string;
+    booking: {
+        id: string;
+        customerName: string;
+        email: string;
+        phone: string;
+        pickupDate: string;
+        returnDate: string;
+        carType: string;
+        pickupLocation: string;
+        dropoffLocation?: string;
+        additionalInfo?: string;
+        bookingDate: string;
+        status: string;
+    };
+}
+
+interface CarType {
+    id: string;
+    name: string;
+    description: string;
+}
+
+const carTypes: CarType[] = [
     { id: 'economy', name: 'Economy', description: 'Fuel-efficient, compact cars' },
     { id: 'compact', name: 'Compact', description: 'Perfect for city driving' },
     { id: 'mid-size', name: 'Mid-Size', description: 'Comfortable family cars' },
@@ -37,10 +66,22 @@ const carTypes = [
     { id: 'van', name: 'Van', description: 'For group transportation' },
 ];
 
-const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, onNextStep, onPrevStep }, ref) => {
+const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, onNextStep, onPrevStep, onComplete }, ref) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [confirmed, setConfirmed] = useState(false);
+    const [bookingData, setBookingData] = useState<BookingResponse['booking'] | null>(null);
+    const termsRef = useRef<HTMLInputElement>(null);
+
     const { register, handleSubmit, formState: { errors }, reset, trigger, watch, getValues } = useForm<BookingFormData>();
+
+    // Initialize axios with base URL
+    const apiClient = axios.create({
+        baseURL: API_BASE_URL,
+        timeout: 10000,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
 
     // Expose methods to parent component
     useImperativeHandle(ref, () => ({
@@ -55,13 +96,19 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                     fieldsToValidate = ['customerName', 'email', 'phone'];
                     break;
                 case 3:
-                    fieldsToValidate = ['pickupLocation', 'dropoffLocation'];
+                    fieldsToValidate = ['pickupLocation'];
                     break;
             }
 
-            return await trigger(fieldsToValidate);
+            const isValid = await trigger(fieldsToValidate);
+            return isValid;
         },
-        getFormData: () => getValues()
+        getFormData: () => getValues(),
+        resetForm: () => {
+            reset();
+            setConfirmed(false);
+            setBookingData(null);
+        }
     }));
 
     const onSubmit = async (data: BookingFormData) => {
@@ -70,23 +117,112 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
             return;
         }
 
+        // Check if terms are accepted
+        if (!termsRef.current?.checked) {
+            toast.error('Please accept the Terms and Conditions to proceed', {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            });
+            return;
+        }
+
         setIsSubmitting(true);
+
         try {
-            const response = await axios.post('/api/bookings', data);
-            toast.success('Booking confirmed! Check your email for the confirmation PDF.');
-            setConfirmed(true);
+            // Send form data to backend API
+            const response = await apiClient.post<BookingResponse>('/api/booking`', data);
 
-            // Reset form after successful submission
-            setTimeout(() => {
-                reset();
-                setConfirmed(false);
-                // You might want to navigate or reset steps here
-            }, 3000);
+            if (response.status === 201) {
+                // Success: Update state with response data
+                setBookingData(response.data.booking);
+                setConfirmed(true);
 
-            console.log('Booking response:', response.data);
-        } catch (error) {
+                // Show success toast
+                toast.success('✅ Booking confirmed! Check your email for the confirmation PDF.', {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+
+                // Call onComplete callback if provided
+                if (onComplete) {
+                    setTimeout(() => {
+                        onComplete();
+                    }, 3000);
+                }
+            }
+        } catch (error: any) {
             console.error('Booking error:', error);
-            toast.error('Failed to create booking. Please try again.');
+
+            // Handle different types of errors
+            if (error.response) {
+                // Server responded with error status
+                const errorMessage = error.response.data?.error || error.response.data?.message || 'Booking failed';
+
+                if (error.response.status === 400) {
+                    // Validation errors
+                    toast.error(`❌ ${errorMessage}`, {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                } else if (error.response.status === 429) {
+                    // Rate limiting
+                    toast.error('⚠️ Too many requests. Please try again in a few minutes.', {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                } else {
+                    // Other server errors
+                    toast.error('❌ Server error. Please try again later.', {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                }
+            } else if (error.request) {
+                // Request made but no response
+                toast.error('⚠️ Network error. Please check your connection and try again.', {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            } else {
+                // Other errors
+                toast.error('❌ Something went wrong. Please try again.', {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            }
+
+            // Optionally log error for debugging
+            if (process.env.NODE_ENV === 'development') {
+                console.error('Full error details:', error);
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -114,6 +250,52 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
         return format(new Date(dateString), 'MMM dd, yyyy');
     };
 
+    // Render success message with backend data
+    const renderSuccessMessage = () => {
+        if (!bookingData) return null;
+
+        return (
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6">
+                <div className="flex flex-col items-center justify-center space-y-4">
+                    <div className="relative">
+                        <CheckCircleIcon className="h-16 w-16 text-green-600" />
+                        <div className="absolute -inset-4 border-2 border-green-500/30 rounded-full animate-pulse" />
+                    </div>
+
+                    <div className="text-center">
+                        <h3 className="text-2xl font-semibold text-green-900 mb-2">Booking Confirmed!</h3>
+                        <p className="text-green-700 mb-4">Your confirmation PDF has been sent to {bookingData.email}</p>
+
+                        <div className="mt-4 p-4 bg-white/50 rounded-xl">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                                <div>
+                                    <p className="text-sm text-gray-600">Booking ID</p>
+                                    <p className="font-semibold text-gray-900">{bookingData.id}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-600">Status</p>
+                                    <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
+                                        {bookingData.status.toUpperCase()}
+                                    </span>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-600">Vehicle</p>
+                                    <p className="font-semibold text-gray-900">{bookingData.carType}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-600">Booking Date</p>
+                                    <p className="font-semibold text-gray-900">
+                                        {format(new Date(bookingData.bookingDate), 'MMM dd, yyyy HH:mm')}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             {/* Step 1: Reservation Details */}
@@ -139,7 +321,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                     }
                                 })}
                                 min={format(new Date(), 'yyyy-MM-dd')}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={isSubmitting}
                             />
                             {errors.pickupDate && (
                                 <p className="mt-2 text-sm text-red-600">{errors.pickupDate.message}</p>
@@ -161,7 +344,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                     }
                                 })}
                                 min={watch('pickupDate') || format(new Date(), 'yyyy-MM-dd')}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={isSubmitting}
                             />
                             {errors.returnDate && (
                                 <p className="mt-2 text-sm text-red-600">{errors.returnDate.message}</p>
@@ -199,13 +383,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                         ${formData.carType === car.id
                                             ? 'border-[#FF6B35] bg-gradient-to-r from-[#FF6B35]/5 to-[#FF8B35]/5 shadow-md'
                                             : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                                        }`}
+                                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                                 >
                                     <input
                                         type="radio"
                                         value={car.id}
                                         {...register('carType', { required: 'Please select a car type' })}
                                         className="peer sr-only"
+                                        disabled={isSubmitting}
                                     />
                                     <div className="flex items-center justify-between mb-2">
                                         <p className="font-semibold text-gray-900">{car.name}</p>
@@ -245,8 +430,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                         message: 'Name must be at least 2 characters'
                                     }
                                 })}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                 placeholder="Enter Your Full Name"
+                                disabled={isSubmitting}
                             />
                             {errors.customerName && (
                                 <p className="mt-2 text-sm text-red-600">{errors.customerName.message}</p>
@@ -268,8 +454,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                             message: 'Invalid email address',
                                         },
                                     })}
-                                    className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300"
+                                    className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     placeholder="Enter Your Email Address"
+                                    disabled={isSubmitting}
                                 />
                             </div>
                             {errors.email && (
@@ -292,8 +479,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                             message: 'Invalid phone number',
                                         },
                                     })}
-                                    className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300"
+                                    className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     placeholder="Enter Your Phone Number"
+                                    disabled={isSubmitting}
                                 />
                             </div>
                             {errors.phone && (
@@ -363,8 +551,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                     {...register('pickupLocation', {
                                         required: 'Pick-up location is required'
                                     })}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     placeholder="Main Office, 123 Street"
+                                    disabled={isSubmitting}
                                 />
                                 {errors.pickupLocation && (
                                     <p className="mt-2 text-sm text-red-600">{errors.pickupLocation.message}</p>
@@ -379,8 +568,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                 <input
                                     type="text"
                                     {...register('dropoffLocation')}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     placeholder="Same as pick-up"
+                                    disabled={isSubmitting}
                                 />
                             </div>
                         </div>
@@ -393,8 +583,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                             <textarea
                                 {...register('additionalInfo')}
                                 rows={3}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                 placeholder="Any special requirements, additional drivers, etc."
+                                disabled={isSubmitting}
                             />
                         </div>
                     </div>
@@ -403,13 +594,15 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
                         <div className="flex items-start space-x-3">
                             <input
+                                ref={termsRef}
                                 type="checkbox"
                                 id="terms"
-                                className="h-5 w-5 text-[#FF6B35] rounded focus:ring-[#FF6B35] border-gray-300"
+                                className="h-5 w-5 text-[#FF6B35] rounded focus:ring-[#FF6B35] border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={isSubmitting}
                             />
                             <div className="text-sm">
                                 <label htmlFor="terms" className="font-medium text-gray-900">
-                                    I agree to the Terms and Conditions
+                                    I agree to the Terms and Conditions *
                                 </label>
                                 <p className="text-gray-600 mt-1">
                                     By proceeding, you acknowledge that you have read and agree to our rental terms,
@@ -420,17 +613,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                     </div>
 
                     {/* Success Message */}
-                    {confirmed && (
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6">
-                            <div className="flex items-center justify-center space-x-3">
-                                <CheckCircleIcon className="h-8 w-8 text-green-600" />
-                                <div>
-                                    <h3 className="font-semibold text-green-900">Booking Confirmed!</h3>
-                                    <p className="text-green-700">Your confirmation PDF has been sent to {formData.email}</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {confirmed && renderSuccessMessage()}
                 </div>
             )}
 
@@ -440,7 +623,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                     <button
                         type="button"
                         onClick={onPrevStep}
-                        className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-300"
+                        className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={isSubmitting || confirmed}
                     >
                         ← Previous
                     </button>
@@ -456,7 +640,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                     onNextStep?.();
                                 }
                             }}
-                            className="group flex items-center px-8 py-3.5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5"
+                            className="group flex items-center px-8 py-3.5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
+                            disabled={isSubmitting}
                         >
                             Continue to Next Step
                             <svg className="ml-3 h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -467,7 +652,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                         <button
                             type="submit"
                             disabled={isSubmitting || confirmed}
-                            className="group flex items-center px-12 py-4 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                            className="group flex items-center px-12 py-4 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
                         >
                             {isSubmitting ? (
                                 <span className="flex items-center">

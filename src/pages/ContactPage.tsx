@@ -1,5 +1,7 @@
+// src/components/ContactPage.tsx
 import * as React from 'react';
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
     PhoneIcon,
     EnvelopeIcon,
@@ -16,9 +18,66 @@ import {
     DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as SolidCheck } from '@heroicons/react/24/solid';
+import { toast } from 'react-toastify';
+
+// API base URL from environment variables or default
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://visiononecarhireservicesbackend-1.onrender.com';
+
+// TypeScript interfaces
+interface ContactFormData {
+    name: string;
+    email: string;
+    phone: string;
+    company: string;
+    subject: string;
+    message: string;
+    department: string;
+}
+
+interface ContactResponse {
+    message: string;
+    inquiry: {
+        id: string;
+        name: string;
+        email: string;
+        subject: string;
+        department: string;
+        priority: 'low' | 'normal' | 'high' | 'urgent';
+        estimatedResponseTime: string;
+        submissionDate: string;
+    };
+}
+
+interface Department {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    description: string;
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+}
+
+interface ContactChannel {
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    title: string;
+    details: string[];
+    description: string;
+    color: string;
+    action: string;
+}
+
+interface Location {
+    city: string;
+    country: string;
+    address: string;
+    phone: string;
+    hours: string;
+    features: string[];
+    featured: boolean;
+}
 
 const ContactPage: React.FC = () => {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<ContactFormData>({
         name: '',
         email: '',
         phone: '',
@@ -31,6 +90,16 @@ const ContactPage: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [activeDepartment, setActiveDepartment] = useState('general');
+    const [submissionData, setSubmissionData] = useState<ContactResponse['inquiry'] | null>(null);
+
+    // Initialize axios with base URL
+    const apiClient = axios.create({
+        baseURL: API_BASE_URL,
+        timeout: 10000,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
 
     useEffect(() => {
         // Add subtle animations on scroll
@@ -52,41 +121,203 @@ const ContactPage: React.FC = () => {
         return () => observer.disconnect();
     }, []);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
         });
     };
 
+    const handleDepartmentChange = (departmentId: string) => {
+        setActiveDepartment(departmentId);
+        setFormData(prev => ({ ...prev, department: departmentId }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            setIsSubmitting(false);
-            setIsSubmitted(true);
-            setFormData({
-                name: '',
-                email: '',
-                phone: '',
-                company: '',
-                subject: '',
-                message: '',
-                department: 'general'
-            });
+        try {
+            // Send form data to backend API
+            const response = await apiClient.post<ContactResponse>('/api/contact', formData);
 
-            // Reset success message after 5 seconds
-            setTimeout(() => setIsSubmitted(false), 5000);
-        }, 2000);
+            if (response.status === 201) {
+                // Success: Update state with response data
+                setSubmissionData(response.data.inquiry);
+                setIsSubmitted(true);
+
+                // Show success toast
+                toast.success('✅ Inquiry submitted successfully! Check your email for confirmation.', {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+
+                // Reset form data
+                setFormData({
+                    name: '',
+                    email: '',
+                    phone: '',
+                    company: '',
+                    subject: '',
+                    message: '',
+                    department: 'general'
+                });
+
+                // Reset active department
+                setActiveDepartment('general');
+
+                // Auto-reset success message after 10 seconds
+                setTimeout(() => {
+                    setIsSubmitted(false);
+                    setSubmissionData(null);
+                }, 10000);
+            }
+        } catch (error: any) {
+            console.error('Submission error:', error);
+
+            // Handle different types of errors
+            if (error.response) {
+                // Server responded with error status
+                const errorMessage = error.response.data?.error || error.response.data?.message || 'Submission failed';
+
+                if (error.response.status === 400) {
+                    // Validation errors
+                    toast.error(`❌ ${errorMessage}`, {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                } else if (error.response.status === 429) {
+                    // Rate limiting
+                    toast.error('⚠️ Too many requests. Please try again in a few minutes.', {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                } else {
+                    // Other server errors
+                    toast.error('❌ Server error. Please try again later.', {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                }
+            } else if (error.request) {
+                // Request made but no response
+                toast.error('⚠️ Network error. Please check your connection and try again.', {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            } else {
+                // Other errors
+                toast.error('❌ Something went wrong. Please try again.', {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            }
+
+            // Optionally log error for debugging
+            if (process.env.NODE_ENV === 'development') {
+                console.error('Full error details:', error);
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const contactChannels = [
+    const renderSuccessMessage = () => {
+        if (!submissionData) return null;
+
+        return (
+            <div className="text-center py-12">
+                <div className="relative inline-block mb-6">
+                    <CheckCircleIcon className="h-20 w-20 text-green-500" />
+                    <div className="absolute -inset-4 border-2 border-green-500/30 rounded-full animate-pulse" />
+                </div>
+
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                    Inquiry Submitted Successfully!
+                </h3>
+
+                <div className="mb-8 max-w-lg mx-auto bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-4">
+                        <div>
+                            <p className="text-sm text-gray-600">Reference ID</p>
+                            <p className="font-semibold text-gray-900">{submissionData.id}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600">Priority</p>
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${submissionData.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                                submissionData.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                                    'bg-green-100 text-green-800'
+                                }`}>
+                                {submissionData.priority.toUpperCase()}
+                            </span>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600">Department</p>
+                            <p className="font-semibold text-gray-900">
+                                {executiveDepartments.find(d => d.id === submissionData.department)?.name}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600">Estimated Response</p>
+                            <p className="font-semibold text-gray-900">{submissionData.estimatedResponseTime}</p>
+                        </div>
+                    </div>
+
+                    <p className="text-gray-600 text-sm mb-4">
+                        Thank you for contacting Vision One Executive Services.
+                        A confirmation email has been sent to {submissionData.email}.
+                        Our team will respond within the estimated time frame.
+                    </p>
+                </div>
+
+                <div className="space-y-4">
+                    <div className="flex items-center justify-center text-sm text-gray-500">
+                        <ClockIcon className="h-4 w-4 mr-2" />
+                        <span>Submitted: {new Date(submissionData.submissionDate).toLocaleString()}</span>
+                    </div>
+                    <button
+                        onClick={() => {
+                            setIsSubmitted(false);
+                            setSubmissionData(null);
+                        }}
+                        className="px-8 py-3.5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5"
+                    >
+                        Send Another Message
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    const contactChannels: ContactChannel[] = [
         {
             icon: PhoneIcon,
             title: 'Executive Support',
-            details: ['+254 (705) 336 311', '+1 +44 (7397) 549 590'],
+            details: ['+254 (705) 336 311', '+44 (7397) 549 590'],
             description: '24/7 premium concierge service for urgent matters',
             color: 'from-[#FF6B35] to-[#FF8B35]',
             action: 'Call Now'
@@ -117,7 +348,7 @@ const ContactPage: React.FC = () => {
         }
     ];
 
-    const executiveDepartments = [
+    const executiveDepartments: Department[] = [
         {
             id: 'general',
             name: 'Executive Office',
@@ -152,7 +383,7 @@ const ContactPage: React.FC = () => {
         }
     ];
 
-    const globalLocations = [
+    const globalLocations: Location[] = [
         {
             city: 'Kilimani, Nairobi',
             country: 'Kenya',
@@ -172,6 +403,28 @@ const ContactPage: React.FC = () => {
             featured: false
         }
     ];
+
+    const handleContactAction = (channel: ContactChannel) => {
+        switch (channel.action) {
+            case 'Call Now':
+                window.open(`tel:${channel.details[0].replace(/[^+\d]/g, '')}`);
+                break;
+            case 'Send Email':
+                window.open(`mailto:${channel.details[0]}?subject=Inquiry from Vision One Website`);
+                break;
+            case 'Get Directions':
+                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(channel.details[0])}`);
+                break;
+            case 'View Schedule':
+                toast.info('Schedule: 24/7 Concierge, Executive Office: 8 AM - 10 PM EST', {
+                    position: "top-right",
+                    autoClose: 3000,
+                });
+                break;
+            default:
+                break;
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -261,7 +514,10 @@ const ContactPage: React.FC = () => {
                                         {channel.description}
                                     </p>
 
-                                    <button className="text-[#FF6B35] font-semibold flex items-center group/btn">
+                                    <button
+                                        onClick={() => handleContactAction(channel)}
+                                        className="text-[#FF6B35] font-semibold flex items-center group/btn hover:text-[#FF8B35] transition-colors duration-300"
+                                    >
                                         <span>{channel.action}</span>
                                         <ArrowRightIcon className="h-4 w-4 ml-2 transform group-hover/btn:translate-x-1 transition-transform duration-300" />
                                     </button>
@@ -295,10 +551,7 @@ const ContactPage: React.FC = () => {
                                                 ? 'border-[#FF6B35] bg-gradient-to-r from-[#FF6B35]/5 to-transparent shadow-lg'
                                                 : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
                                                 }`}
-                                            onClick={() => {
-                                                setActiveDepartment(dept.id);
-                                                setFormData(prev => ({ ...prev, department: dept.id }));
-                                            }}
+                                            onClick={() => handleDepartmentChange(dept.id)}
                                         >
                                             <div className="flex items-start gap-4">
                                                 <div className={`p-3 rounded-xl ${activeDepartment === dept.id
@@ -361,7 +614,13 @@ const ContactPage: React.FC = () => {
                                         </li>
                                     </ul>
 
-                                    <button className="w-full py-3 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl hover:bg-white/20 transition-all duration-300 border border-white/20">
+                                    <button
+                                        onClick={() => toast.info('Service Level Agreement coming soon!', {
+                                            position: "top-right",
+                                            autoClose: 3000,
+                                        })}
+                                        className="w-full py-3 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl hover:bg-white/20 transition-all duration-300 border border-white/20"
+                                    >
                                         View Service Level Agreement
                                     </button>
                                 </div>
@@ -397,32 +656,7 @@ const ContactPage: React.FC = () => {
                             {/* Form Content */}
                             <div className="p-8">
                                 {isSubmitted ? (
-                                    <div className="text-center py-12">
-                                        <div className="relative inline-block mb-6">
-                                            <CheckCircleIcon className="h-20 w-20 text-green-500" />
-                                            <div className="absolute -inset-4 border-2 border-green-500/30 rounded-full animate-pulse" />
-                                        </div>
-
-                                        <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                                            Message Received Successfully!
-                                        </h3>
-                                        <p className="text-gray-600 mb-8 max-w-lg mx-auto">
-                                            Thank you for contacting Vision One Executive Services.
-                                            Our team will respond within 2 hours during business hours.
-                                        </p>
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-center text-sm text-gray-500">
-                                                <ClockIcon className="h-4 w-4 mr-2" />
-                                                <span>Response Time: 2 business hours</span>
-                                            </div>
-                                            <button
-                                                onClick={() => setIsSubmitted(false)}
-                                                className="px-8 py-3.5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5"
-                                            >
-                                                Send Another Message
-                                            </button>
-                                        </div>
-                                    </div>
+                                    renderSuccessMessage()
                                 ) : (
                                     <form onSubmit={handleSubmit} className="space-y-8">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -436,7 +670,8 @@ const ContactPage: React.FC = () => {
                                                     value={formData.name}
                                                     onChange={handleChange}
                                                     required
-                                                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none"
+                                                    disabled={isSubmitting}
+                                                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                                                     placeholder="John A. Smith"
                                                 />
                                             </div>
@@ -451,7 +686,8 @@ const ContactPage: React.FC = () => {
                                                     value={formData.email}
                                                     onChange={handleChange}
                                                     required
-                                                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none"
+                                                    disabled={isSubmitting}
+                                                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                                                     placeholder="john.smith@company.com"
                                                 />
                                             </div>
@@ -467,8 +703,9 @@ const ContactPage: React.FC = () => {
                                                     name="phone"
                                                     value={formData.phone}
                                                     onChange={handleChange}
-                                                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none"
-                                                    placeholder="+13232423423432"
+                                                    disabled={isSubmitting}
+                                                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    placeholder="+254705336311"
                                                 />
                                             </div>
 
@@ -481,7 +718,8 @@ const ContactPage: React.FC = () => {
                                                     name="company"
                                                     value={formData.company}
                                                     onChange={handleChange}
-                                                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none"
+                                                    disabled={isSubmitting}
+                                                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                                                     placeholder="Acme Corporation"
                                                 />
                                             </div>
@@ -497,7 +735,8 @@ const ContactPage: React.FC = () => {
                                                 value={formData.subject}
                                                 onChange={handleChange}
                                                 required
-                                                className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none"
+                                                disabled={isSubmitting}
+                                                className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                                                 placeholder="Brief description of your inquiry"
                                             />
                                         </div>
@@ -512,7 +751,8 @@ const ContactPage: React.FC = () => {
                                                 onChange={handleChange}
                                                 required
                                                 rows={6}
-                                                className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none resize-none"
+                                                disabled={isSubmitting}
+                                                className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                                                 placeholder="Please provide details about your inquiry, requirements, and any specific assistance needed..."
                                             />
                                         </div>
@@ -521,7 +761,7 @@ const ContactPage: React.FC = () => {
                                             <button
                                                 type="submit"
                                                 disabled={isSubmitting}
-                                                className="w-full py-5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF6B35]"
+                                                className="w-full py-5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none transition-all duration-300 transform hover:-translate-y-0.5 disabled:transform-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF6B35]"
                                             >
                                                 {isSubmitting ? (
                                                     <span className="flex items-center justify-center">
@@ -557,15 +797,27 @@ const ContactPage: React.FC = () => {
                                 </div>
 
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    <button className="group px-6 py-3 bg-white text-gray-900 font-semibold rounded-xl border-2 border-gray-300 hover:border-[#FF6B35] hover:text-[#FF6B35] transition-all duration-300 flex items-center justify-center">
+                                    <button
+                                        onClick={() => toast.info('Live chat coming soon!', {
+                                            position: "top-right",
+                                            autoClose: 3000,
+                                        })}
+                                        className="group px-6 py-3 bg-white text-gray-900 font-semibold rounded-xl border-2 border-gray-300 hover:border-[#FF6B35] hover:text-[#FF6B35] transition-all duration-300 flex items-center justify-center"
+                                    >
                                         <ChatBubbleLeftRightIcon className="h-5 w-5 mr-2" />
                                         Start Live Chat
                                     </button>
-                                    <button className="group px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#FF6B35]/20 transition-all duration-300 flex items-center justify-center">
+                                    <button
+                                        onClick={() => window.open('tel:+254705336311')}
+                                        className="group px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#FF6B35]/20 transition-all duration-300 flex items-center justify-center"
+                                    >
                                         <PhoneIcon className="h-5 w-5 mr-2" />
                                         Call: +254 (705) 336 311
                                     </button>
-                                    <button className="group px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#FF6B35]/20 transition-all duration-300 flex items-center justify-center">
+                                    <button
+                                        onClick={() => window.open('tel:+447397549590')}
+                                        className="group px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#FF6B35]/20 transition-all duration-300 flex items-center justify-center"
+                                    >
                                         <PhoneIcon className="h-5 w-5 mr-2" />
                                         Call: +44 (7397) 549 590
                                     </button>
@@ -645,7 +897,13 @@ const ContactPage: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <button className="w-full py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors duration-300">
+                                    <button
+                                        onClick={() => toast.info(`Details for ${location.city} coming soon!`, {
+                                            position: "top-right",
+                                            autoClose: 3000,
+                                        })}
+                                        className="w-full py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors duration-300"
+                                    >
                                         View Location Details
                                     </button>
                                 </div>
@@ -673,7 +931,13 @@ const ContactPage: React.FC = () => {
                             <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
                                 Interactive map showing all our premium service centers and executive lounges worldwide
                             </p>
-                            <button className="px-8 py-3.5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5">
+                            <button
+                                onClick={() => toast.info('Global network map coming soon!', {
+                                    position: "top-right",
+                                    autoClose: 3000,
+                                })}
+                                className="px-8 py-3.5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5"
+                            >
                                 Explore Global Network
                             </button>
                         </div>
@@ -699,10 +963,34 @@ const ContactPage: React.FC = () => {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="px-8 py-4 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-1">
+                        <button
+                            onClick={() => {
+                                setFormData({
+                                    name: '',
+                                    email: '',
+                                    phone: '',
+                                    company: '',
+                                    subject: 'Executive Consultation Request',
+                                    message: 'I would like to schedule an executive consultation to discuss premium services.',
+                                    department: 'general'
+                                });
+                                setActiveDepartment('general');
+                                document.querySelector('.form-card')?.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start'
+                                });
+                            }}
+                            className="px-8 py-4 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-1"
+                        >
                             Schedule Executive Consultation
                         </button>
-                        <button className="px-8 py-4 bg-white text-gray-900 font-bold rounded-xl border-2 border-gray-300 hover:border-[#FF6B35] hover:text-[#FF6B35] transition-all duration-300">
+                        <button
+                            onClick={() => toast.info('Corporate brochure download coming soon!', {
+                                position: "top-right",
+                                autoClose: 3000,
+                            })}
+                            className="px-8 py-4 bg-white text-gray-900 font-bold rounded-xl border-2 border-gray-300 hover:border-[#FF6B35] hover:text-[#FF6B35] transition-all duration-300"
+                        >
                             Download Corporate Brochure
                         </button>
                     </div>
