@@ -23,7 +23,8 @@ import BlogPage from './pages/BlogPage';
 import SingleBlogPage from './pages/SingleBlogPage';
 import LocationsPage from './pages/LocationsPage';
 import NotFoundPage from './pages/NotFoundPage';
-import CookiePopup from './pages/CookiePopup';
+// Remove CookiePopup from pages import and add it to components
+import CookiePopup from './components/CookiePopup'; // Move to components folder
 
 // Loader
 import SolarFlareLoader from './components/SolarFlareLoader';
@@ -31,6 +32,7 @@ import SolarFlareLoader from './components/SolarFlareLoader';
 function App() {
     const [isAppReady, setIsAppReady] = useState(false);
     const [showLoader, setShowLoader] = useState(true);
+    const [showCookiePopup, setShowCookiePopup] = useState(false);
 
     useEffect(() => {
         let loadFinished = false;
@@ -47,7 +49,7 @@ function App() {
             }
         };
 
-        // Minimum 5-second delay
+        // Minimum 1-second delay (reduced from 5 seconds for better UX)
         const delayTimer = setTimeout(() => {
             minDelayFinished = true;
             checkReady();
@@ -71,10 +73,26 @@ function App() {
         };
     }, []);
 
+    // Check for cookie consent when app is ready
+    useEffect(() => {
+        if (isAppReady) {
+            const hasConsent = localStorage.getItem('vision-one-cookie-consent');
+            if (!hasConsent) {
+                // Wait a bit more for page to settle, then show cookie popup
+                setTimeout(() => {
+                    setShowCookiePopup(true);
+                }, 1500);
+            }
+        }
+    }, [isAppReady]);
+
     return (
         <HelmetProvider>
             <Router>
                 <div className="min-h-screen bg-gray-50 flex flex-col relative">
+                    {/* Cookie Popup - Rendered conditionally */}
+                    {showCookiePopup && <CookiePopup />}
+
                     {/* Page content */}
                     {isAppReady && (
                         <>
@@ -96,7 +114,7 @@ function App() {
                                         <Route path="/faq" element={<FAQPage />} />
                                         <Route path="/seo" element={<SEOPage />} />
                                         <Route path="*" element={<NotFoundPage />} />
-                                        <Route path="/cookie-preferences" element={<CookiePopup />} />
+                                        {/* Remove CookiePopup route */}
                                     </Routes>
                                 </Suspense>
                             </main>
