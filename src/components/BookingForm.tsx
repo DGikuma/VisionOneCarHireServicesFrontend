@@ -1,4 +1,4 @@
-import { useState, forwardRef, useImperativeHandle, useRef } from 'react';
+import { useState, forwardRef, useImperativeHandle, useRef, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { CalendarIcon, UserIcon, PhoneIcon, EnvelopeIcon, MapPinIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
@@ -70,18 +70,77 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [confirmed, setConfirmed] = useState(false);
     const [bookingData, setBookingData] = useState<BookingResponse['booking'] | null>(null);
-    const termsRef = useRef<HTMLInputElement>(null);
+    const [termsAccepted, setTermsAccepted] = useState(false); // State for terms acceptance
 
     const { register, handleSubmit, formState: { errors }, reset, trigger, watch, getValues } = useForm<BookingFormData>();
 
-    // Initialize axios with base URL
-    const apiClient = axios.create({
-        baseURL: API_BASE_URL,
-        timeout: 10000,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
+    // Create axios instance with interceptors for logging
+    const apiClient = useMemo(() => {
+        const client = axios.create({
+            baseURL: API_BASE_URL,
+            timeout: 10000,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        // Add request interceptor for logging
+        client.interceptors.request.use(
+            (config) => {
+                console.group('📨 Axios Request');
+                console.log(`Method: ${config.method?.toUpperCase()}`);
+                console.log(`URL: ${config.baseURL}${config.url}`);
+                console.log('Headers:', config.headers);
+                console.log('Data:', config.data);
+                console.groupEnd();
+                return config;
+            },
+            (error) => {
+                console.error('❌ Request interceptor error:', error);
+                return Promise.reject(error);
+            }
+        );
+
+        // Add response interceptor for logging
+        client.interceptors.response.use(
+            (response) => {
+                console.group('✅ Axios Response');
+                console.log(`Status: ${response.status}`);
+                console.log(`URL: ${response.config.url}`);
+                console.log('Data:', response.data);
+                console.log('Headers:', response.headers);
+                console.groupEnd();
+                return response;
+            },
+            (error) => {
+                console.group('❌ Axios Error Response');
+                console.log('Error occurred for URL:', error.config?.url);
+                if (error.response) {
+                    console.log('Response status:', error.response.status);
+                    console.log('Response data:', error.response.data);
+                    console.log('Response headers:', error.response.headers);
+                } else if (error.request) {
+                    console.log('No response received. Request:', error.request);
+                } else {
+                    console.log('Error setting up request:', error.message);
+                }
+                console.groupEnd();
+                return Promise.reject(error);
+            }
+        );
+
+        return client;
+    }, []);
+
+    // Log environment info on mount
+    useEffect(() => {
+        console.group('🌍 Booking Form Environment');
+        console.log('API Base URL:', API_BASE_URL);
+        console.log('Node Environment:', process.env.NODE_ENV);
+        console.log('Full Booking Endpoint:', `${API_BASE_URL}/api/booking`);
+        console.log('Full Contact Endpoint:', `${API_BASE_URL}/api/contact`);
+        console.groupEnd();
+    }, []);
 
     // Expose methods to parent component
     useImperativeHandle(ref, () => ({
@@ -108,6 +167,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
             reset();
             setConfirmed(false);
             setBookingData(null);
+            setTermsAccepted(false); // Reset terms when form is reset
         }
     }));
 
@@ -118,7 +178,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
         }
 
         // Check if terms are accepted
-        if (!termsRef.current?.checked) {
+        if (!termsAccepted) {
             toast.error('Please accept the Terms and Conditions to proceed', {
                 position: "top-right",
                 autoClose: 5000,
@@ -132,11 +192,29 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
 
         setIsSubmitting(true);
 
+        console.group('🚀 Booking Form Submission');
+        console.log('📤 Form data being submitted:', data);
+        console.log('🔗 Target endpoint:', '/api/booking');
+        console.log('🎯 Full URL:', `${API_BASE_URL}/api/booking`);
+        console.log('⏱️ Submission started at:', new Date().toISOString());
+
         try {
             // Send form data to backend API
-            const response = await apiClient.post<BookingResponse>('/api/booking`', data);
+            console.log('📡 Making POST request to backend...');
+
+            const response = await apiClient.post<BookingResponse>('/api/booking', data);
+
+            console.log('✅ Backend response received!');
+            console.log('📊 Response status:', response.status);
+            console.log('📦 Response data:', response.data);
+            console.log('📋 Response headers:', response.headers);
 
             if (response.status === 201) {
+                console.log('🎉 Booking created successfully!');
+                console.log('📝 Booking ID:', response.data.booking.id);
+                console.log('📧 Email sent to:', response.data.booking.email);
+                console.log('📅 Booking date:', response.data.booking.bookingDate);
+
                 // Success: Update state with response data
                 setBookingData(response.data.booking);
                 setConfirmed(true);
@@ -154,20 +232,33 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                 // Call onComplete callback if provided
                 if (onComplete) {
                     setTimeout(() => {
+                        console.log('📞 Calling onComplete callback...');
                         onComplete();
                     }, 3000);
                 }
+            } else {
+                console.warn('⚠️ Unexpected response status:', response.status);
             }
         } catch (error: any) {
-            console.error('Booking error:', error);
+            console.group('❌ Booking Submission Error');
+            console.error('Error type:', error.constructor.name);
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
 
             // Handle different types of errors
             if (error.response) {
                 // Server responded with error status
+                console.error('📡 Server responded with error:', error.response.status);
+                console.error('📋 Error data:', error.response.data);
+                console.error('📨 Error headers:', error.response.headers);
+
                 const errorMessage = error.response.data?.error || error.response.data?.message || 'Booking failed';
+                console.error('📝 Error message from server:', errorMessage);
 
                 if (error.response.status === 400) {
                     // Validation errors
+                    console.warn('⚠️ Validation error - Check form data');
+                    console.log('📋 Validation details:', error.response.data?.errors);
                     toast.error(`❌ ${errorMessage}`, {
                         position: "top-right",
                         autoClose: 5000,
@@ -178,7 +269,30 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                     });
                 } else if (error.response.status === 429) {
                     // Rate limiting
+                    console.warn('⏰ Rate limit exceeded');
                     toast.error('⚠️ Too many requests. Please try again in a few minutes.', {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                } else if (error.response.status === 404) {
+                    // Endpoint not found
+                    console.error('🔍 Endpoint not found - Check backend routes');
+                    toast.error('❌ Booking service is currently unavailable. Please try again later.', {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                } else if (error.response.status === 500) {
+                    // Internal server error
+                    console.error('🔥 Internal server error');
+                    toast.error('❌ Server error. Our team has been notified.', {
                         position: "top-right",
                         autoClose: 5000,
                         hideProgressBar: false,
@@ -188,7 +302,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                     });
                 } else {
                     // Other server errors
-                    toast.error('❌ Server error. Please try again later.', {
+                    console.error('🔥 Server error:', error.response.status);
+                    toast.error(`❌ Server error (${error.response.status}). Please try again later.`, {
                         position: "top-right",
                         autoClose: 5000,
                         hideProgressBar: false,
@@ -199,6 +314,18 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                 }
             } else if (error.request) {
                 // Request made but no response
+                console.error('🌐 Network error - No response received');
+                console.error('Request object:', error.request);
+                console.error('Request URL:', error.config?.url);
+                console.error('Request method:', error.config?.method);
+                console.error('Request data:', error.config?.data);
+                console.error('Request headers:', error.config?.headers);
+
+                // Check CORS issues
+                console.log('🔍 Checking CORS...');
+                console.log('Origin:', window.location.origin);
+                console.log('API Base URL:', API_BASE_URL);
+
                 toast.error('⚠️ Network error. Please check your connection and try again.', {
                     position: "top-right",
                     autoClose: 5000,
@@ -209,6 +336,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                 });
             } else {
                 // Other errors
+                console.error('⚡ Setup error:', error.message);
+                console.error('Error config:', error.config);
+
                 toast.error('❌ Something went wrong. Please try again.', {
                     position: "top-right",
                     autoClose: 5000,
@@ -219,16 +349,23 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                 });
             }
 
-            // Optionally log error for debugging
-            if (process.env.NODE_ENV === 'development') {
-                console.error('Full error details:', error);
-            }
+            console.groupEnd();
         } finally {
+            console.log('🏁 Submission process completed');
+            console.log('⏱️ Submission ended at:', new Date().toISOString());
+            console.groupEnd();
             setIsSubmitting(false);
         }
     };
 
     const formData = watch();
+
+    // Log form changes for debugging
+    useEffect(() => {
+        if (Object.keys(formData).length > 0) {
+            console.log('📝 Form data updated:', formData);
+        }
+    }, [formData]);
 
     // Calculate number of rental days
     const calculateRentalDays = () => {
@@ -594,9 +731,13 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
                         <div className="flex items-start space-x-3">
                             <input
-                                ref={termsRef}
                                 type="checkbox"
                                 id="terms"
+                                checked={termsAccepted}
+                                onChange={(e) => {
+                                    console.log('📋 Terms checkbox changed:', e.target.checked);
+                                    setTermsAccepted(e.target.checked);
+                                }}
                                 className="h-5 w-5 text-[#FF6B35] rounded focus:ring-[#FF6B35] border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                 disabled={isSubmitting}
                             />
@@ -608,6 +749,11 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                     By proceeding, you acknowledge that you have read and agree to our rental terms,
                                     cancellation policy, and privacy policy.
                                 </p>
+                                {!termsAccepted && activeStep === 3 && (
+                                    <p className="text-red-500 text-sm mt-2">
+                                        You must accept the Terms and Conditions to complete your booking
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -635,7 +781,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                         <button
                             type="button"
                             onClick={async () => {
+                                console.log(`🔄 Moving from step ${activeStep} to ${activeStep + 1}`);
                                 const isValid = await trigger();
+                                console.log(`✓ Form validation result:`, isValid);
                                 if (isValid) {
                                     onNextStep?.();
                                 }
@@ -651,8 +799,11 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                     ) : (
                         <button
                             type="submit"
-                            disabled={isSubmitting || confirmed}
-                            className="group flex items-center px-12 py-4 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
+                            disabled={isSubmitting || confirmed || !termsAccepted}
+                            className={`group flex items-center px-12 py-4 text-white font-bold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 ${termsAccepted && !isSubmitting && !confirmed
+                                ? 'bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] hover:shadow-xl hover:shadow-[#FF6B35]/20 cursor-pointer'
+                                : 'bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-70'
+                                }`}
                         >
                             {isSubmitting ? (
                                 <span className="flex items-center">
@@ -666,6 +817,13 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                 <span className="flex items-center">
                                     <CheckCircleIcon className="h-5 w-5 mr-2" />
                                     Booking Confirmed
+                                </span>
+                            ) : !termsAccepted ? (
+                                <span className="flex items-center">
+                                    <svg className="ml-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                    Accept Terms to Confirm
                                 </span>
                             ) : (
                                 <>

@@ -92,7 +92,6 @@ const ContactPage: React.FC = () => {
     const [activeDepartment, setActiveDepartment] = useState('general');
     const [submissionData, setSubmissionData] = useState<ContactResponse['inquiry'] | null>(null);
 
-    // Initialize axios with base URL
     const apiClient = axios.create({
         baseURL: API_BASE_URL,
         timeout: 10000,
@@ -101,7 +100,40 @@ const ContactPage: React.FC = () => {
         },
     });
 
+    // Add request interceptor for logging
+    apiClient.interceptors.request.use(
+        (config) => {
+            console.log(`📨 Outgoing ${config.method?.toUpperCase()} request to:`, config.url);
+            console.log('Request data:', config.data);
+            console.log('Request headers:', config.headers);
+            return config;
+        },
+        (error) => {
+            console.error('❌ Request interceptor error:', error);
+            return Promise.reject(error);
+        }
+    );
+
+    // Add response interceptor for logging
+    apiClient.interceptors.response.use(
+        (response) => {
+            console.log(`✅ Response received from ${response.config.url}:`, response.status);
+            return response;
+        },
+        (error) => {
+            console.error(`❌ Response error from ${error.config?.url}:`, error.message);
+            return Promise.reject(error);
+        }
+    );
+
     useEffect(() => {
+        // Log environment info
+        console.group('🌍 Environment Information');
+        console.log('API Base URL:', API_BASE_URL);
+        console.log('Node Environment:', process.env.NODE_ENV);
+        console.log('Full API URL for contact endpoint:', `${API_BASE_URL}/api/contact`);
+        console.groupEnd();
+
         // Add subtle animations on scroll
         const observer = new IntersectionObserver(
             (entries) => {
@@ -137,14 +169,29 @@ const ContactPage: React.FC = () => {
         e.preventDefault();
         setIsSubmitting(true);
 
+        // Log form data being sent
+        console.log('📤 Submitting form data:', formData);
+        console.log('🔗 API Base URL:', API_BASE_URL);
+        console.log('🎯 Full endpoint:', `${API_BASE_URL}/api/contact`);
+
         try {
             // Send form data to backend API
+            console.log('🚀 Making POST request to backend...');
+
             const response = await apiClient.post<ContactResponse>('/api/contact', formData);
+
+            console.log('✅ Backend response received!');
+            console.log('📊 Response status:', response.status);
+            console.log('📦 Response data:', response.data);
+            console.log('📋 Response headers:', response.headers);
 
             if (response.status === 201) {
                 // Success: Update state with response data
                 setSubmissionData(response.data.inquiry);
                 setIsSubmitted(true);
+
+                console.log('🎉 Success - Inquiry ID:', response.data.inquiry.id);
+                console.log('📧 Email sent to:', response.data.inquiry.email);
 
                 // Show success toast
                 toast.success('✅ Inquiry submitted successfully! Check your email for confirmation.', {
@@ -177,15 +224,23 @@ const ContactPage: React.FC = () => {
                 }, 10000);
             }
         } catch (error: any) {
-            console.error('Submission error:', error);
+            console.group('❌ Submission Error');
+            console.error('Error type:', error.constructor.name);
+            console.error('Error message:', error.message);
 
             // Handle different types of errors
             if (error.response) {
                 // Server responded with error status
+                console.error('📡 Server responded with error:', error.response.status);
+                console.error('📋 Error data:', error.response.data);
+                console.error('📨 Error headers:', error.response.headers);
+
                 const errorMessage = error.response.data?.error || error.response.data?.message || 'Submission failed';
+                console.error('📝 Error message:', errorMessage);
 
                 if (error.response.status === 400) {
                     // Validation errors
+                    console.warn('⚠️ Validation error - Check form data');
                     toast.error(`❌ ${errorMessage}`, {
                         position: "top-right",
                         autoClose: 5000,
@@ -196,6 +251,7 @@ const ContactPage: React.FC = () => {
                     });
                 } else if (error.response.status === 429) {
                     // Rate limiting
+                    console.warn('⏰ Rate limit exceeded');
                     toast.error('⚠️ Too many requests. Please try again in a few minutes.', {
                         position: "top-right",
                         autoClose: 5000,
@@ -206,7 +262,8 @@ const ContactPage: React.FC = () => {
                     });
                 } else {
                     // Other server errors
-                    toast.error('❌ Server error. Please try again later.', {
+                    console.error('🔥 Server error:', error.response.status);
+                    toast.error(`❌ Server error (${error.response.status}). Please try again later.`, {
                         position: "top-right",
                         autoClose: 5000,
                         hideProgressBar: false,
@@ -217,6 +274,11 @@ const ContactPage: React.FC = () => {
                 }
             } else if (error.request) {
                 // Request made but no response
+                console.error('🌐 Network error - No response received');
+                console.error('Request details:', error.request);
+                console.error('Request URL:', error.config?.url);
+                console.error('Request method:', error.config?.method);
+
                 toast.error('⚠️ Network error. Please check your connection and try again.', {
                     position: "top-right",
                     autoClose: 5000,
@@ -227,6 +289,9 @@ const ContactPage: React.FC = () => {
                 });
             } else {
                 // Other errors
+                console.error('⚡ Setup error:', error.message);
+                console.error('Error config:', error.config);
+
                 toast.error('❌ Something went wrong. Please try again.', {
                     position: "top-right",
                     autoClose: 5000,
@@ -237,11 +302,14 @@ const ContactPage: React.FC = () => {
                 });
             }
 
-            // Optionally log error for debugging
+            console.groupEnd();
+
+            // Optionally log full error for debugging
             if (process.env.NODE_ENV === 'development') {
-                console.error('Full error details:', error);
+                console.error('🔍 Full error object:', error);
             }
         } finally {
+            console.log('🏁 Submission process completed');
             setIsSubmitting(false);
         }
     };
