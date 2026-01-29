@@ -23,6 +23,7 @@ import BlogPage from './pages/BlogPage';
 import SingleBlogPage from './pages/SingleBlogPage';
 import LocationsPage from './pages/LocationsPage';
 import NotFoundPage from './pages/NotFoundPage';
+import CookiePopup from './pages/CookiePopup';
 
 // Loader
 import SolarFlareLoader from './components/SolarFlareLoader';
@@ -95,6 +96,7 @@ function App() {
                                         <Route path="/faq" element={<FAQPage />} />
                                         <Route path="/seo" element={<SEOPage />} />
                                         <Route path="*" element={<NotFoundPage />} />
+                                        <Route path="/cookie-preferences" element={<CookiePopup />} />
                                     </Routes>
                                 </Suspense>
                             </main>
