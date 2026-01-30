@@ -197,14 +197,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
         console.group('🚀 Booking Form Submission');
         console.log('📤 Form data being submitted:', data);
         console.log('🔗 Target endpoint:', '/api/booking');
-        console.log('🎯 Full URL:', `${API_BASE_URL}/api/booking`);
+        console.log('🎯 Full URL:', `${API_BASE_URL}/api/bookings`);
         console.log('⏱️ Submission started at:', new Date().toISOString());
 
         try {
             // Send form data to backend API
             console.log('📡 Making POST request to backend...');
 
-            const response = await apiClient.post<BookingResponse>('/api/booking', data);
+            const response = await apiClient.post<BookingResponse>('/api/bookings', data);
 
             console.log('✅ Backend response received!');
             console.log('📊 Response status:', response.status);
