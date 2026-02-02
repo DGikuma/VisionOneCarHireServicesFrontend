@@ -139,7 +139,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
         console.group('🌍 Booking Form Environment');
         console.log('API Base URL:', API_BASE_URL);
         console.log('Node Environment:', process.env.NODE_ENV);
-        console.log('Full Booking Endpoint:', `${API_BASE_URL}/api/booking`);
+        console.log('Full Booking Endpoint:', `${API_BASE_URL}/api/bookings`);
         console.log('Full Contact Endpoint:', `${API_BASE_URL}/api/contact`);
         console.groupEnd();
     }, []);
@@ -196,7 +196,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
 
         console.group('🚀 Booking Form Submission');
         console.log('📤 Form data being submitted:', data);
-        console.log('🔗 Target endpoint:', '/api/booking');
+        console.log('🔗 Target endpoint:', '/api/bookings');
         console.log('🎯 Full URL:', `${API_BASE_URL}/api/bookings`);
         console.log('⏱️ Submission started at:', new Date().toISOString());
 
