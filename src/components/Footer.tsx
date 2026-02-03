@@ -25,12 +25,12 @@ const Footer: React.FC = () => {
                                 <span className="text-white font-bold text-lg">V1</span>
                             </div>
                             <div className="ml-3">
-                                <h2 className="text-xl font-bold">Vision One</h2>
-                                <p className="text-gray-400 text-sm">Car Hire Services</p>
+                                <h2 className="text-xl font-bold">Vision Wan</h2>
+                                <p className="text-gray-400 text-sm">Services</p>
                             </div>
                         </div>
                         <p className="text-gray-400 mb-6">
-                            Premium car hire services with luxury vehicles, exceptional customer service, and nationwide coverage.
+                            Premium services with luxury vehicles, Air BnB's, exceptional customer service, and nationwide coverage.
                         </p>
                         <div className="flex space-x-4">
                             <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -88,6 +88,9 @@ const Footer: React.FC = () => {
                                 Luxury Car Hire
                             </li>
                             <li className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                                Air BnB Services
+                            </li>
+                            <li className="text-gray-400 hover:text-white transition-colors cursor-pointer">
                                 SUV Rental
                             </li>
                             <li className="text-gray-400 hover:text-white transition-colors cursor-pointer">
@@ -123,7 +126,7 @@ const Footer: React.FC = () => {
                             <li className="flex items-start">
                                 <MailIcon className="h-5 w-5 text-primary-400 mr-3 mt-1" />
                                 <div>
-                                    <p className="text-gray-400">vison1servicesltd@gmail.com</p>
+                                    <p className="text-gray-400">vision1servicesltd@gmail.com</p>
                                     <p className="text-gray-500 text-sm">Response within 2 hours</p>
                                 </div>
                             </li>
@@ -149,7 +152,7 @@ const Footer: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <p className="text-gray-400">
-                                &copy; {currentYear} Vision One Car Hire Services. All rights reserved.
+                                &copy; {currentYear} Vision Wan Services. All rights reserved.
                             </p>
                         </div>
                         <div className="md:text-right">

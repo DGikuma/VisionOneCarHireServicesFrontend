@@ -24,7 +24,7 @@ const BookingPage: React.FC = () => {
     const handleNextStep = async () => {
         if (bookingFormRef.current) {
             const isValid = await bookingFormRef.current.validateStep();
-            if (isValid && activeStep < 3) {
+            if (isValid && activeStep < 4) { // Changed from 3 to 4
                 setActiveStep(activeStep + 1);
             }
         }
@@ -69,15 +69,22 @@ const BookingPage: React.FC = () => {
             step: 2,
             icon: UserIcon,
             title: 'Personal Information',
-            description: 'Provide your contact and driver details',
+            description: 'Provide your contact and ID details',
             color: 'from-[#FF8B35] to-[#FF7B35]'
         },
         {
             step: 3,
             icon: CreditCardIcon,
+            title: 'Security Deposit',
+            description: 'Pay deposit and upload documents',
+            color: 'from-[#FF7B35] to-[#FF6B35]'
+        },
+        {
+            step: 4,
+            icon: CheckBadgeIcon,
             title: 'Confirmation',
             description: 'Review and confirm your booking',
-            color: 'from-[#FF7B35] to-[#FF6B35]'
+            color: 'from-[#FF6B35] to-[#FF8B35]'
         }
     ];
 
@@ -165,15 +172,16 @@ const BookingPage: React.FC = () => {
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-8">
                         <div className="relative">
-                            {/* Progress Line */}
+                            {/* Progress Line - Updated for 4 steps */}
                             <div className="hidden md:block absolute top-6 left-0 right-0 h-0.5 bg-gray-200">
                                 <div
                                     className="h-full bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] transition-all duration-500"
-                                    style={{ width: `${((activeStep - 1) / 2) * 100}%` }}
+                                    style={{ width: `${((activeStep - 1) / 3) * 100}%` }} // CHANGE THIS LINE to use 4 instead of 3
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Step Circles - Already updated for 4 steps */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6"> {/* Changed from 3 to 4 */}
                                 {processSteps.map((step) => (
                                     <div
                                         key={step.step}
@@ -223,8 +231,8 @@ const BookingPage: React.FC = () => {
                                                 </p>
                                             </div>
 
-                                            {/* Connection Line for Mobile */}
-                                            {step.step < 3 && (
+                                            {/* Connection Line for Mobile - Updated for 4 steps */}
+                                            {step.step < 4 && ( // Changed from 3 to 4
                                                 <div className="md:hidden absolute top-8 right-0 w-1/2 h-0.5 bg-gray-200 transform translate-x-1/2">
                                                     <div
                                                         className={`h-full ${activeStep > step.step

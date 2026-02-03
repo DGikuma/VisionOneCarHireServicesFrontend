@@ -1,6 +1,17 @@
 import { useState, forwardRef, useImperativeHandle, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { CalendarIcon, UserIcon, PhoneIcon, EnvelopeIcon, MapPinIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import {
+    CalendarIcon,
+    UserIcon,
+    PhoneIcon,
+    EnvelopeIcon,
+    MapPinIcon,
+    CheckCircleIcon,
+    DocumentDuplicateIcon,
+    IdentificationIcon,
+    CreditCardIcon,
+    CloudArrowUpIcon
+} from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { format } from 'date-fns';
@@ -20,6 +31,12 @@ interface BookingFormData {
     pickupLocation: string;
     dropoffLocation: string;
     additionalInfo: string;
+    idNumber: string;
+    idType: 'id' | 'passport';
+    termsAccepted: boolean;
+    depositProof?: File;
+    idDocument?: File;
+    drivingLicense?: File;
 }
 
 interface BookingFormProps {
@@ -72,9 +89,31 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [confirmed, setConfirmed] = useState(false);
     const [bookingData, setBookingData] = useState<BookingResponse['booking'] | null>(null);
-    const [termsAccepted, setTermsAccepted] = useState(false); // State for terms acceptance
+    const [idDocument, setIdDocument] = useState<File | null>(null);
+    const [drivingLicense, setDrivingLicense] = useState<File | null>(null);
+    const [depositProof, setDepositProof] = useState<File | null>(null);
 
-    const { register, handleSubmit, formState: { errors }, reset, trigger, watch, getValues } = useForm<BookingFormData>();
+    const { register, handleSubmit, formState: { errors }, reset, trigger, watch, getValues } = useForm<BookingFormData>({
+        defaultValues: {
+            idType: 'id'
+        }
+    });
+
+    // Account details for deposit
+    const depositDetails = {
+        mpesa: {
+            paybill: '123456',
+            account: 'CARHIRE DEPOSIT',
+            instructions: 'Use your name as account number'
+        },
+        uk: {
+            bank: 'Barclays Bank',
+            accountName: 'Vision One Car Hire Services',
+            sortCode: '20-00-00',
+            accountNumber: '12345678',
+            iban: 'GB33BUKB20201512345678'
+        }
+    };
 
     // Create axios instance with interceptors for logging
     const apiClient = useMemo(() => {
@@ -154,10 +193,20 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                     fieldsToValidate = ['pickupDate', 'returnDate', 'carType'];
                     break;
                 case 2:
-                    fieldsToValidate = ['customerName', 'email', 'phone'];
+                    fieldsToValidate = ['customerName', 'email', 'phone', 'idNumber'];
                     break;
                 case 3:
-                    fieldsToValidate = ['pickupLocation'];
+                    // Validate document uploads
+                    if (!idDocument || !drivingLicense || !depositProof) {
+                        toast.error('Please upload all required documents', {
+                            position: "top-right",
+                            autoClose: 5000,
+                        });
+                        return false;
+                    }
+                    return true;
+                case 4:
+                    fieldsToValidate = ['pickupLocation', 'termsAccepted'];
                     break;
             }
 
@@ -167,27 +216,34 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
         getFormData: () => getValues(),
         resetForm: () => {
             reset();
+            setIdDocument(null);
+            setDrivingLicense(null);
+            setDepositProof(null);
             setConfirmed(false);
             setBookingData(null);
-            setTermsAccepted(false); // Reset terms when form is reset
         }
     }));
 
     const onSubmit = async (data: BookingFormData) => {
-        if (activeStep !== 3) {
+        if (activeStep !== 4) {
             onNextStep?.();
             return;
         }
 
         // Check if terms are accepted
-        if (!termsAccepted) {
+        if (!data.termsAccepted) {
             toast.error('Please accept the Terms and Conditions to proceed', {
                 position: "top-right",
                 autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
+            });
+            return;
+        }
+
+        // Check if all required files are uploaded
+        if (!idDocument || !drivingLicense || !depositProof) {
+            toast.error('Please upload all required documents', {
+                position: "top-right",
+                autoClose: 5000,
             });
             return;
         }
@@ -196,26 +252,49 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
 
         console.group('🚀 Booking Form Submission');
         console.log('📤 Form data being submitted:', data);
-        console.log('🔗 Target endpoint:', '/api/bookings');
-        console.log('🎯 Full URL:', `${API_BASE_URL}/api/bookings`);
-        console.log('⏱️ Submission started at:', new Date().toISOString());
 
         try {
-            // Send form data to backend API
+            // Create FormData for file uploads
+            const formData = new FormData();
+
+            // Add form fields
+            Object.entries(data).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    if (key === 'termsAccepted') {
+                        // Convert boolean to string
+                        formData.append(key, value.toString());
+                    } else if (key === 'idType' && !value) {
+                        // Ensure idType has a value
+                        formData.append(key, 'id');
+                    } else {
+                        formData.append(key, value as string);
+                    }
+                }
+            });
+
+            // Log FormData contents for debugging
+            console.log('📋 FormData entries:');
+            for (const pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+
+            // Add files
+            formData.append('idDocument', idDocument);
+            formData.append('drivingLicense', drivingLicense);
+            formData.append('depositProof', depositProof);
+
             console.log('📡 Making POST request to backend...');
 
-            const response = await apiClient.post<BookingResponse>('/api/bookings', data);
+            const response = await apiClient.post<BookingResponse>('/api/bookings', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
 
             console.log('✅ Backend response received!');
-            console.log('📊 Response status:', response.status);
-            console.log('📦 Response data:', response.data);
-            console.log('📋 Response headers:', response.headers);
 
             if (response.status === 201) {
                 console.log('🎉 Booking created successfully!');
-                console.log('📝 Booking ID:', response.data.booking.id);
-                console.log('📧 Email sent to:', response.data.booking.email);
-                console.log('📅 Booking date:', response.data.booking.bookingDate);
 
                 // Success: Update state with response data
                 setBookingData(response.data.booking);
@@ -225,149 +304,52 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                 toast.success('✅ Booking confirmed! Check your email for the confirmation PDF.', {
                     position: "top-right",
                     autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
                 });
 
                 // Call onComplete callback if provided
                 if (onComplete) {
                     setTimeout(() => {
-                        console.log('📞 Calling onComplete callback...');
                         onComplete();
                     }, 3000);
                 }
-            } else {
-                console.warn('⚠️ Unexpected response status:', response.status);
             }
         } catch (error: any) {
-            console.group('❌ Booking Submission Error');
-            console.error('Error type:', error.constructor.name);
-            console.error('Error message:', error.message);
-            console.error('Error stack:', error.stack);
+            console.error('❌ Booking Submission Error:', error);
 
-            // Handle different types of errors
             if (error.response) {
-                // Server responded with error status
-                console.error('📡 Server responded with error:', error.response.status);
-                console.error('📋 Error data:', error.response.data);
-                console.error('📨 Error headers:', error.response.headers);
+                console.error('📡 Server response:', error.response.data);
+                console.error('📊 Status:', error.response.status);
 
-                const errorMessage = error.response.data?.error || error.response.data?.message || 'Booking failed';
-                console.error('📝 Error message from server:', errorMessage);
+                const errorMessage = error.response.data?.error ||
+                    error.response.data?.message ||
+                    error.response.data?.errors?.[0]?.message ||
+                    'Booking failed';
 
-                if (error.response.status === 400) {
-                    // Validation errors
-                    console.warn('⚠️ Validation error - Check form data');
-                    console.log('📋 Validation details:', error.response.data?.errors);
-                    toast.error(`❌ ${errorMessage}`, {
-                        position: "top-right",
-                        autoClose: 5000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                    });
-                } else if (error.response.status === 429) {
-                    // Rate limiting
-                    console.warn('⏰ Rate limit exceeded');
-                    toast.error('⚠️ Too many requests. Please try again in a few minutes.', {
-                        position: "top-right",
-                        autoClose: 5000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                    });
-                } else if (error.response.status === 404) {
-                    // Endpoint not found
-                    console.error('🔍 Endpoint not found - Check backend routes');
-                    toast.error('❌ Booking service is currently unavailable. Please try again later.', {
-                        position: "top-right",
-                        autoClose: 5000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                    });
-                } else if (error.response.status === 500) {
-                    // Internal server error
-                    console.error('🔥 Internal server error');
-                    toast.error('❌ Server error. Our team has been notified.', {
-                        position: "top-right",
-                        autoClose: 5000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                    });
-                } else {
-                    // Other server errors
-                    console.error('🔥 Server error:', error.response.status);
-                    toast.error(`❌ Server error (${error.response.status}). Please try again later.`, {
-                        position: "top-right",
-                        autoClose: 5000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                    });
-                }
+                toast.error(`❌ ${errorMessage}`, {
+                    position: "top-right",
+                    autoClose: 5000,
+                });
             } else if (error.request) {
-                // Request made but no response
                 console.error('🌐 Network error - No response received');
-                console.error('Request object:', error.request);
-                console.error('Request URL:', error.config?.url);
-                console.error('Request method:', error.config?.method);
-                console.error('Request data:', error.config?.data);
-                console.error('Request headers:', error.config?.headers);
-
-                // Check CORS issues
-                console.log('🔍 Checking CORS...');
-                console.log('Origin:', window.location.origin);
-                console.log('API Base URL:', API_BASE_URL);
-
                 toast.error('⚠️ Network error. Please check your connection and try again.', {
                     position: "top-right",
                     autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
                 });
             } else {
-                // Other errors
                 console.error('⚡ Setup error:', error.message);
-                console.error('Error config:', error.config);
-
                 toast.error('❌ Something went wrong. Please try again.', {
                     position: "top-right",
                     autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
                 });
             }
-
-            console.groupEnd();
         } finally {
             console.log('🏁 Submission process completed');
-            console.log('⏱️ Submission ended at:', new Date().toISOString());
             console.groupEnd();
             setIsSubmitting(false);
         }
     };
 
     const formData = watch();
-
-    // Log form changes for debugging
-    useEffect(() => {
-        if (Object.keys(formData).length > 0) {
-            console.log('📝 Form data updated:', formData);
-        }
-    }, [formData]);
 
     // Calculate number of rental days
     const calculateRentalDays = () => {
@@ -387,6 +369,25 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
     const formatDate = (dateString: string) => {
         if (!dateString) return 'Not selected';
         return format(new Date(dateString), 'MMM dd, yyyy');
+    };
+
+    // Handle file uploads
+    const handleIdDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setIdDocument(e.target.files[0]);
+        }
+    };
+
+    const handleDrivingLicenseUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setDrivingLicense(e.target.files[0]);
+        }
+    };
+
+    const handleDepositProofUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setDepositProof(e.target.files[0]);
+        }
     };
 
     // Render success message with backend data
@@ -550,97 +551,349 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
 
             {/* Step 2: Personal Information */}
             {activeStep === 2 && (
-                <div className="bg-white shadow-lg rounded-2xl p-6">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
-                        <UserIcon className="h-6 w-6 mr-2 text-[#FF6B35]" />
-                        Personal Information
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Full Name *
-                            </label>
-                            <input
-                                type="text"
-                                {...register('customerName', {
-                                    required: 'Full name is required',
-                                    minLength: {
-                                        value: 2,
-                                        message: 'Name must be at least 2 characters'
-                                    }
-                                })}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                placeholder="Enter Your Full Name"
-                                disabled={isSubmitting}
-                            />
-                            {errors.customerName && (
-                                <p className="mt-2 text-sm text-red-600">{errors.customerName.message}</p>
-                            )}
-                        </div>
+                <div className="space-y-8">
+                    <div className="bg-white shadow-lg rounded-2xl p-6">
+                        <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
+                            <UserIcon className="h-6 w-6 mr-2 text-[#FF6B35]" />
+                            Personal Information
+                        </h2>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Email Address *
-                            </label>
-                            <div className="relative">
-                                <EnvelopeIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Full Name *
+                                </label>
                                 <input
-                                    type="email"
-                                    {...register('email', {
-                                        required: 'Email is required',
-                                        pattern: {
-                                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                            message: 'Invalid email address',
-                                        },
+                                    type="text"
+                                    {...register('customerName', {
+                                        required: 'Full name is required',
+                                        minLength: {
+                                            value: 2,
+                                            message: 'Name must be at least 2 characters'
+                                        }
                                     })}
-                                    className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    placeholder="Enter Your Email Address"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    placeholder="Enter Your Full Name"
                                     disabled={isSubmitting}
                                 />
+                                {errors.customerName && (
+                                    <p className="mt-2 text-sm text-red-600">{errors.customerName.message}</p>
+                                )}
                             </div>
-                            {errors.email && (
-                                <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>
-                            )}
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Email Address *
+                                </label>
+                                <div className="relative">
+                                    <EnvelopeIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                                    <input
+                                        type="email"
+                                        {...register('email', {
+                                            required: 'Email is required',
+                                            pattern: {
+                                                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                                message: 'Invalid email address',
+                                            },
+                                        })}
+                                        className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        placeholder="Enter Your Email Address"
+                                        disabled={isSubmitting}
+                                    />
+                                </div>
+                                {errors.email && (
+                                    <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Phone Number *
+                                </label>
+                                <div className="relative">
+                                    <PhoneIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                                    <input
+                                        type="tel"
+                                        {...register('phone', {
+                                            required: 'Phone number is required',
+                                            pattern: {
+                                                value: /^[\+]?[1-9][\d]{0,15}$/,
+                                                message: 'Invalid phone number',
+                                            },
+                                        })}
+                                        className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        placeholder="Enter Your Phone Number"
+                                        disabled={isSubmitting}
+                                    />
+                                </div>
+                                {errors.phone && (
+                                    <p className="mt-2 text-sm text-red-600">{errors.phone.message}</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ID Information Section */}
+                    <div className="bg-white shadow-lg rounded-2xl p-6">
+                        <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
+                            <IdentificationIcon className="h-6 w-6 mr-2 text-[#FF6B35]" />
+                            Identification Details
+                        </h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    ID Type *
+                                </label>
+                                <div className="flex space-x-4">
+                                    <label className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            value="id"
+                                            {...register('idType', { required: 'Please select ID type' })}
+                                            className="h-4 w-4 text-[#FF6B35] border-gray-300 focus:ring-[#FF6B35]"
+                                        />
+                                        <span className="ml-2 text-gray-700">National ID</span>
+                                    </label>
+                                    <label className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            value="passport"
+                                            {...register('idType')}
+                                            className="h-4 w-4 text-[#FF6B35] border-gray-300 focus:ring-[#FF6B35]"
+                                        />
+                                        <span className="ml-2 text-gray-700">Passport</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    {formData.idType === 'passport' ? 'Passport Number *' : 'ID Number *'}
+                                </label>
+                                <input
+                                    type="text"
+                                    {...register('idNumber', {
+                                        required: formData.idType === 'passport'
+                                            ? 'Passport number is required'
+                                            : 'ID number is required'
+                                    })}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300"
+                                    placeholder={formData.idType === 'passport' ? 'Enter passport number' : 'Enter ID number'}
+                                />
+                                {errors.idNumber && (
+                                    <p className="mt-2 text-sm text-red-600">{errors.idNumber.message}</p>
+                                )}
+                            </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Phone Number *
-                            </label>
-                            <div className="relative">
-                                <PhoneIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                                <input
-                                    type="tel"
-                                    {...register('phone', {
-                                        required: 'Phone number is required',
-                                        pattern: {
-                                            value: /^[\+]?[1-9][\d]{0,15}$/,
-                                            message: 'Invalid phone number',
-                                        },
-                                    })}
-                                    className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    placeholder="Enter Your Phone Number"
-                                    disabled={isSubmitting}
-                                />
+                        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Upload ID Card/Passport *
+                                </label>
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#FF6B35] transition-colors duration-300">
+                                    <CloudArrowUpIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        {idDocument ? idDocument.name : 'Upload your ID document'}
+                                    </p>
+                                    <input
+                                        type="file"
+                                        accept=".jpg,.jpeg,.png,.pdf"
+                                        onChange={handleIdDocumentUpload}
+                                        className="hidden"
+                                        id="idDocument"
+                                    />
+                                    <label
+                                        htmlFor="idDocument"
+                                        className="inline-block px-4 py-2 bg-[#FF6B35] text-white rounded-lg hover:bg-[#FF8B35] transition-colors duration-300 cursor-pointer"
+                                    >
+                                        Choose File
+                                    </label>
+                                    <p className="text-xs text-gray-500 mt-2">Max 5MB • JPG, PNG, PDF</p>
+                                </div>
+                                {!idDocument && activeStep === 2 && (
+                                    <p className="mt-2 text-sm text-red-600">ID document is required</p>
+                                )}
                             </div>
-                            {errors.phone && (
-                                <p className="mt-2 text-sm text-red-600">{errors.phone.message}</p>
-                            )}
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Upload Driving License *
+                                </label>
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#FF6B35] transition-colors duration-300">
+                                    <DocumentDuplicateIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        {drivingLicense ? drivingLicense.name : 'Upload your driving license'}
+                                    </p>
+                                    <input
+                                        type="file"
+                                        accept=".jpg,.jpeg,.png,.pdf"
+                                        onChange={handleDrivingLicenseUpload}
+                                        className="hidden"
+                                        id="drivingLicense"
+                                    />
+                                    <label
+                                        htmlFor="drivingLicense"
+                                        className="inline-block px-4 py-2 bg-[#FF6B35] text-white rounded-lg hover:bg-[#FF8B35] transition-colors duration-300 cursor-pointer"
+                                    >
+                                        Choose File
+                                    </label>
+                                    <p className="text-xs text-gray-500 mt-2">Max 5MB • JPG, PNG, PDF</p>
+                                </div>
+                                {!drivingLicense && activeStep === 2 && (
+                                    <p className="mt-2 text-sm text-red-600">Driving license is required</p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Step 3: Confirmation */}
+            {/* Step 3: Security Deposit */}
             {activeStep === 3 && (
+                <div className="space-y-8">
+                    {/* Deposit Instructions */}
+                    <div className="bg-gradient-to-r from-[#FF6B35]/5 to-[#FF8B35]/5 rounded-2xl p-6 border border-[#FF6B35]/20">
+                        <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
+                            <CreditCardIcon className="h-6 w-6 mr-2 text-[#FF6B35]" />
+                            Security Deposit Payment
+                        </h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* M-Pesa Section */}
+                            <div className="bg-white rounded-xl p-6 border border-gray-200">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                        <span className="text-green-600 font-bold">M</span>
+                                    </div>
+                                    M-Pesa Payment (Kenya)
+                                </h3>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-sm text-gray-600">Paybill Number</p>
+                                        <p className="text-xl font-bold text-gray-900 font-mono">{depositDetails.mpesa.paybill}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-600">Account Number</p>
+                                        <p className="text-lg font-semibold text-gray-900">{depositDetails.mpesa.account}</p>
+                                        <p className="text-sm text-gray-500 mt-1">{depositDetails.mpesa.instructions}</p>
+                                    </div>
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                        <p className="text-sm text-yellow-800">
+                                            <strong>Note:</strong> Deposit amount is 30% of the total rental cost.
+                                            You will receive the exact amount after completing Step 1.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* UK Bank Section */}
+                            <div className="bg-white rounded-xl p-6 border border-gray-200">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                        <span className="text-blue-600 font-bold">£</span>
+                                    </div>
+                                    Bank Transfer (UK/International)
+                                </h3>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-sm text-gray-600">Bank Name</p>
+                                        <p className="text-lg font-semibold text-gray-900">{depositDetails.uk.bank}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-600">Account Name</p>
+                                        <p className="text-lg font-semibold text-gray-900">{depositDetails.uk.accountName}</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-sm text-gray-600">Sort Code</p>
+                                            <p className="font-mono text-gray-900">{depositDetails.uk.sortCode}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-600">Account Number</p>
+                                            <p className="font-mono text-gray-900">{depositDetails.uk.accountNumber}</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-600">IBAN</p>
+                                        <p className="font-mono text-sm text-gray-900">{depositDetails.uk.iban}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Important Notes */}
+                        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-sm text-blue-800">
+                                <strong>Important:</strong> The security deposit is fully refundable upon return of the
+                                vehicle in good condition. Please include your booking reference in the payment description.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Proof of Payment Upload */}
+                    <div className="bg-white shadow-lg rounded-2xl p-6">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                            <CloudArrowUpIcon className="h-6 w-6 mr-2 text-[#FF6B35]" />
+                            Upload Proof of Payment
+                        </h3>
+
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#FF6B35] transition-colors duration-300">
+                            <CloudArrowUpIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                            <p className="text-lg font-medium text-gray-900 mb-2">
+                                {depositProof ? 'Payment proof uploaded ✓' : 'Upload your payment confirmation'}
+                            </p>
+                            <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto">
+                                Upload a screenshot or receipt of your payment transaction (M-Pesa message, bank transfer receipt, etc.)
+                            </p>
+
+                            <input
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.pdf"
+                                onChange={handleDepositProofUpload}
+                                className="hidden"
+                                id="depositProof"
+                            />
+                            <label
+                                htmlFor="depositProof"
+                                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300 cursor-pointer"
+                            >
+                                <CloudArrowUpIcon className="h-5 w-5 mr-2" />
+                                {depositProof ? 'Change File' : 'Choose File'}
+                            </label>
+
+                            {depositProof && (
+                                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg inline-flex items-center">
+                                    <CheckCircleIcon className="h-5 w-5 text-green-600 mr-2" />
+                                    <span className="text-green-800">{depositProof.name}</span>
+                                </div>
+                            )}
+
+                            <p className="text-xs text-gray-500 mt-4">Accepted: JPG, PNG, PDF • Max 10MB</p>
+                        </div>
+
+                        {!depositProof && (
+                            <p className="mt-3 text-sm text-red-600 text-center">
+                                Proof of payment is required to proceed
+                            </p>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Step 4: Confirmation */}
+            {activeStep === 4 && (
                 <div className="space-y-6">
                     {/* Summary Card */}
                     <div className="bg-gradient-to-r from-[#FF6B35]/5 to-[#FF8B35]/5 rounded-2xl p-6 border border-[#FF6B35]/20">
                         <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-                            Booking Summary
+                            Complete Booking Summary
                         </h2>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                             <div>
                                 <h3 className="text-sm font-medium text-gray-500 mb-3">RESERVATION DETAILS</h3>
                                 <div className="space-y-3">
@@ -674,16 +927,65 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                         <p className="font-semibold text-gray-900">{formData.email || 'Not provided'}</p>
                                         <p className="text-sm text-gray-600">{formData.phone || 'Not provided'}</p>
                                     </div>
+                                    <div>
+                                        <p className="text-sm text-gray-600">{formData.idType === 'passport' ? 'Passport No.' : 'ID Number'}</p>
+                                        <p className="font-semibold text-gray-900">{formData.idNumber || 'Not provided'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Document Status */}
+                        <div className="mb-8">
+                            <h3 className="text-sm font-medium text-gray-500 mb-3">DOCUMENT STATUS</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-gray-200">
+                                    {idDocument ? (
+                                        <CheckCircleIcon className="h-5 w-5 text-green-600 mr-3" />
+                                    ) : (
+                                        <div className="h-5 w-5 rounded-full border-2 border-gray-300 mr-3" />
+                                    )}
+                                    <span className={idDocument ? "text-gray-900" : "text-gray-500"}>
+                                        ID Document
+                                    </span>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-gray-200">
+                                    {drivingLicense ? (
+                                        <CheckCircleIcon className="h-5 w-5 text-green-600 mr-3" />
+                                    ) : (
+                                        <div className="h-5 w-5 rounded-full border-2 border-gray-300 mr-3" />
+                                    )}
+                                    <span className={drivingLicense ? "text-gray-900" : "text-gray-500"}>
+                                        Driving License
+                                    </span>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-gray-200">
+                                    {depositProof ? (
+                                        <CheckCircleIcon className="h-5 w-5 text-green-600 mr-3" />
+                                    ) : (
+                                        <div className="h-5 w-5 rounded-full border-2 border-gray-300 mr-3" />
+                                    )}
+                                    <span className={depositProof ? "text-gray-900" : "text-gray-500"}>
+                                        Proof of Payment
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Locations */}
+                        <div className="mb-8 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                            <p className="text-sm text-amber-800">
+                                <strong>Note:</strong> Pick-up within the Nairobi area attracts an additional
+                                <strong> KES 1,000</strong> charge.
+                                Drop-off within the Nairobi area also attracts an additional
+                                <strong> KES 1,000</strong> charge.
+                            </p>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     <MapPinIcon className="inline h-5 w-5 mr-1 text-gray-400" />
-                                    Pick-up Location
+                                    Pick-up Location *
                                 </label>
                                 <input
                                     type="text"
@@ -691,7 +993,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                         required: 'Pick-up location is required'
                                     })}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    placeholder="Main Office, 123 Street"
+                                    placeholder="Enter Pick Up "
                                     disabled={isSubmitting}
                                 />
                                 {errors.pickupLocation && (
@@ -708,14 +1010,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                     type="text"
                                     {...register('dropoffLocation')}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    placeholder="Same as pick-up"
+                                    placeholder="Enter Drop Off "
                                     disabled={isSubmitting}
                                 />
                             </div>
                         </div>
 
                         {/* Additional Information */}
-                        <div>
+                        <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Special Requests or Notes
                             </label>
@@ -729,35 +1031,60 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                         </div>
                     </div>
 
-                    {/* Terms and Conditions */}
+                    {/* Terms and Conditions - Enhanced */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
                         <div className="flex items-start space-x-3">
                             <input
                                 type="checkbox"
-                                id="terms"
-                                checked={termsAccepted}
-                                onChange={(e) => {
-                                    console.log('📋 Terms checkbox changed:', e.target.checked);
-                                    setTermsAccepted(e.target.checked);
-                                }}
+                                {...register('termsAccepted', {
+                                    required: 'You must accept the terms and conditions'
+                                })}
                                 className="h-5 w-5 text-[#FF6B35] rounded focus:ring-[#FF6B35] border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                 disabled={isSubmitting}
                             />
                             <div className="text-sm">
-                                <label htmlFor="terms" className="font-medium text-gray-900">
+                                <label className="font-medium text-gray-900">
                                     I agree to the Terms and Conditions *
                                 </label>
-                                <p className="text-gray-600 mt-1">
-                                    By proceeding, you acknowledge that you have read and agree to our rental terms,
-                                    cancellation policy, and privacy policy.
+                                <p className="text-gray-600 mt-1 mb-3">
+                                    By proceeding, you acknowledge that you have read and agree to:
                                 </p>
-                                {!termsAccepted && activeStep === 3 && (
-                                    <p className="text-red-500 text-sm mt-2">
-                                        You must accept the Terms and Conditions to complete your booking
+
+                                <ul className="space-y-2 text-gray-600 mb-4">
+                                    <li className="flex items-start">
+                                        <div className="h-2 w-2 bg-gray-400 rounded-full mt-1.5 mr-3"></div>
+                                        <span>Our rental agreement and terms of service</span>
+                                    </li>
+                                    <li className="flex items-start">
+                                        <div className="h-2 w-2 bg-gray-400 rounded-full mt-1.5 mr-3"></div>
+                                        <span>Security deposit terms and refund policy</span>
+                                    </li>
+                                    <li className="flex items-start">
+                                        <div className="h-2 w-2 bg-gray-400 rounded-full mt-1.5 mr-3"></div>
+                                        <span>Cancellation and modification policies</span>
+                                    </li>
+                                    <li className="flex items-start">
+                                        <div className="h-2 w-2 bg-gray-400 rounded-full mt-1.5 mr-3"></div>
+                                        <span>Privacy policy and data protection terms</span>
+                                    </li>
+                                    <li className="flex items-start">
+                                        <div className="h-2 w-2 bg-gray-400 rounded-full mt-1.5 mr-3"></div>
+                                        <span>Insurance coverage and liability terms</span>
+                                    </li>
+                                </ul>
+
+                                <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                                    <p className="text-xs text-blue-800">
+                                        <strong>Security Deposit Note:</strong> Your deposit is fully refundable within
+                                        7 business days after vehicle return, provided there is no damage or
+                                        violation of rental terms.
                                     </p>
-                                )}
+                                </div>
                             </div>
                         </div>
+                        {errors.termsAccepted && (
+                            <p className="mt-2 text-sm text-red-600">{errors.termsAccepted.message}</p>
+                        )}
                     </div>
 
                     {/* Success Message */}
@@ -779,7 +1106,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                 )}
 
                 <div className="ml-auto">
-                    {activeStep < 3 ? (
+                    {activeStep < 4 ? (
                         <button
                             type="button"
                             onClick={async () => {
@@ -801,8 +1128,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                     ) : (
                         <button
                             type="submit"
-                            disabled={isSubmitting || confirmed || !termsAccepted}
-                            className={`group flex items-center px-12 py-4 text-white font-bold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 ${termsAccepted && !isSubmitting && !confirmed
+                            disabled={isSubmitting || confirmed || !formData.termsAccepted}
+                            className={`group flex items-center px-12 py-4 text-white font-bold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 ${formData.termsAccepted && !isSubmitting && !confirmed
                                 ? 'bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] hover:shadow-xl hover:shadow-[#FF6B35]/20 cursor-pointer'
                                 : 'bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-70'
                                 }`}
@@ -820,7 +1147,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                                     <CheckCircleIcon className="h-5 w-5 mr-2" />
                                     Booking Confirmed
                                 </span>
-                            ) : !termsAccepted ? (
+                            ) : !formData.termsAccepted ? (
                                 <span className="flex items-center">
                                     <svg className="ml-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -843,12 +1170,17 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
             {/* Progress Indicator */}
             <div className="text-center">
                 <p className="text-sm text-gray-600">
-                    Step {activeStep} of 3 • {activeStep === 1 ? 'Reservation Details' : activeStep === 2 ? 'Personal Information' : 'Confirmation'}
+                    Step {activeStep} of 4 • {
+                        activeStep === 1 ? 'Reservation Details' :
+                            activeStep === 2 ? 'Personal Information' :
+                                activeStep === 3 ? 'Security Deposit' :
+                                    'Confirmation'
+                    }
                 </p>
                 <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
                     <div
                         className="bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${(activeStep / 3) * 100}%` }}
+                        style={{ width: `${(activeStep / 4) * 100}%` }}
                     />
                 </div>
             </div>

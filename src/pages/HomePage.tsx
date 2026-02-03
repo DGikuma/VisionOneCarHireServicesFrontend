@@ -237,11 +237,11 @@ const HomePage: React.FC = () => {
                         </div>
 
                         <h2 className="text-5xl font-bold text-gray-900 mb-6">
-                            Vision One Executive Mobility
+                            Vision Wan Executive Services
                         </h2>
 
                         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                            Experience unparalleled luxury and service excellence with our curated fleet of premium vehicles,
+                            Experience unparalleled luxury and service excellence with our curated fleet of premium vehicles, Luxury Air BnB accommodations, and bespoke mobility solutions
                             designed for discerning individuals and corporate clients who demand the extraordinary.
                         </p>
                     </div>
@@ -253,7 +253,7 @@ const HomePage: React.FC = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                            The Vision One Difference
+                            The Vision Wan Difference
                         </h2>
                         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
                             Discover what sets us apart in the world of premium mobility services.
@@ -323,7 +323,7 @@ const HomePage: React.FC = () => {
                         </div>
 
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                            Premium Mobility Solutions
+                            Premium Mobility & Accomodation Solutions
                         </h2>
 
                         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -347,6 +347,11 @@ const HomePage: React.FC = () => {
                                 title: 'Global Mobility Program',
                                 description: 'International vehicle access and support for frequent travelers.',
                                 link: '/services#global'
+                            },
+                            {
+                                title: 'Air BnB Luxury Stays',
+                                description: 'Handpicked luxury accommodations for business and leisure stays.',
+                                link: '/services#airbnb'
                             }
                         ].map((service, index) => (
                             <Link
@@ -390,7 +395,7 @@ const HomePage: React.FC = () => {
                         </h2>
 
                         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                            Hear from executives and partners who trust Vision One for their premium mobility needs.
+                            Hear from executives and partners who trust Vision Wan for their premium mobility needs.
                         </p>
                     </div>
 
@@ -399,14 +404,14 @@ const HomePage: React.FC = () => {
                             {
                                 name: 'Michael Anderson',
                                 role: 'CEO, TechSphere Inc.',
-                                comment: 'Vision One transformed our corporate travel program. The service excellence is unmatched.',
+                                comment: 'Vision Wan transformed our corporate travel program. The service excellence is unmatched.',
                                 rating: 5,
                                 company: 'Fortune 500 Technology'
                             },
                             {
                                 name: 'Sarah Mitchell',
                                 role: 'Partner, Global Ventures',
-                                comment: 'For international business trips, Vision One provides seamless global mobility solutions.',
+                                comment: 'For international business trips, Vision Wan provides seamless global mobility solutions.',
                                 rating: 5,
                                 company: 'International Investment Firm'
                             },
@@ -515,7 +520,7 @@ const HomePage: React.FC = () => {
                     </h2>
 
                     <p className="text-xl text-white/90 mb-10 max-w-3xl mx-auto">
-                        Join our exclusive network of satisfied clients who trust Vision One for their premium mobility needs.
+                        Join our exclusive network of satisfied clients who trust Vision Wan for their premium mobility needs.
                         Experience the difference of executive-class service.
                     </p>
 

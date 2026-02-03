@@ -15,6 +15,7 @@ type PriceRange = {
     '1-7': number;
     '8-20': number;
     '21+': number;
+
 };
 
 interface Car {
@@ -95,8 +96,8 @@ const FleetPage: React.FC = () => {
             image: '/assets/vehicles/latio.jpg',
             price: {
                 '1-7': 3800,
-                '8-20': 3300,
-                '21+': 2800
+                '8-20': 3000,
+                '21+': 0
             },
             seats: 5,
             transmission: 'Automatic',
@@ -118,7 +119,7 @@ const FleetPage: React.FC = () => {
             id: '4',
             name: 'Mazda CX-5',
             category: 'SUV',
-            image: '/assets/vehicles/mazdaCX5.jpg',
+            image: '/assets/vehicles/mazdaCX5.jpeg',
             price: {
                 '1-7': 7000,
                 '8-20': 6500,
@@ -178,7 +179,7 @@ const FleetPage: React.FC = () => {
             id: '7',
             name: 'Toyota Prado',
             category: 'SUV',
-            image: '/assets/vehicles/prado.jpg',
+            image: '/assets/vehicles/toyota_prado.jpg',
             price: {
                 '1-7': 12000,
                 '8-20': 11000,
@@ -226,9 +227,9 @@ const FleetPage: React.FC = () => {
             category: 'SUV',
             image: '/assets/vehicles/shogun.jpeg',
             price: {
-                '1-7': 12000,
-                '8-20': 11000,
-                '21+': 10000
+                '1-7': 10000,
+                '8-20': 9000,
+                '21+': 8000
             },
             seats: 7,
             transmission: 'Automatic',
@@ -245,6 +246,26 @@ const FleetPage: React.FC = () => {
             available: true,
             specialOffer: true,
             popularity: 94
+        },
+        {
+            id: '10',
+            name: 'Toyota Noah ',
+            category: 'MPV',
+            image: '/assets/vehicles/toyota_noah.jpg',
+            price: {
+                '1-7': 6500,
+                '8-20': 6000,
+                '21+': 5500
+            },
+            seats: 8,
+            transmission: 'Automatic (CVT)',
+            fuel: 'Hybrid',
+            features: ['Dual Power Sliding Doors', 'Panoramic View Monitor', 'Advanced Safety Sense', 'Smart Key System', 'Tri-Zone Automatic Climate Control', 'Wireless Charger', 'LED Ambient Lighting'],
+            rating: 4.8,
+            reviews: 156,
+            available: true,
+            specialOffer: false,
+            popularity: 89,
         }
     ];
 

@@ -29,7 +29,7 @@ const CTASection: React.FC = () => {
                                 <EnvelopeIcon className="h-6 w-6 text-primary-400 mr-3" />
                                 <div>
                                     <p className="text-sm text-gray-400">Email Us</p>
-                                    <p className="text-lg font-semibold">vison1servicesltd@gmail.com</p>
+                                    <p className="text-lg font-semibold">vision1servicesltd@gmail.com</p>
                                 </div>
                             </div>
                         </div>

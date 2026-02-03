@@ -4,7 +4,6 @@ import {
     WrenchIcon,
     UserGroupIcon,
     BuildingOfficeIcon,
-    GiftIcon,
     TruckIcon,
     ShieldCheckIcon,
     DevicePhoneMobileIcon,
@@ -13,7 +12,11 @@ import {
     CheckBadgeIcon,
     ChartBarIcon,
     StarIcon,
-    ChevronRightIcon
+    ChevronRightIcon,
+    EnvelopeIcon,
+    PhoneIcon,
+    MapPinIcon,
+    PaperAirplaneIcon
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon, StarIcon as SolidStar } from '@heroicons/react/24/solid';
 
@@ -31,11 +34,18 @@ const ServicesPage: React.FC = () => {
         },
         {
             icon: BuildingOfficeIcon,
-            title: 'Corporate Fleet Solutions',
-            description: 'Tailored enterprise solutions with dedicated account management and streamlined billing for businesses.',
-            features: ['Corporate accounts & billing', 'Dedicated account manager', 'Fleet management portal', 'Priority maintenance'],
-            stats: { companies: '200+', vehicles: '500+', uptime: '99.5%' },
-            color: 'from-[#FF6B35]/80 to-[#FF8B35]'
+            title: 'Airbnb Mobility Partner Program',
+            description: 'Exclusive vehicle management service for Airbnb hosts. We handle everything from guest coordination to vehicle maintenance.',
+            features: [
+                'Dedicated host dashboard',
+                'Automated guest communication',
+                'Vehicle delivery & pickup',
+                'Cleaning & maintenance',
+                'Insurance coverage',
+                'Revenue optimization'
+            ],
+            stats: { hosts: '200+', 'guest-satisfaction': '98%', revenue: '+40% avg.' },
+            color: 'from-[#FF0054] to-[#FF385C]' // Airbnb brand colors
         },
         {
             icon: UserGroupIcon,
@@ -45,13 +55,14 @@ const ServicesPage: React.FC = () => {
             stats: { capacity: '8 seats', luggage: '7 bags', rating: '4.9/5' },
             color: 'from-[#FF6B35] to-[#FF8B35]/80'
         },
+        // NEW: Airport Transfer Service
         {
-            icon: GiftIcon,
-            title: 'Special Occasion Luxury',
-            description: 'Make your celebrations extraordinary with our curated luxury vehicles and premium service packages.',
-            features: ['Wedding & event packages', 'Champagne service', 'Professional chauffeur', 'Custom decorations'],
-            stats: { events: '1000+', luxury: 'Top Tier', 'custom': 'Yes' },
-            color: 'from-[#FF8B35] to-[#FF6B35]'
+            icon: PaperAirplaneIcon,
+            title: 'Premium Airport Transfers',
+            description: 'Seamless airport transportation with meet & greet service, flight monitoring, and executive vehicles.',
+            features: ['Meet & Greet Service', 'Flight Tracking', 'Executive Vehicles', 'Baggage Assistance'],
+            stats: { airports: '5+', 'on-time': '99.8%', rating: '4.9/5' },
+            color: 'from-[#FF6B35] to-[#3B82F6]'
         }
     ];
 
@@ -162,6 +173,19 @@ const ServicesPage: React.FC = () => {
             icon: '🔄'
         }
     ];
+
+    // Airport Transfer Service Functions
+    const handleEmailEnquiry = () => {
+        const subject = encodeURIComponent('Airport Transfer Service Enquiry');
+        const body = encodeURIComponent(
+            `Dear Vision One Car Hire,\n\nI am interested in your Premium Airport Transfer Service. Please provide me with more information regarding:\n\n1. Available vehicles for airport transfers\n2. Pricing for airport transfers\n3. Meet & Greet service details\n4. Airport coverage areas\n\nThank you,\n[Your Name]`
+        );
+        window.open(`mailto:info@visiononecarhire.com?subject=${subject}&body=${body}`);
+    };
+
+    const handlePhoneEnquiry = () => {
+        window.open('tel:+254705336311');
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -313,13 +337,169 @@ const ServicesPage: React.FC = () => {
                                     </ul>
                                 </div>
 
-                                <button className="group/btn flex items-center text-[#FF6B35] font-semibold hover:text-[#FF5A20] transition-colors duration-300">
-                                    <span>Discover Service Details</span>
-                                    <ArrowRightIcon className="h-4 w-4 ml-2 transform group-hover/btn:translate-x-1 transition-transform duration-300" />
-                                </button>
+                                {/* Special buttons for Airport Transfer Service */}
+                                {service.title === 'Premium Airport Transfers' ? (
+                                    <div className="flex gap-4">
+                                        <button
+                                            onClick={handleEmailEnquiry}
+                                            className="group/btn flex-1 flex items-center justify-center px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5"
+                                        >
+                                            <EnvelopeIcon className="h-5 w-5 mr-2" />
+                                            <span>Email Enquiry</span>
+                                            <ArrowRightIcon className="h-4 w-4 ml-2 transform group-hover/btn:translate-x-1 transition-transform duration-300" />
+                                        </button>
+                                        <button
+                                            onClick={handlePhoneEnquiry}
+                                            className="group/btn flex-1 flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 transform hover:-translate-y-0.5"
+                                        >
+                                            <PhoneIcon className="h-5 w-5 mr-2" />
+                                            <span>Call Now</span>
+                                            <ArrowRightIcon className="h-4 w-4 ml-2 transform group-hover/btn:translate-x-1 transition-transform duration-300" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button className="group/btn flex items-center text-[#FF6B35] font-semibold hover:text-[#FF5A20] transition-colors duration-300">
+                                        <span>Discover Service Details</span>
+                                        <ArrowRightIcon className="h-4 w-4 ml-2 transform group-hover/btn:translate-x-1 transition-transform duration-300" />
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
+                </div>
+            </div>
+
+            {/* Airport Transfer Special Section */}
+            <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 py-20">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full mb-6">
+                                <PaperAirplaneIcon className="h-4 w-4 text-blue-600" />
+                                <span className="text-sm font-semibold text-blue-600">AIRPORT TRANSFERS</span>
+                            </div>
+
+                            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                                Premium Airport Transfer Service
+                            </h2>
+
+                            <p className="text-lg text-gray-600 mb-8">
+                                Experience seamless airport transportation with our premium transfer service.
+                                We provide meet & greet services, flight monitoring, and luxury vehicles for
+                                a stress-free journey to and from the airport.
+                            </p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                                <div className="flex items-start space-x-3">
+                                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                                        <MapPinIcon className="h-5 w-5 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-900 mb-1">Airport Coverage</h4>
+                                        <p className="text-gray-600 text-sm">JKIA, Wilson, Kisumu, Mombasa & More</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start space-x-3">
+                                    <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                                        <ClockIcon className="h-5 w-5 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-900 mb-1">Flight Monitoring</h4>
+                                        <p className="text-gray-600 text-sm">Real-time tracking for timely pickups</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start space-x-3">
+                                    <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                                        <UserGroupIcon className="h-5 w-5 text-purple-600" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-900 mb-1">Meet & Greet</h4>
+                                        <p className="text-gray-600 text-sm">Personal welcome at arrivals</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start space-x-3">
+                                    <div className="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
+                                        <TruckIcon className="h-5 w-5 text-amber-600" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-900 mb-1">Executive Fleet</h4>
+                                        <p className="text-gray-600 text-sm">Luxury sedans, SUVs & vans available</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button
+                                    onClick={handleEmailEnquiry}
+                                    className="group flex items-center justify-center px-8 py-4 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-1"
+                                >
+                                    <EnvelopeIcon className="h-5 w-5 mr-3" />
+                                    <span>Send Email Enquiry</span>
+                                    <ArrowRightIcon className="h-5 w-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
+                                </button>
+                                <button
+                                    onClick={handlePhoneEnquiry}
+                                    className="group flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 transform hover:-translate-y-1"
+                                >
+                                    <PhoneIcon className="h-5 w-5 mr-3" />
+                                    <span>Call: +254 705 336 311</span>
+                                    <ArrowRightIcon className="h-5 w-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="relative">
+                            <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-200">
+                                <div className="text-center mb-8">
+                                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl mb-4">
+                                        <PaperAirplaneIcon className="h-8 w-8 text-white" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Airport Transfer Rates</h3>
+                                    <p className="text-gray-600">Starting from</p>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center p-4 bg-blue-50 rounded-xl border border-blue-100">
+                                        <div>
+                                            <p className="font-semibold text-gray-900">Executive Sedan</p>
+                                            <p className="text-sm text-gray-600">Mercedes E-Class, BMW 5 Series</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-2xl font-bold text-blue-600">KES 5,000</p>
+                                            <p className="text-sm text-gray-600">per transfer</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                        <div>
+                                            <p className="font-semibold text-gray-900">Luxury SUV</p>
+                                            <p className="text-sm text-gray-600">Range Rover, Mercedes GLE</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-2xl font-bold text-gray-900">KES 7,500</p>
+                                            <p className="text-sm text-gray-600">per transfer</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                        <div>
+                                            <p className="font-semibold text-gray-900">Executive Van</p>
+                                            <p className="text-sm text-gray-600">Toyota Hiace, Mercedes V-Class</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-2xl font-bold text-gray-900">KES 9,000</p>
+                                            <p className="text-sm text-gray-600">per transfer</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                                    <p className="text-sm text-amber-800 text-center">
+                                        <strong>Note:</strong> Rates include meet & greet, flight monitoring,
+                                        waiting time, and baggage assistance.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -523,12 +703,18 @@ const ServicesPage: React.FC = () => {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="px-8 py-4 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center">
+                        <button
+                            onClick={handleEmailEnquiry}
+                            className="px-8 py-4 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center"
+                        >
                             <span>Schedule Executive Consultation</span>
                             <ArrowRightIcon className="h-5 w-5 ml-2" />
                         </button>
-                        <button className="px-8 py-4 bg-white text-gray-900 font-bold rounded-xl border-2 border-gray-200 hover:border-[#FF6B35] hover:text-[#FF6B35] transition-all duration-300">
-                            Call: (888) 888-8888
+                        <button
+                            onClick={handlePhoneEnquiry}
+                            className="px-8 py-4 bg-white text-gray-900 font-bold rounded-xl border-2 border-gray-200 hover:border-[#FF6B35] hover:text-[#FF6B35] transition-all duration-300"
+                        >
+                            Call: +254 705 336 311
                         </button>
                     </div>
 
