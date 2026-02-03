@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
     FunnelIcon,
@@ -11,12 +11,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
 
-type PriceRange = {
-    '1-7': number;
-    '8-20': number;
-    '21+': number;
-
-};
+// Flexible PriceRange type that can handle different price structures
+type PriceRange = Record<string, number>;
 
 interface Car {
     id: string;
@@ -39,34 +35,6 @@ const FleetPage: React.FC = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [sortBy, setSortBy] = useState<string>('popular');
     const [favorites, setFavorites] = useState<Set<string>>(new Set());
-
-    useEffect(() => {
-        // Add subtle parallax effect on scroll
-        const handleScroll = () => {
-            const cards = document.querySelectorAll('.car-card');
-            cards.forEach(card => {
-                const rect = card.getBoundingClientRect();
-                if (rect.top < window.innerHeight && rect.bottom > 0) {
-                    const speed = 0.3;
-                    const yPos = -(rect.top * speed);
-                    (card as HTMLElement).style.transform = `translateY(${yPos * 0.1}px)`;
-                }
-            });
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const categories = [
-        { name: 'All', count: 8 },
-        { name: 'Luxury', count: 1 },
-        { name: 'SUV', count: 4 },
-        { name: 'Economy', count: 2 },
-        { name: 'Premium', count: 1 },
-        { name: 'Mid-Size', count: 0 },
-        { name: 'Van', count: 0 }
-    ];
 
     const cars: Car[] = [
         {
@@ -96,8 +64,7 @@ const FleetPage: React.FC = () => {
             image: '/assets/vehicles/latio.jpg',
             price: {
                 '1-7': 3800,
-                '8-20': 3000,
-                '21+': 0
+                '8+': 3000
             },
             seats: 5,
             transmission: 'Automatic',
@@ -114,7 +81,6 @@ const FleetPage: React.FC = () => {
             specialOffer: true,
             popularity: 82
         },
-
         {
             id: '4',
             name: 'Mazda CX-5',
@@ -138,7 +104,7 @@ const FleetPage: React.FC = () => {
         {
             id: '5',
             name: 'Toyota Harrier',
-            category: 'SUV',
+            category: 'Premium SUV',
             image: '/assets/vehicles/harrier.jpg',
             price: {
                 '1-7': 8000,
@@ -178,7 +144,7 @@ const FleetPage: React.FC = () => {
         {
             id: '7',
             name: 'Toyota Prado',
-            category: 'SUV',
+            category: 'Premium SUV',
             image: '/assets/vehicles/toyota_prado.jpg',
             price: {
                 '1-7': 12000,
@@ -249,8 +215,8 @@ const FleetPage: React.FC = () => {
         },
         {
             id: '10',
-            name: 'Toyota Noah ',
-            category: 'MPV',
+            name: 'Toyota Noah',
+            category: 'People Carrier',
             image: '/assets/vehicles/toyota_noah.jpg',
             price: {
                 '1-7': 6500,
@@ -260,35 +226,98 @@ const FleetPage: React.FC = () => {
             seats: 8,
             transmission: 'Automatic (CVT)',
             fuel: 'Hybrid',
-            features: ['Dual Power Sliding Doors', 'Panoramic View Monitor', 'Advanced Safety Sense', 'Smart Key System', 'Tri-Zone Automatic Climate Control', 'Wireless Charger', 'LED Ambient Lighting'],
+            features: [
+                'Dual Power Sliding Doors',
+                'Panoramic View Monitor',
+                'Advanced Safety Sense',
+                'Smart Key System',
+                'Tri-Zone Automatic Climate Control',
+                'Wireless Charger',
+                'LED Ambient Lighting'
+            ],
             rating: 4.8,
             reviews: 156,
             available: true,
             specialOffer: false,
-            popularity: 89,
+            popularity: 89
         }
     ];
 
-    const filteredCars = selectedCategory === 'all'
-        ? cars
-        : cars.filter(car => car.category.toLowerCase() === selectedCategory.toLowerCase());
+    // Dynamically generate categories from the vehicles
+    const categories = useMemo(() => {
+        const categoryMap = new Map<string, number>();
 
-    const sortedCars = [...filteredCars].sort((a, b) => {
-        switch (sortBy) {
-            case 'price-low':
-                return a.price['1-7'] - b.price['1-7'];
-            case 'price-high':
-                return b.price['1-7'] - a.price['1-7'];
-            case 'seats':
-                return b.seats - a.seats;
-            case 'rating':
-                return b.rating - a.rating;
-            case 'popular':
-                return b.popularity - a.popularity;
-            default:
-                return 0;
+        // Count vehicles per category
+        cars.forEach(car => {
+            const currentCount = categoryMap.get(car.category) || 0;
+            categoryMap.set(car.category, currentCount + 1);
+        });
+
+        // Convert to array format and add "All" category
+        const categoryArray = Array.from(categoryMap.entries()).map(([name, count]) => ({
+            name,
+            count
+        }));
+
+        // Add "All" category at the beginning
+        return [
+            { name: 'All', count: cars.length },
+            ...categoryArray.sort((a, b) => b.count - a.count) // Sort by count descending
+        ];
+    }, [cars]);
+
+    // Filter vehicles based on selected category
+    const filteredCars = useMemo(() => {
+        if (selectedCategory === 'all') {
+            return cars;
         }
-    });
+        return cars.filter(car =>
+            car.category.toLowerCase() === selectedCategory.toLowerCase()
+        );
+    }, [selectedCategory, cars]);
+
+    // Helper function to get base price for sorting
+    const getBasePrice = (car: Car): number => {
+        return car.price['1-7'] || 0;
+    };
+
+    // Sort filtered vehicles
+    const sortedCars = useMemo(() => {
+        return [...filteredCars].sort((a, b) => {
+            switch (sortBy) {
+                case 'price-low':
+                    return getBasePrice(a) - getBasePrice(b);
+                case 'price-high':
+                    return getBasePrice(b) - getBasePrice(a);
+                case 'seats':
+                    return b.seats - a.seats;
+                case 'rating':
+                    return b.rating - a.rating;
+                case 'popular':
+                    return b.popularity - a.popularity;
+                default:
+                    return 0;
+            }
+        });
+    }, [filteredCars, sortBy]);
+
+    useEffect(() => {
+        // Add subtle parallax effect on scroll
+        const handleScroll = () => {
+            const cards = document.querySelectorAll('.car-card');
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    const speed = 0.3;
+                    const yPos = -(rect.top * speed);
+                    (card as HTMLElement).style.transform = `translateY(${yPos * 0.1}px)`;
+                }
+            });
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const toggleFavorite = (id: string) => {
         setFavorites(prev => {
@@ -300,6 +329,57 @@ const FleetPage: React.FC = () => {
             }
             return newFavorites;
         });
+    };
+
+    // Helper function to format price display
+    const formatPriceDisplay = (car: Car): JSX.Element => {
+        const priceEntries = Object.entries(car.price);
+
+        if (priceEntries.length === 0) {
+            return <p className="text-xs opacity-80 drop-shadow-md">Contact for pricing</p>;
+        }
+
+        // Get the first price (usually daily rate)
+        const dailyRate = priceEntries.find(([key]) => key === '1-7') || priceEntries[0];
+
+        // Get other price tiers
+        const otherTiers = priceEntries.filter(([key]) => key !== dailyRate[0]);
+
+        return (
+            <div className="text-right text-white">
+                <p className="text-xl font-bold drop-shadow-lg">
+                    KES {dailyRate[1].toLocaleString()} / day
+                </p>
+                {otherTiers.length > 0 && (
+                    <p className="text-xs opacity-80 drop-shadow-md">
+                        {otherTiers.map(([key, value], index) => (
+                            <span key={key}>
+                                {key}: {value.toLocaleString()}
+                                {index < otherTiers.length - 1 ? ' • ' : ''}
+                            </span>
+                        ))}
+                    </p>
+                )}
+            </div>
+        );
+    };
+
+    // Helper function to format price for comparison table
+    const formatPriceForTable = (car: Car): string => {
+        const priceEntries = Object.entries(car.price);
+
+        if (priceEntries.length === 0) {
+            return 'Contact for pricing';
+        }
+
+        const dailyRate = priceEntries.find(([key]) => key === '1-7') || priceEntries[0];
+        const otherTiers = priceEntries.filter(([key]) => key !== dailyRate[0]);
+
+        if (otherTiers.length === 0) {
+            return `KES ${dailyRate[1].toLocaleString()} / day`;
+        }
+
+        return `KES ${dailyRate[1].toLocaleString()} / day | ${otherTiers.map(([key, value]) => `${key}: ${value.toLocaleString()}`).join(' | ')}`;
     };
 
     return (
@@ -324,7 +404,7 @@ const FleetPage: React.FC = () => {
 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <div className="inline-flex items-center mb-4 px-4 py-2 bg-[#FF6B35]/10 backdrop-blur-sm rounded-full border border-[#FF6B35]/20">
-
+                        {/* Optional badge content */}
                     </div>
 
                     <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
@@ -340,7 +420,7 @@ const FleetPage: React.FC = () => {
 
                     <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                         <div className="px-3 sm:px-4 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 min-w-[120px]">
-                            <span className="text-xl sm:text-2xl font-bold text-white">25+</span>
+                            <span className="text-xl sm:text-2xl font-bold text-white">{cars.length}</span>
                             <p className="text-xs sm:text-sm text-gray-400">Premium Vehicles</p>
                         </div>
                         <div className="px-3 sm:px-4 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 min-w-[120px]">
@@ -418,164 +498,167 @@ const FleetPage: React.FC = () => {
             {/* Fleet Grid */}
             <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-8 sm:py-12">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-                    {sortedCars.map((car) => (
-                        <div
-                            key={car.id}
-                            className="car-card group relative bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-lg hover:shadow-xl sm:shadow-xl sm:hover:shadow-2xl transition-all duration-500 border border-gray-200 transform hover:-translate-y-1 sm:hover:-translate-y-2"
-                        >
-                            {/* Favorite Button */}
-                            <button
-                                onClick={() => toggleFavorite(car.id)}
-                                className="absolute top-3 sm:top-4 right-3 sm:right-4 z-20 p-2 sm:p-2.5 bg-white/90 backdrop-blur-sm rounded-full shadow-md hover:shadow-lg hover:bg-white transition-all duration-300"
-                                aria-label="Add to favorites"
-                            >
-                                {favorites.has(car.id) ? (
-                                    <HeartSolid className="h-5 w-5 sm:h-6 sm:w-6 text-red-500" />
-                                ) : (
-                                    <HeartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400 hover:text-red-500" />
-                                )}
-                            </button>
-
-                            {/* Special Offer Badge */}
-                            {car.specialOffer && (
-                                <div className="absolute top-3 sm:top-4 left-3 sm:left-4 z-20">
-                                    <span className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white text-xs font-bold rounded-full shadow-md sm:shadow-lg">
-                                        SPECIAL OFFER
-                                    </span>
-                                </div>
-                            )}
-
-                            {/* Image Container */}
-                            <div className="relative h-48 sm:h-56 lg:h-64 overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent z-10" />
-                                <img
-                                    src={car.image}
-                                    alt={car.name}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                />
-
-                                {/* Category Badge */}
-                                <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-20">
-                                    <span className="px-2 sm:px-3 py-1 sm:py-1.5 bg-white/90 backdrop-blur-sm text-gray-900 text-xs sm:text-sm font-semibold rounded-lg shadow-sm">
-                                        {car.category}
-                                    </span>
-                                </div>
-
-                                {/* Price Overlay */}
-                                <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 z-20">
-                                    <div className="text-right">
-                                        <div className="text-right text-white">
-                                            <p className="text-xl font-bold drop-shadow-lg">
-                                                KES {car.price['1-7'].toLocaleString()} / day
-                                            </p>
-                                            <p className="text-xs opacity-80 drop-shadow-md">
-                                                8–20 days: {car.price['8-20'].toLocaleString()} <br />
-                                                21+ days: {car.price['21+'].toLocaleString()}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+                    {sortedCars.length === 0 ? (
+                        <div className="col-span-full text-center py-12">
+                            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                                <FunnelIcon className="h-8 w-8 text-gray-400" />
                             </div>
-
-                            {/* Content */}
-                            <div className="p-4 sm:p-6">
-                                {/* Title & Rating */}
-                                <div className="mb-3 sm:mb-4">
-                                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1.5 sm:mb-2 group-hover:text-[#FF6B35] transition-colors duration-300 line-clamp-1">
-                                        {car.name}
-                                    </h3>
-                                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                                        <div className="flex items-center">
-                                            {[...Array(5)].map((_, i) => (
-                                                <StarIcon
-                                                    key={i}
-                                                    className={`h-3 w-3 sm:h-4 sm:w-4 ${i < Math.floor(car.rating)
-                                                        ? 'text-yellow-500 fill-yellow-500'
-                                                        : 'text-gray-300'
-                                                        }`}
-                                                />
-                                            ))}
-                                        </div>
-                                        <span className="text-xs sm:text-sm text-gray-600">
-                                            {car.rating} ({car.reviews} reviews)
-                                        </span>
-                                        {car.available && (
-                                            <span className="ml-auto text-xs sm:text-sm text-green-600 font-semibold flex items-center gap-1">
-                                                <BoltIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-                                                <span className="hidden sm:inline">Available</span>
-                                                <span className="sm:hidden">✓</span>
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Specifications Grid */}
-                                <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
-                                    <div className="bg-gray-50 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-gray-100">
-                                        <p className="text-xs text-gray-500 mb-1">Seats</p>
-                                        <p className="font-bold text-gray-900 text-base sm:text-lg">{car.seats}</p>
-                                    </div>
-                                    <div className="bg-gray-50 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-gray-100">
-                                        <p className="text-xs text-gray-500 mb-1">Transmission</p>
-                                        <p className="font-bold text-gray-900 text-base sm:text-lg">{car.transmission}</p>
-                                    </div>
-                                    <div className="bg-gray-50 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-gray-100">
-                                        <p className="text-xs text-gray-500 mb-1">Fuel Type</p>
-                                        <p className="font-bold text-gray-900 text-base sm:text-lg">{car.fuel}</p>
-                                    </div>
-                                    <div className="bg-gray-50 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-gray-100">
-                                        <p className="text-xs text-gray-500 mb-1">Popularity</p>
-                                        <p className="font-bold text-gray-900 text-base sm:text-lg">{car.popularity}%</p>
-                                    </div>
-                                </div>
-
-                                {/* Features */}
-                                <div className="mb-4 sm:mb-6">
-                                    <h4 className="font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base">
-                                        <CheckIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
-                                        Premium Features
-                                    </h4>
-                                    <div className="space-y-1.5 sm:space-y-2">
-                                        {car.features.slice(0, 3).map((feature, index) => (
-                                            <div key={index} className="flex items-center text-gray-600">
-                                                <div className="h-1.5 w-1.5 bg-[#FF6B35] rounded-full mr-1.5 sm:mr-2 flex-shrink-0" />
-                                                <span className="text-xs sm:text-sm line-clamp-1">{feature}</span>
-                                            </div>
-                                        ))}
-                                        {car.features.length > 3 && (
-                                            <button className="text-[#FF6B35] text-xs sm:text-sm font-medium hover:text-[#FF5A20] transition-colors">
-                                                View {car.features.length - 3} more features
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Reserve Button - Now Functional */}
-                                <Link
-                                    to="/booking"
-                                    state={{ selectedCar: car }}
-                                    className="w-full block bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white py-3 sm:py-3.5 rounded-lg sm:rounded-xl font-semibold shadow-md hover:shadow-lg hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5 group/btn text-sm sm:text-base"
-                                >
-                                    <span className="flex items-center justify-center">
-                                        <span>Reserve Vehicle</span>
-                                        <svg
-                                            className="ml-2 h-4 w-4 sm:h-5 sm:w-5 transform group-hover/btn:translate-x-1 transition-transform duration-300"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M13 7l5 5m0 0l-5 5m5-5H6"
-                                            />
-                                        </svg>
-                                    </span>
-                                </Link>
-                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">No vehicles found</h3>
+                            <p className="text-gray-600 max-w-md mx-auto">
+                                No vehicles available in the "{selectedCategory}" category.
+                                Try selecting a different category or view all vehicles.
+                            </p>
                         </div>
-                    ))}
+                    ) : (
+                        sortedCars.map((car) => (
+                            <div
+                                key={car.id}
+                                className="car-card group relative bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-lg hover:shadow-xl sm:shadow-xl sm:hover:shadow-2xl transition-all duration-500 border border-gray-200 transform hover:-translate-y-1 sm:hover:-translate-y-2"
+                            >
+                                {/* Favorite Button */}
+                                <button
+                                    onClick={() => toggleFavorite(car.id)}
+                                    className="absolute top-3 sm:top-4 right-3 sm:right-4 z-20 p-2 sm:p-2.5 bg-white/90 backdrop-blur-sm rounded-full shadow-md hover:shadow-lg hover:bg-white transition-all duration-300"
+                                    aria-label="Add to favorites"
+                                >
+                                    {favorites.has(car.id) ? (
+                                        <HeartSolid className="h-5 w-5 sm:h-6 sm:w-6 text-red-500" />
+                                    ) : (
+                                        <HeartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400 hover:text-red-500" />
+                                    )}
+                                </button>
+
+                                {/* Special Offer Badge */}
+                                {car.specialOffer && (
+                                    <div className="absolute top-3 sm:top-4 left-3 sm:left-4 z-20">
+                                        <span className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white text-xs font-bold rounded-full shadow-md sm:shadow-lg">
+                                            SPECIAL OFFER
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Image Container */}
+                                <div className="relative h-48 sm:h-56 lg:h-64 overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent z-10" />
+                                    <img
+                                        src={car.image}
+                                        alt={car.name}
+                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    />
+
+                                    {/* Category Badge */}
+                                    <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-20">
+                                        <span className="px-2 sm:px-3 py-1 sm:py-1.5 bg-white/90 backdrop-blur-sm text-gray-900 text-xs sm:text-sm font-semibold rounded-lg shadow-sm">
+                                            {car.category}
+                                        </span>
+                                    </div>
+
+                                    {/* Price Overlay */}
+                                    <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 z-20">
+                                        {formatPriceDisplay(car)}
+                                    </div>
+                                </div>
+
+                                {/* Content */}
+                                <div className="p-4 sm:p-6">
+                                    {/* Title & Rating */}
+                                    <div className="mb-3 sm:mb-4">
+                                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1.5 sm:mb-2 group-hover:text-[#FF6B35] transition-colors duration-300 line-clamp-1">
+                                            {car.name}
+                                        </h3>
+                                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                            <div className="flex items-center">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <StarIcon
+                                                        key={i}
+                                                        className={`h-3 w-3 sm:h-4 sm:w-4 ${i < Math.floor(car.rating)
+                                                            ? 'text-yellow-500 fill-yellow-500'
+                                                            : 'text-gray-300'
+                                                            }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <span className="text-xs sm:text-sm text-gray-600">
+                                                {car.rating} ({car.reviews} reviews)
+                                            </span>
+                                            {car.available && (
+                                                <span className="ml-auto text-xs sm:text-sm text-green-600 font-semibold flex items-center gap-1">
+                                                    <BoltIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                                                    <span className="hidden sm:inline">Available</span>
+                                                    <span className="sm:hidden">✓</span>
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Specifications Grid */}
+                                    <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
+                                        <div className="bg-gray-50 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-gray-100">
+                                            <p className="text-xs text-gray-500 mb-1">Seats</p>
+                                            <p className="font-bold text-gray-900 text-base sm:text-lg">{car.seats}</p>
+                                        </div>
+                                        <div className="bg-gray-50 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-gray-100">
+                                            <p className="text-xs text-gray-500 mb-1">Transmission</p>
+                                            <p className="font-bold text-gray-900 text-base sm:text-lg">{car.transmission}</p>
+                                        </div>
+                                        <div className="bg-gray-50 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-gray-100">
+                                            <p className="text-xs text-gray-500 mb-1">Fuel Type</p>
+                                            <p className="font-bold text-gray-900 text-base sm:text-lg">{car.fuel}</p>
+                                        </div>
+                                        <div className="bg-gray-50 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-gray-100">
+                                            <p className="text-xs text-gray-500 mb-1">Popularity</p>
+                                            <p className="font-bold text-gray-900 text-base sm:text-lg">{car.popularity}%</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Features */}
+                                    <div className="mb-4 sm:mb-6">
+                                        <h4 className="font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base">
+                                            <CheckIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
+                                            Premium Features
+                                        </h4>
+                                        <div className="space-y-1.5 sm:space-y-2">
+                                            {car.features.slice(0, 3).map((feature, index) => (
+                                                <div key={index} className="flex items-center text-gray-600">
+                                                    <div className="h-1.5 w-1.5 bg-[#FF6B35] rounded-full mr-1.5 sm:mr-2 flex-shrink-0" />
+                                                    <span className="text-xs sm:text-sm line-clamp-1">{feature}</span>
+                                                </div>
+                                            ))}
+                                            {car.features.length > 3 && (
+                                                <button className="text-[#FF6B35] text-xs sm:text-sm font-medium hover:text-[#FF5A20] transition-colors">
+                                                    View {car.features.length - 3} more features
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Reserve Button */}
+                                    <Link
+                                        to="/booking"
+                                        state={{ selectedCar: car }}
+                                        className="w-full block bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white py-3 sm:py-3.5 rounded-lg sm:rounded-xl font-semibold shadow-md hover:shadow-lg hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5 group/btn text-sm sm:text-base"
+                                    >
+                                        <span className="flex items-center justify-center">
+                                            <span>Reserve Vehicle</span>
+                                            <svg
+                                                className="ml-2 h-4 w-4 sm:h-5 sm:w-5 transform group-hover/btn:translate-x-1 transition-transform duration-300"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                                />
+                                            </svg>
+                                        </span>
+                                    </Link>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
 
                 {/* Executive Comparison Table */}
@@ -605,7 +688,7 @@ const FleetPage: React.FC = () => {
                                             <span className="text-white font-semibold text-sm sm:text-base lg:text-lg">Daily Rate</span>
                                         </th>
                                         <th className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left">
-                                            <span className="text-white font-semibold text-sm sm:text-base lg:text-lg">Executive Class</span>
+                                            <span className="text-white font-semibold text-sm sm:text-base lg:text-lg">Category</span>
                                         </th>
                                         <th className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left">
                                             <span className="text-white font-semibold text-sm sm:text-base lg:text-lg">Premium Features</span>
@@ -632,35 +715,24 @@ const FleetPage: React.FC = () => {
                                                     </div>
                                                     <div>
                                                         <h4 className="font-bold text-gray-900 text-sm sm:text-base">{car.name}</h4>
-                                                        <p className="text-xs sm:text-sm text-gray-500">{car.category}</p>
+                                                        <p className="text-xs sm:text-sm text-gray-500">{car.transmission} • {car.fuel}</p>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
                                                 <div className="text-sm">
                                                     <p className="font-bold text-gray-900">
-                                                        KES {car.price['1-7'].toLocaleString()} / day
+                                                        KES {car.price['1-7']?.toLocaleString() || 'Contact'} / day
                                                     </p>
                                                     <p className="text-gray-500 text-xs">
-                                                        8–20: {car.price['8-20'].toLocaleString()} | 21+: {car.price['21+'].toLocaleString()}
+                                                        {formatPriceForTable(car).replace(`KES ${car.price['1-7']?.toLocaleString() || 'Contact'} / day | `, '')}
                                                     </p>
                                                 </div>
                                             </td>
                                             <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-                                                <div className="flex items-center gap-1.5 sm:gap-2">
-                                                    <div className="flex">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <StarIcon
-                                                                key={i}
-                                                                className={`h-3 w-3 sm:h-4 sm:w-4 ${i < Math.floor(car.rating)
-                                                                    ? 'text-yellow-500 fill-yellow-500'
-                                                                    : 'text-gray-300'
-                                                                    }`}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                    <span className="text-gray-700 font-medium text-sm sm:text-base">{car.rating}</span>
-                                                </div>
+                                                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                                                    {car.category}
+                                                </span>
                                             </td>
                                             <td className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
                                                 <div className="flex flex-wrap gap-1.5 sm:gap-2">
