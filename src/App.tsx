@@ -15,6 +15,7 @@ import FleetPage from './pages/FleetPage';
 import ServicesPage from './pages/ServicesPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import AirbnbPage from './pages/AirbnbPage';
 import FAQPage from './pages/FAQPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
@@ -106,6 +107,7 @@ function App() {
                                         <Route path="/services" element={<ServicesPage />} />
                                         <Route path="/about" element={<AboutPage />} />
                                         <Route path="/contact" element={<ContactPage />} />
+                                        <Route path="/airbnb" element={<AirbnbPage />} />
                                         <Route path="/locations" element={<LocationsPage />} />
                                         <Route path="/blog" element={<BlogPage />} />
                                         <Route path="/blog/:id" element={<SingleBlogPage />} />

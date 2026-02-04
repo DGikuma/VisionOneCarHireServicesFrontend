@@ -28,9 +28,10 @@ const Navbar: React.FC = () => {
         { name: 'Booking', href: '/booking' },
         { name: 'Fleet', href: '/fleet' },
         { name: 'Services', href: '/services' },
+        { name: 'Accomodations', href: '/airbnb' },
         { name: 'About', href: '/about' },
         { name: 'Contact', href: '/contact' },
-        { name: 'Blog', href: '/blog' },
+        // { name: 'Blog', href: '/blog' },
         { name: 'FAQ', href: '/faq' },
     ];
 
@@ -153,48 +154,9 @@ const Navbar: React.FC = () => {
                                     <span className="lg:hidden hidden sm:inline">24/7</span>
                                 </span>
                             </div>
+
                             {/* Mobile Quick Contact - Shows on xs only */}
                             <div className="sm:hidden flex items-center space-x-2">
-                                <a
-                                    href="tel:+254705336311"
-                                    className="p-1 rounded-full bg-gray-800/70 hover:bg-gray-700 transition-colors"
-                                    aria-label="Call"
-                                >
-                                    <PhoneIcon className="h-3 w-3 text-gray-300" />
-                                </a>
-
-                                {/* WhatsApp UK */}
-                                <a
-                                    href="https://wa.me/447397549590"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-1 rounded-full bg-gray-800/70 hover:bg-gray-700 transition-colors"
-                                    aria-label="WhatsApp UK"
-                                >
-                                    <svg
-                                        className="h-3 w-3 fill-[#25D366]"
-                                        viewBox="0 0 32 32"
-                                    >
-                                        <path d="M16.003 3C9.383 3 4 8.383 4 15.003c0 2.64.86 5.083 2.317 7.058L5 29l7.155-1.88a11.95 11.95 0 0 0 3.848.636C22.623 27.756 28 22.373 28 15.753 28 9.134 22.623 3 16.003 3zm0 21.79a9.99 9.99 0 0 1-3.399-.594l-.244-.087-4.245 1.115 1.132-4.136-.159-.262a9.94 9.94 0 1 1 6.915 3.964zm5.523-7.59c-.3-.15-1.78-.88-2.055-.98-.275-.1-.476-.15-.676.15-.2.3-.776.98-.952 1.18-.176.2-.35.225-.65.075-.3-.15-1.27-.47-2.42-1.5-.894-.798-1.497-1.784-1.673-2.084-.175-.3-.02-.46.132-.61.137-.136.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.676-1.63-.926-2.235-.243-.585-.49-.505-.676-.515l-.575-.01c-.2 0-.525.075-.8.375-.275.3-1.05 1.025-1.05 2.5 0 1.475 1.075 2.9 1.225 3.1.15.2 2.115 3.225 5.125 4.52.717.31 1.277.495 1.714.634.72.23 1.376.198 1.893.12.578-.086 1.78-.726 2.03-1.426.25-.7.25-1.3.175-1.426-.075-.125-.275-.2-.575-.35z" />
-                                    </svg>
-                                </a>
-
-                                {/* WhatsApp KE */}
-                                <a
-                                    href="https://wa.me/254705336311"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-1 rounded-full bg-gray-800/70 hover:bg-gray-700 transition-colors"
-                                    aria-label="WhatsApp Kenya"
-                                >
-                                    <svg
-                                        className="h-3 w-3 fill-[#25D366]"
-                                        viewBox="0 0 32 32"
-                                    >
-                                        <path d="M16.003 3C9.383 3 4 8.383 4 15.003c0 2.64.86 5.083 2.317 7.058L5 29l7.155-1.88a11.95 11.95 0 0 0 3.848.636C22.623 27.756 28 22.373 28 15.753 28 9.134 22.623 3 16.003 3zm0 21.79a9.99 9.99 0 0 1-3.399-.594l-.244-.087-4.245 1.115 1.132-4.136-.159-.262a9.94 9.94 0 1 1 6.915 3.964zm5.523-7.59c-.3-.15-1.78-.88-2.055-.98-.275-.1-.476-.15-.676.15-.2.3-.776.98-.952 1.18-.176.2-.35.225-.65.075-.3-.15-1.27-.47-2.42-1.5-.894-.798-1.497-1.784-1.673-2.084-.175-.3-.02-.46.132-.61.137-.136.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.676-1.63-.926-2.235-.243-.585-.49-.505-.676-.515l-.575-.01c-.2 0-.525.075-.8.375-.275.3-1.05 1.025-1.05 2.5 0 1.475 1.075 2.9 1.225 3.1.15.2 2.115 3.225 5.125 4.52.717.31 1.277.495 1.714.634.72.23 1.376.198 1.893.12.578-.086 1.78-.726 2.03-1.426.25-.7.25-1.3.175-1.426-.075-.125-.275-.2-.575-.35z" />
-                                    </svg>
-                                </a>
-
                                 <a
                                     href="mailto:vision1servicesltd@gmail.com"
                                     className="p-1 rounded-full bg-gray-800/70 hover:bg-gray-700 transition-colors"
@@ -203,7 +165,6 @@ const Navbar: React.FC = () => {
                                     <EnvelopeIcon className="h-3 w-3 text-gray-300" />
                                 </a>
                             </div>
-
                         </div>
                     </div>
                 </div>

@@ -43,7 +43,7 @@ const NotFoundPage: React.FC = () => {
                         <div className="inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg mb-8">
                             <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-3"></div>
                             <span className="text-sm font-semibold text-gray-700">
-                                Navigation Error • Code 404 • Vision One Systems
+                                Navigation Error • Code 404 • Vision Wan Systems
                             </span>
                         </div>
 
@@ -286,7 +286,7 @@ const NotFoundPage: React.FC = () => {
                                         <span className="text-white font-bold text-lg">V1</span>
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-bold text-gray-900">Vision One Systems</h3>
+                                        <h3 className="text-2xl font-bold text-gray-900">Vision Wan Systems</h3>
                                         <p className="text-gray-600">Enterprise Mobility Solutions</p>
                                     </div>
                                 </div>
@@ -312,7 +312,7 @@ const NotFoundPage: React.FC = () => {
 
                         <div className="border-t border-gray-200 pt-8">
                             <p className="text-center text-gray-500">
-                                © 2024 Vision One Corporate Solutions. This incident has been logged for system improvement.
+                                © 2024 Vision Wan Corporate Solutions. This incident has been logged for system improvement.
                                 <span className="block mt-2 text-sm text-gray-400">
                                     Incident ID: V1-404-{Date.now().toString().slice(-8)} • Timestamp: {new Date().toISOString()}
                                 </span>
