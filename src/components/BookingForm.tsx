@@ -93,6 +93,41 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
     const [drivingLicense, setDrivingLicense] = useState<File | null>(null);
     const [depositProof, setDepositProof] = useState<File | null>(null);
 
+    const debugFiles = () => {
+        console.group('📁 File Debug Info');
+        console.log('idDocument:', idDocument ?
+            `${idDocument.name} (${idDocument.size} bytes)` : 'NULL');
+        console.log('drivingLicense:', drivingLicense ?
+            `${drivingLicense.name} (${drivingLicense.size} bytes)` : 'NULL');
+        console.log('depositProof:', depositProof ?
+            `${depositProof.name} (${depositProof.size} bytes)` : 'NULL');
+        console.groupEnd();
+    };
+
+    const validateFile = (file: File, maxSizeMB: number = 5): boolean => {
+        const maxSize = maxSizeMB * 1024 * 1024; // Convert to bytes
+
+        if (file.size > maxSize) {
+            toast.error(`File "${file.name}" exceeds ${maxSizeMB}MB limit`, {
+                position: "top-right",
+                autoClose: 5000,
+            });
+            return false;
+        }
+
+        // Optional: Add file type validation
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+        if (!allowedTypes.includes(file.type)) {
+            toast.error(`File "${file.name}" must be JPG, PNG, or PDF`, {
+                position: "top-right",
+                autoClose: 5000,
+            });
+            return false;
+        }
+
+        return true;
+    };
+
     const { register, handleSubmit, formState: { errors }, reset, trigger, watch, getValues } = useForm<BookingFormData>({
         defaultValues: {
             idType: 'id'
@@ -241,12 +276,26 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
 
         // Check if all required files are uploaded
         if (!idDocument || !drivingLicense || !depositProof) {
+            console.error('❌ Missing files:', {
+                idDocument: idDocument?.name || 'missing',
+                drivingLicense: drivingLicense?.name || 'missing',
+                depositProof: depositProof?.name || 'missing'
+            });
             toast.error('Please upload all required documents', {
                 position: "top-right",
                 autoClose: 5000,
             });
             return;
         }
+
+        console.log('✅ All files present:', {
+            idDocument: idDocument.name,
+            drivingLicense: drivingLicense.name,
+            depositProof: depositProof.name
+        });
+
+        // Call debugFiles to verify files before submission
+        debugFiles();
 
         setIsSubmitting(true);
 
@@ -272,16 +321,20 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                 }
             });
 
-            // Log FormData contents for debugging
-            console.log('📋 FormData entries:');
-            for (const pair of formData.entries()) {
-                console.log(pair[0] + ': ' + pair[1]);
-            }
-
-            // Add files
+            // Add files FIRST
             formData.append('idDocument', idDocument);
             formData.append('drivingLicense', drivingLicense);
             formData.append('depositProof', depositProof);
+
+            // Then log
+            console.log('📋 FormData entries with files:');
+            for (const pair of formData.entries()) {
+                if (pair[1] instanceof File) {
+                    console.log(`${pair[0]}: [File] ${pair[1].name} (${pair[1].type}, ${pair[1].size} bytes)`);
+                } else {
+                    console.log(pair[0] + ': ' + pair[1]);
+                }
+            }
 
             console.log('📡 Making POST request to backend...');
 
@@ -374,19 +427,40 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
     // Handle file uploads
     const handleIdDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setIdDocument(e.target.files[0]);
+            const file = e.target.files[0];
+            if (validateFile(file, 5)) {
+                setIdDocument(file);
+                console.log('✅ ID Document uploaded:', file.name, `(${(file.size / 1024).toFixed(2)} KB)`);
+            } else {
+                e.target.value = ''; // Reset input
+                setIdDocument(null);
+            }
         }
     };
 
     const handleDrivingLicenseUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setDrivingLicense(e.target.files[0]);
+            const file = e.target.files[0];
+            if (validateFile(file, 5)) {
+                setDrivingLicense(file);
+                console.log('✅ Driving License uploaded:', file.name, `(${(file.size / 1024).toFixed(2)} KB)`);
+            } else {
+                e.target.value = ''; // Reset input
+                setDrivingLicense(null);
+            }
         }
     };
 
     const handleDepositProofUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setDepositProof(e.target.files[0]);
+            const file = e.target.files[0];
+            if (validateFile(file, 10)) { // 10MB for deposit proof
+                setDepositProof(file);
+                console.log('✅ Deposit Proof uploaded:', file.name, `(${(file.size / 1024).toFixed(2)} KB)`);
+            } else {
+                e.target.value = ''; // Reset input
+                setDepositProof(null);
+            }
         }
     };
 
@@ -1179,8 +1253,12 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                 </p>
                 <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
                     <div
-                        className="bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${(activeStep / 4) * 100}%` }}
+                        className="progress-bar h-2 rounded-full transition-all duration-500"
+                        style={{
+                            '--progress-width': `${(activeStep / 4) * 100}%`,
+                            '--color-start': '#FF6B35',
+                            '--color-end': '#FF8B35'
+                        } as React.CSSProperties}
                     />
                 </div>
             </div>

@@ -25,6 +25,9 @@ const API_BASE_URL =
     import.meta.env.VITE_API_URL ||
     'https://visiononecarhireservicesbackend-1.onrender.com';
 
+// Add Google Maps link for Kenyan location
+const KENYAN_LOCATION_MAP_LINK = "https://www.google.com/maps/place/Equity+Bank+opposite+Yaya/@-1.2924283,36.786668,810m/data=!3m3!1e3!4b1!5s0x182f10a15b156eb1:0x192d692475d72e8a!4m6!3m5!1s0x182f10a15addeb89:0x45938348911c9610!8m2!3d-1.2924283!4d36.786668!16s%2Fg%2F11h0vrvwm?entry=ttu&g_ep=EgoyMDI2MDIwMS4wIKXMDSoKLDEwMDc5MjA2N0gBUAM%3D";
+
 // TypeScript interfaces
 interface ContactFormData {
     name: string;
@@ -101,6 +104,16 @@ const ContactPage: React.FC = () => {
             'Content-Type': 'application/json',
         },
     });
+
+    // Function to open Kenyan location map
+    const openKenyanLocationMap = () => {
+        window.open(KENYAN_LOCATION_MAP_LINK, '_blank', 'noopener,noreferrer');
+    };
+
+    // Function to open global network map (same as Kenyan location)
+    const openGlobalNetworkMap = () => {
+        window.open(KENYAN_LOCATION_MAP_LINK, '_blank', 'noopener,noreferrer');
+    };
 
     // Add request interceptor for logging
     apiClient.interceptors.request.use(
@@ -401,17 +414,9 @@ const ContactPage: React.FC = () => {
             action: 'Send Email'
         },
         {
-            icon: MapPinIcon,
-            title: 'Global Headquarters',
-            details: ['One Executive Plaza, Suite 1000', '123 Premium Avenue, New York, NY 10001'],
-            description: 'Premium service centers in 50+ global locations',
-            color: 'from-[#FF7B35] to-[#FF6B35]',
-            action: 'Get Directions'
-        },
-        {
             icon: ClockIcon,
             title: 'Premium Hours',
-            details: ['Concierge: 24/7', 'Executive Office: 8 AM - 10 PM EST'],
+            details: ['Concierge: 24/7', 'Executive Office: 8 AM - 5 PM EST'],
             description: 'Dedicated support for premium and corporate clients',
             color: 'from-[#FF6B35] to-[#FF8B35]',
             action: 'View Schedule'
@@ -924,8 +929,8 @@ const ContactPage: React.FC = () => {
                             >
                                 {location.featured && (
                                     <div className="absolute top-4 left-4 z-10">
-                                        <span className="px-3 py-1.5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white text-xs font-bold rounded-full shadow-lg">
-                                            HEADQUARTERS
+                                        <span className="px-3 py-1 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white text-xs font-bold rounded-full">
+                                            Featured Location
                                         </span>
                                     </div>
                                 )}
@@ -968,13 +973,19 @@ const ContactPage: React.FC = () => {
                                     </div>
 
                                     <button
-                                        onClick={() => toast.info(`Details for ${location.city} coming soon!`, {
-                                            position: "top-right",
-                                            autoClose: 3000,
-                                        })}
+                                        onClick={() => {
+                                            if (location.city === 'Kilimani, Nairobi') {
+                                                openKenyanLocationMap();
+                                            } else {
+                                                toast.info(`Details for ${location.city} coming soon!`, {
+                                                    position: "top-right",
+                                                    autoClose: 3000,
+                                                });
+                                            }
+                                        }}
                                         className="w-full py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors duration-300"
                                     >
-                                        View Location Details
+                                        {location.city === 'Kilimani, Nairobi' ? 'View on Google Maps' : 'View Location Details'}
                                     </button>
                                 </div>
                             </div>
@@ -1002,13 +1013,10 @@ const ContactPage: React.FC = () => {
                                 Interactive map showing all our premium service centers and executive lounges worldwide
                             </p>
                             <button
-                                onClick={() => toast.info('Global network map coming soon!', {
-                                    position: "top-right",
-                                    autoClose: 3000,
-                                })}
+                                onClick={openGlobalNetworkMap}
                                 className="px-8 py-3.5 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-bold rounded-xl hover:shadow-xl hover:shadow-[#FF6B35]/20 transition-all duration-300 transform hover:-translate-y-0.5"
                             >
-                                Explore Global Network
+                                Explore Global Network on Google Maps
                             </button>
                         </div>
                     </div>
