@@ -555,7 +555,7 @@ const ContactPage: React.FC = () => {
                             <p className="text-sm text-gray-400">Premium Support</p>
                         </div>
                         <div className="px-4 py-2 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-                            <span className="text-2xl font-bold text-white">50+</span>
+                            <span className="text-2xl font-bold text-white">2</span>
                             <p className="text-sm text-gray-400">Global Locations</p>
                         </div>
                     </div>
@@ -928,13 +928,6 @@ const ContactPage: React.FC = () => {
                                     key={index}
                                     className="location-card group relative bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-200 opacity-0"
                                 >
-                                    {location.featured && (
-                                        <div className="absolute top-4 left-4 z-10">
-                                            <span className="px-3 py-1 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white text-xs font-bold rounded-full">
-                                                Featured Location
-                                            </span>
-                                        </div>
-                                    )}
 
                                     <div className="p-6">
                                         <div className="mb-6">
