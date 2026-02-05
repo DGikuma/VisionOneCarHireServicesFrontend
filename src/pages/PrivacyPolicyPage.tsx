@@ -186,7 +186,7 @@ const PrivacyPolicyPage: React.FC = () => {
                         </div>
 
                         <p className="text-gray-700">
-                            To exercise any of these rights, please contact us at <strong>privacy@visiononecarhire.com</strong>. We will respond to your request within 30 days.
+                            To exercise any of these rights, please contact us at <strong>privacy@visionwanservices.com</strong>. We will respond to your request within 30 days.
                         </p>
                     </div>
                 </section>
@@ -285,7 +285,7 @@ const PrivacyPolicyPage: React.FC = () => {
                 <div className="space-y-4">
                     <div className="flex items-center text-gray-700">
                         <ShieldCheckIcon className="h-5 w-5 mr-3 text-primary-600" />
-                        <span>privacy@visiononecarhire.com</span>
+                        <span>privacy@visionwanservices.com</span>
                     </div>
                     <div className="flex items-center text-gray-700">
                         <DocumentTextIcon className="h-5 w-5 mr-3 text-primary-600" />

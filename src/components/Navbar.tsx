@@ -141,7 +141,7 @@ const Navbar: React.FC = () => {
                             >
                                 <EnvelopeIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-400 group-hover:text-cyan-400 transition-colors" />
                                 <span className="text-gray-300 font-light tracking-wide hidden md:inline">
-                                    <span className="hidden lg:inline">vision1servicesltd@gmail.com</span>
+                                    <span className="hidden lg:inline">vision1servicesltd@outlook.com</span>
                                     <span className="lg:hidden">Email</span>
                                 </span>
                             </a>
@@ -158,7 +158,7 @@ const Navbar: React.FC = () => {
                             {/* Mobile Quick Contact - Shows on xs only */}
                             <div className="sm:hidden flex items-center space-x-2">
                                 <a
-                                    href="mailto:vision1servicesltd@gmail.com"
+                                    href="mailto:vision1servicesltd@outlook.com"
                                     className="p-1 rounded-full bg-gray-800/70 hover:bg-gray-700 transition-colors"
                                     aria-label="Email"
                                 >

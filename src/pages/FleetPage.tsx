@@ -145,7 +145,7 @@ const FleetPage: React.FC = () => {
             id: '7',
             name: 'Toyota Prado',
             category: 'Premium SUV',
-            image: '/assets/vehicles/toyota_prado.jpg',
+            image: '/assets/vehicles/toyota_prado.jpeg',
             price: {
                 '1-7': 12000,
                 '8-20': 11000,
@@ -167,9 +167,8 @@ const FleetPage: React.FC = () => {
             category: 'Luxury',
             image: '/assets/vehicles/range-rover.jpg',
             price: {
-                '1-7': 12000,
-                '8-20': 11000,
-                '21+': 10000
+                '1': 50000,
+                '3+': 45000
             },
             seats: 5,
             transmission: '8-Speed Auto',

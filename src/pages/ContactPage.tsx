@@ -395,7 +395,7 @@ const ContactPage: React.FC = () => {
         {
             icon: EnvelopeIcon,
             title: 'Email Communications',
-            details: ['executive@visionone.com', 'vision1servicesltd@gmail.com'],
+            details: ['executive@visionone.com', 'vision1servicesltd@outlook.com'],
             description: 'Guaranteed response within 2 business hours',
             color: 'from-[#FF8B35] to-[#FF7B35]',
             action: 'Send Email'
@@ -422,7 +422,7 @@ const ContactPage: React.FC = () => {
         {
             id: 'general',
             name: 'Executive Office',
-            email: 'vision1servicesltd@gmail.com',
+            email: 'vision1servicesltd@outlook.com',
             phone: '+254 (705) 336 311',
             description: 'For strategic partnerships and executive-level inquiries',
             icon: BuildingOfficeIcon
@@ -430,7 +430,7 @@ const ContactPage: React.FC = () => {
         {
             id: 'booking',
             name: 'Premium Reservations',
-            email: 'vision1servicesltd@gmail.com',
+            email: 'vision1servicesltd@outlook.com',
             phone: '+254 (705) 336 311',
             description: 'Personalized booking assistance and itinerary planning',
             icon: DocumentTextIcon
@@ -438,7 +438,7 @@ const ContactPage: React.FC = () => {
         {
             id: 'corporate',
             name: 'Corporate Services',
-            email: 'vision1servicesltd@gmail.com',
+            email: 'vision1servicesltd@outlook.com',
             phone: '+254 (705) 336 311',
             description: 'Enterprise fleet management and corporate accounts',
             icon: UserGroupIcon
@@ -446,7 +446,7 @@ const ContactPage: React.FC = () => {
         {
             id: 'support',
             name: 'Premium Support',
-            email: 'vision1servicesltd@gmail.com',
+            email: 'vision1servicesltd@outlook.com',
             phone: '+254 (705) 336 311',
             description: '24/7 concierge service and roadside assistance',
             icon: ShieldCheckIcon

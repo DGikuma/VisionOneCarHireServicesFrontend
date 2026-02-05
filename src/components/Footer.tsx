@@ -126,7 +126,7 @@ const Footer: React.FC = () => {
                             <li className="flex items-start">
                                 <MailIcon className="h-5 w-5 text-primary-400 mr-3 mt-1" />
                                 <div>
-                                    <p className="text-gray-400">vision1servicesltd@gmail.com</p>
+                                    <p className="text-gray-400">vision1servicesltd@outlook.com</p>
                                     <p className="text-gray-500 text-sm">Response within 2 hours</p>
                                 </div>
                             </li>

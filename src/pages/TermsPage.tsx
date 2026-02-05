@@ -382,7 +382,7 @@ const TermsPage: React.FC = () => {
                     <div className="space-y-2">
                         <div className="flex items-center text-gray-700">
                             <DocumentTextIcon className="h-5 w-5 mr-2 text-primary-600" />
-                            <span>legal@visiononecarhire.com</span>
+                            <span>legal@visionwanservices.com</span>
                         </div>
                         <div className="flex items-center text-gray-700">
                             <PhoneIcon className="h-5 w-5 mr-2 text-primary-600" />

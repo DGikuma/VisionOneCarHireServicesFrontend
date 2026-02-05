@@ -4,8 +4,8 @@ Disallow: /admin/
 Disallow: /private/
 Disallow: /api/
 
-Sitemap: https://visiononecarhire.com/sitemap.xml
-Host: https://visiononecarhire.com
+Sitemap: https://visionwanservices.com/sitemap.xml
+Host: https://visionwanservices.com
 
 # Crawl delay
 Crawl-delay: 10

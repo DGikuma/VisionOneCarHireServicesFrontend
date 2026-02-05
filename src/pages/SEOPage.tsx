@@ -27,7 +27,7 @@ const SEOPage: React.FC = () => {
         "telephone": "+1-555-123-4567",
         "openingHours": "Mo-Su 00:00-23:59",
         "priceRange": "$$$",
-        "image": "https://visiononecarhire.com/images/logo.png"
+        "image": "https://visionwanservices.com/images/logo.png"
     };
 
     const serviceAreas = [
@@ -317,7 +317,7 @@ const SEOPage: React.FC = () => {
                                 <div>
                                     <h4 className="font-semibold mb-2">Contact</h4>
                                     <p className="text-primary-200">Phone: (555) 123-4567</p>
-                                    <p className="text-primary-200">Email: info@visiononecarhire.com</p>
+                                    <p className="text-primary-200">Email: info@visionwanservices.com</p>
                                 </div>
                             </div>
                         </div>

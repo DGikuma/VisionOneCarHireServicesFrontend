@@ -180,7 +180,7 @@ const ServicesPage: React.FC = () => {
         const body = encodeURIComponent(
             `Dear Vision One Car Hire,\n\nI am interested in your Premium Airport Transfer Service. Please provide me with more information regarding:\n\n1. Available vehicles for airport transfers\n2. Pricing for airport transfers\n3. Meet & Greet service details\n4. Airport coverage areas\n\nThank you,\n[Your Name]`
         );
-        window.open(`mailto:info@visiononecarhire.com?subject=${subject}&body=${body}`);
+        window.open(`mailto:info@visionwanservices.com?subject=${subject}&body=${body}`);
     };
 
     const handlePhoneEnquiry = () => {
