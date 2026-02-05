@@ -467,15 +467,6 @@ const ContactPage: React.FC = () => {
             hours: '24/7 Premium Lounge',
             features: ['Executive Lounge', 'Premium Valet', 'Conference Facilities'],
             featured: true
-        },
-        {
-            city: 'Kent',
-            country: 'United Kingdom',
-            address: '456 Sunset Boulevard, Beverly Hills, CA 90210',
-            phone: '+44 (7397) 549 590',
-            hours: '24/7 Premium Lounge',
-            features: ['Private Showroom', 'Luxury Detailing', 'Chauffeur Services'],
-            featured: false
         }
     ];
 
@@ -547,10 +538,6 @@ const ContactPage: React.FC = () => {
                             <span className="text-2xl font-bold text-white">24/7</span>
                             <p className="text-sm text-gray-400">Premium Support</p>
                         </div>
-                        <div className="px-4 py-2 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-                            <span className="text-2xl font-bold text-white">50+</span>
-                            <p className="text-sm text-gray-400">Global Locations</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -558,11 +545,11 @@ const ContactPage: React.FC = () => {
             {/* Contact Channels */}
             <div className="relative -mt-16 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8 lg:justify-items-center lg:max-w-6xl lg:mx-auto">
                         {contactChannels.map((channel, index) => (
                             <div
                                 key={index}
-                                className="contact-card group relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-200 opacity-0"
+                                className="contact-card group relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-200 opacity-0 lg:w-[320px] xl:w-full"
                             >
                                 {/* Gradient Header */}
                                 <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${channel.color} rounded-t-2xl`} />
@@ -689,15 +676,7 @@ const ContactPage: React.FC = () => {
                                         </li>
                                     </ul>
 
-                                    <button
-                                        onClick={() => toast.info('Service Level Agreement coming soon!', {
-                                            position: "top-right",
-                                            autoClose: 3000,
-                                        })}
-                                        className="w-full py-3 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl hover:bg-white/20 transition-all duration-300 border border-white/20"
-                                    >
-                                        View Service Level Agreement
-                                    </button>
+
                                 </div>
                             </div>
                         </div>
@@ -921,75 +900,56 @@ const ContactPage: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-                        {globalLocations.map((location, index) => (
-                            <div
-                                key={index}
-                                className="location-card group relative bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-200 opacity-0"
-                            >
-                                {location.featured && (
-                                    <div className="absolute top-4 left-4 z-10">
-                                        <span className="px-3 py-1 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white text-xs font-bold rounded-full">
-                                            Featured Location
-                                        </span>
-                                    </div>
-                                )}
+                    <div className="relative -mt-16 z-10">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex justify-center">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-5xl lg:max-w-6xl">
+                                    {contactChannels.map((channel, index) => (
+                                        <div
+                                            key={index}
+                                            className="contact-card group relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-200 opacity-0"
+                                        >
+                                            {/* Gradient Header */}
+                                            <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${channel.color} rounded-t-2xl`} />
 
-                                <div className="p-6">
-                                    <div className="mb-6">
-                                        <h3 className="text-xl font-bold text-gray-900 mb-1">
-                                            {location.city}
-                                        </h3>
-                                        <p className="text-gray-500 text-sm">{location.country}</p>
-                                    </div>
+                                            <div className="pt-6">
+                                                <div className="flex items-center gap-4 mb-6">
+                                                    <div className={`p-3 bg-gradient-to-br ${channel.color} rounded-xl text-white`}>
+                                                        <channel.icon className="h-6 w-6" />
+                                                    </div>
+                                                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-[#FF6B35] transition-colors duration-300">
+                                                        {channel.title}
+                                                    </h3>
+                                                </div>
 
-                                    <div className="space-y-4 mb-6">
-                                        <div className="flex items-start text-gray-600">
-                                            <MapPinIcon className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0 mt-0.5" />
-                                            <span className="text-sm">{location.address}</span>
-                                        </div>
-                                        <div className="flex items-center text-gray-600">
-                                            <PhoneIcon className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                                            <span className="text-sm">{location.phone}</span>
-                                        </div>
-                                        <div className="flex items-center text-gray-600">
-                                            <ClockIcon className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                                            <span className="text-sm">{location.hours}</span>
-                                        </div>
-                                    </div>
+                                                <div className="space-y-3 mb-6">
+                                                    {channel.details.map((detail, idx) => (
+                                                        <p key={idx} className="text-gray-700 font-medium">
+                                                            {detail}
+                                                        </p>
+                                                    ))}
+                                                </div>
 
-                                    <div className="mb-6">
-                                        <h4 className="text-sm font-semibold text-gray-700 mb-3">Premium Features</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {location.features.map((feature, idx) => (
-                                                <span
-                                                    key={idx}
-                                                    className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full"
+                                                <p className="text-sm text-gray-500 mb-6">
+                                                    {channel.description}
+                                                </p>
+
+                                                <button
+                                                    onClick={() => handleContactAction(channel)}
+                                                    className="text-[#FF6B35] font-semibold flex items-center group/btn hover:text-[#FF8B35] transition-colors duration-300"
                                                 >
-                                                    {feature}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
+                                                    <span>{channel.action}</span>
+                                                    <ArrowRightIcon className="h-4 w-4 ml-2 transform group-hover/btn:translate-x-1 transition-transform duration-300" />
+                                                </button>
+                                            </div>
 
-                                    <button
-                                        onClick={() => {
-                                            if (location.city === 'Kilimani, Nairobi') {
-                                                openKenyanLocationMap();
-                                            } else {
-                                                toast.info(`Details for ${location.city} coming soon!`, {
-                                                    position: "top-right",
-                                                    autoClose: 3000,
-                                                });
-                                            }
-                                        }}
-                                        className="w-full py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors duration-300"
-                                    >
-                                        {location.city === 'Kilimani, Nairobi' ? 'View on Google Maps' : 'View Location Details'}
-                                    </button>
+                                            {/* Hover Effect */}
+                                            <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#FF6B35]/20 rounded-2xl transition-colors duration-300" />
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                        ))}
+                        </div>
                     </div>
 
                     {/* Map Visualization */}
