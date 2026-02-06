@@ -1062,16 +1062,6 @@ const ContactPage: React.FC = () => {
                             <span>Schedule Executive Consultation</span>
                             <ArrowRightIcon className="h-5 w-5 ml-2" />
                         </button>
-                        <button
-                            onClick={() => toast.info('Corporate brochure download coming soon!', {
-                                position: "top-right",
-                                autoClose: 3000,
-                            })}
-                            className="px-8 py-4 bg-white text-gray-900 font-bold rounded-xl border-2 border-gray-300 hover:border-[#FF6B35] hover:text-[#FF6B35] transition-all duration-300 flex items-center justify-center"
-                        >
-                            <span>Download Corporate Brochure</span>
-                            <ArrowRightIcon className="h-5 w-5 ml-2" />
-                        </button>
                     </div>
                 </div>
             </div>
