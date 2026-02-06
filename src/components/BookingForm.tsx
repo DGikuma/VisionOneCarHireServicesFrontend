@@ -93,33 +93,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
     const [drivingLicense, setDrivingLicense] = useState<File | null>(null);
     const [depositProof, setDepositProof] = useState<File | null>(null);
 
-    // Add this utility function near the top of the component
-    const formatPhoneForDisplay = (phone: string): string => {
-        if (!phone) return 'Not provided';
-
-        // Ensure phone starts with +
-        let formatted = phone.replace(/[^\d+]/g, '');
-        if (!formatted.startsWith('+')) {
-            formatted = '+' + formatted;
-        }
-
-        // Format with spaces for readability: +XXX XXX XXX XXX
-        const digits = formatted.substring(1);
-        if (digits.length <= 3) return formatted;
-
-        // Format based on common patterns
-        if (formatted.startsWith('+254')) { // Kenya
-            return formatted.replace(/(\+\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
-        } else if (formatted.startsWith('+44')) { // UK
-            return formatted.replace(/(\+\d{2})(\d{4})(\d{3})(\d{3})/, '$1 $2 $3 $4');
-        } else if (formatted.startsWith('+1')) { // US/Canada
-            return formatted.replace(/(\+\d{1})(\d{3})(\d{3})(\d{4})/, '$1 ($2) $3-$4');
-        }
-
-        // Default formatting: group in 3s
-        return formatted.replace(/(\+\d{1,4})(\d{3})(\d{3})(\d{3})/, '$1 $2 $3 $4');
-    };
-
     const debugFiles = () => {
         console.group('📁 File Debug Info');
         console.log('idDocument:', idDocument ?
@@ -708,44 +681,28 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(({ activeStep, 
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-3">
-                                    Phone Number
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Phone Number *
                                 </label>
-                                <div className="flex">
-                                    <div className="flex-shrink-0">
-                                        <div className="inline-flex items-center h-full px-4 py-4 border border-r-0 border-gray-300 rounded-l-xl bg-gray-50">
-                                            <span className="text-gray-700 font-medium">+</span>
-                                        </div>
-                                    </div>
-                                    <div className="relative flex-1">
-                                        <input
-                                            type="tel"
-                                            name="phone"
-                                            value={formData.phone}
-                                            onChange={(e) => {
-                                                // Remove all non-digit characters
-                                                const value = e.target.value.replace(/\D/g, '');
-
-                                                // Limit to 15 digits
-                                                const limitedValue = value.length > 15 ? value.substring(0, 15) : value;
-
-                                                setFormData({
-                                                    ...formData,
-                                                    phone: limitedValue
-                                                });
-                                            }}
-                                            disabled={isSubmitting}
-                                            className="w-full px-5 py-4 border border-gray-300 rounded-r-xl focus:ring-2 focus:ring-[#FF6B35]/30 focus:border-[#FF6B35] transition-all duration-300 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                                            placeholder="254 705 336 311"
-                                        />
-                                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                            <PhoneIcon className="h-5 w-5 text-gray-400" />
-                                        </div>
-                                    </div>
+                                <div className="relative">
+                                    <PhoneIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                                    <input
+                                        type="tel"
+                                        {...register('phone', {
+                                            required: 'Phone number is required',
+                                            pattern: {
+                                                value: /^[\+]?[1-9][\d]{0,15}$/,
+                                                message: 'Invalid phone number',
+                                            },
+                                        })}
+                                        className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        placeholder="Enter Your Phone Number"
+                                        disabled={isSubmitting}
+                                    />
                                 </div>
-                                <p className="mt-2 text-sm text-gray-500">
-                                    Example: +254 705 336 311
-                                </p>
+                                {errors.phone && (
+                                    <p className="mt-2 text-sm text-red-600">{errors.phone.message}</p>
+                                )}
                             </div>
                         </div>
                     </div>
