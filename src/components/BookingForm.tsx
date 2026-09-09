@@ -29,7 +29,7 @@ interface BookingFormData {
     pickupTime: string;
     returnLocation: string;
     notes: string;
-    drivingLicence: FileList;
+    drivingLicense: FileList;
     idDocument: FileList;
     consent: boolean;
     accuracy: boolean;
@@ -107,7 +107,7 @@ const ratesData = [
 const stepFields: Record<number, (keyof BookingFormData)[]> = {
     1: ['vehicle', 'pickupLocation', 'pickupDate', 'returnDate', 'pickupTime', 'returnLocation'],
     2: ['fullName', 'email', 'phone', 'address', 'consent', 'accuracy'],
-    3: ['drivingLicence', 'idDocument'],
+    3: ['drivingLicense', 'idDocument'],
     4: [],
 };
 
@@ -115,7 +115,7 @@ const stepFields: Record<number, (keyof BookingFormData)[]> = {
 const allRequiredFields: (keyof BookingFormData)[] = [
     'vehicle', 'pickupLocation', 'pickupDate', 'returnDate',
     'fullName', 'email', 'phone',
-    'drivingLicence', 'idDocument', 'consent', 'accuracy'
+    'drivingLicense', 'idDocument', 'consent', 'accuracy'
 ];
 
 const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
@@ -139,6 +139,16 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 consent: false,
                 accuracy: false,
                 phone: '',
+                fullName: '',
+                email: '',
+                address: '',
+                vehicle: '',
+                pickupLocation: '',
+                pickupDate: '',
+                returnDate: '',
+                pickupTime: '',
+                returnLocation: '',
+                notes: '',
             },
             mode: 'onChange',
         });
@@ -152,7 +162,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         // Check if all required fields are filled
         const isFormComplete = allRequiredFields.every(field => {
             const value = watchedValues[field];
-            if (field === 'drivingLicence' || field === 'idDocument') {
+            if (field === 'drivingLicense' || field === 'idDocument') {
                 return value instanceof FileList && value.length > 0;
             }
             if (typeof value === 'boolean') {
@@ -220,7 +230,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         // Form submission
         // ------------------------------------------------
         const onSubmit = async (data: BookingFormData) => {
-            const dlFile = data.drivingLicence?.[0];
+            const dlFile = data.drivingLicense?.[0];
             const idFile = data.idDocument?.[0];
 
             if (!dlFile) {
@@ -255,7 +265,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
 
                 // Add all form fields with phone value from phone input
                 Object.entries(data).forEach(([key, value]) => {
-                    if (key === 'drivingLicence' || key === 'idDocument') {
+                    if (key === 'drivingLicense' || key === 'idDocument') {
                         return;
                     }
                     if (key === 'phone') {
@@ -268,7 +278,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                     }
                 });
 
-                formData.append('drivingLicence', dlFile);
+                formData.append('drivingLicense', dlFile);
                 formData.append('idDocument', idFile);
 
                 const mappedData = new FormData();
@@ -397,7 +407,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
 
                     <div style={styles.summarySection}>
                         <h4 style={styles.summaryTitle}>📎 Documents & Declarations</h4>
-                        <div style={styles.summaryRow}><span>Driving Licence:</span><span>{getFileName(v.drivingLicence)}</span></div>
+                        <div style={styles.summaryRow}><span>Driving Licence:</span><span>{getFileName(v.drivingLicense)}</span></div>
                         <div style={styles.summaryRow}><span>ID / Passport:</span><span>{getFileName(v.idDocument)}</span></div>
                         <div style={styles.summaryRow}><span>Consent:</span><span>{v.consent ? '✅ Accepted' : '❌ Not accepted'}</span></div>
                         <div style={styles.summaryRow}><span>Accuracy:</span><span>{v.accuracy ? '✅ Confirmed' : '❌ Not confirmed'}</span></div>
@@ -574,7 +584,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                             placeholder="Enter your full name"
                                             {...register('fullName', { required: 'Full name is required' })}
                                             style={styles.input}
-                                            autoComplete="name"
+                                            autoComplete="off"
+                                            data-form-type="other"
                                         />
                                         {errors.fullName && <p style={styles.errorText}>{errors.fullName.message}</p>}
                                     </div>
@@ -594,7 +605,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                                 },
                                             })}
                                             style={styles.input}
-                                            autoComplete="email"
+                                            autoComplete="off"
+                                            data-form-type="other"
                                         />
                                         {errors.email && <p style={styles.errorText}>{errors.email.message}</p>}
                                     </div>
@@ -653,6 +665,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                             style={styles.input}
                                             autoComplete="off"
                                             data-form-type="other"
+                                            value={watchedValues.address || ''}
                                         />
                                     </div>
                                 </div>
@@ -704,14 +717,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                 </div>
                                 <div style={{ ...styles.grid2, marginTop: '16px' }}>
                                     <div>
-                                        <label style={styles.label} htmlFor="drivingLicence">
+                                        <label style={styles.label} htmlFor="drivingLicense">
                                             Driving licence <span style={styles.required}>*</span>
                                         </label>
                                         <input
-                                            id="drivingLicence"
+                                            id="drivingLicense"
                                             type="file"
                                             accept="image/jpeg,image/png,image/webp,application/pdf"
-                                            {...register('drivingLicence', {
+                                            {...register('drivingLicense', {
                                                 required: 'Driving licence is required',
                                                 validate: {
                                                     filePresent: (value) => {
@@ -723,7 +736,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                             style={styles.fileInput}
                                         />
                                         <div style={styles.helpText}>Required: clear photo or PDF.</div>
-                                        {errors.drivingLicence && <p style={styles.errorText}>{errors.drivingLicence.message}</p>}
+                                        {errors.drivingLicense && <p style={styles.errorText}>{errors.drivingLicense.message}</p>}
                                     </div>
                                     <div>
                                         <label style={styles.label} htmlFor="idDocument">
