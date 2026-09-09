@@ -261,26 +261,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             setIsSubmitting(true);
 
             try {
-                const formData = new FormData();
-
-                // Add all form fields with phone value from phone input
-                Object.entries(data).forEach(([key, value]) => {
-                    if (key === 'drivingLicense' || key === 'idDocument') {
-                        return;
-                    }
-                    if (key === 'phone') {
-                        // Use the phoneValue from react-phone-input
-                        formData.append(key, phoneValue);
-                        return;
-                    }
-                    if (value !== undefined && value !== null) {
-                        formData.append(key, value.toString());
-                    }
-                });
-
-                formData.append('drivingLicense', dlFile);
-                formData.append('idDocument', idFile);
-
+                // Create FormData directly - no need for double mapping
                 const mappedData = new FormData();
                 mappedData.append('customerName', data.fullName);
                 mappedData.append('email', data.email);
@@ -296,9 +277,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 mappedData.append('termsAccepted', 'true');
                 mappedData.append('drivingLicense', dlFile);
                 mappedData.append('idDocument', idFile);
-                const dummyBlob = new Blob(['dummy'], { type: 'text/plain' });
-                const dummyFile = new File([dummyBlob], 'dummy.txt', { type: 'text/plain' });
-                mappedData.append('depositProof', dummyFile);
+                
+                // ✅ REMOVED: No dummy file - depositProof is optional
 
                 const response = await axios.post(API_URL, mappedData, {
                     headers: {
