@@ -6,11 +6,16 @@ const { useState, useRef, useEffect, forwardRef, useImperativeHandle } = React;
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 // API base URL from environment variables or default
 const API_BASE_URL =
     import.meta.env.VITE_API_URL ||
     'https://visiononecarhireservicesbackend-1.onrender.com';
+
+// Default country from environment or fallback to Kenya (ke)
+const DEFAULT_COUNTRY = import.meta.env.VITE_DEFAULT_COUNTRY || 'ke';
 
 interface BookingFormData {
     fullName: string;
@@ -101,17 +106,25 @@ const ratesData = [
 // Define which fields belong to each step
 const stepFields: Record<number, (keyof BookingFormData)[]> = {
     1: ['vehicle', 'pickupLocation', 'pickupDate', 'returnDate', 'pickupTime', 'returnLocation'],
-    2: ['fullName', 'email', 'phone', 'address'],
-    3: ['drivingLicence', 'idDocument', 'consent', 'accuracy'],
-    4: [], // no fields to validate on the confirmation step
+    2: ['fullName', 'email', 'phone', 'address', 'consent', 'accuracy'],
+    3: ['drivingLicence', 'idDocument'],
+    4: [],
 };
 
+// List of all required fields (for submit button enablement)
+const allRequiredFields: (keyof BookingFormData)[] = [
+    'vehicle', 'pickupLocation', 'pickupDate', 'returnDate',
+    'fullName', 'email', 'phone',
+    'drivingLicence', 'idDocument', 'consent', 'accuracy'
+];
+
 const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
-    ({ activeStep, onComplete }, ref) => {
+    ({ activeStep, onNextStep, onPrevStep, onComplete }, ref) => {
         const [isSubmitting, setIsSubmitting] = useState(false);
         const [confirmed, setConfirmed] = useState(false);
-        const [ setBookingData] = useState<any>(null);
+        const [, setBookingData] = useState<any>(null);
         const formRef = useRef<HTMLFormElement>(null);
+        const [phoneValue, setPhoneValue] = useState('');
 
         const {
             register,
@@ -125,11 +138,31 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             defaultValues: {
                 consent: false,
                 accuracy: false,
+                phone: '',
             },
+            mode: 'onChange',
         });
 
         const pickupDate = watch('pickupDate');
         const returnDate = watch('returnDate');
+
+        // Watch all required fields to determine if form is complete
+        const watchedValues = watch();
+
+        // Check if all required fields are filled
+        const isFormComplete = allRequiredFields.every(field => {
+            const value = watchedValues[field];
+            if (field === 'drivingLicence' || field === 'idDocument') {
+                return value instanceof FileList && value.length > 0;
+            }
+            if (typeof value === 'boolean') {
+                return value === true;
+            }
+            if (field === 'phone') {
+                return phoneValue && phoneValue.replace(/[^0-9]/g, '').length >= 8;
+            }
+            return value && value.toString().trim().length > 0;
+        });
 
         // Set min dates for pickup and return
         const today = new Date();
@@ -166,24 +199,19 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         // ------------------------------------------------
         useImperativeHandle(ref, () => ({
             validateStep: async () => {
-                // Get the fields for the current step
                 const fieldsToValidate = stepFields[activeStep] || [];
                 if (fieldsToValidate.length === 0) {
-                    // Step 4 has no required fields – always valid
                     return true;
                 }
-                // Trigger validation only for those fields
                 const result = await trigger(fieldsToValidate as any);
                 return result;
             },
             resetForm: () => {
-                // Reset react-hook-form
                 reset();
-                // Reset internal state
+                setPhoneValue('');
                 setConfirmed(false);
                 setBookingData(null);
                 setIsSubmitting(false);
-                // Optionally clear file inputs via refs (not implemented for brevity)
                 toast.info('Form has been reset.');
             },
         }));
@@ -192,7 +220,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         // Form submission
         // ------------------------------------------------
         const onSubmit = async (data: BookingFormData) => {
-            // Validate files
             const dlFile = data.drivingLicence?.[0];
             const idFile = data.idDocument?.[0];
 
@@ -216,7 +243,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 return;
             }
 
-            // Validate dates
             if (data.returnDate && data.pickupDate && data.returnDate < data.pickupDate) {
                 toast.error('Return date cannot be before pickup date');
                 return;
@@ -227,9 +253,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             try {
                 const formData = new FormData();
 
-                // Add all form fields
+                // Add all form fields with phone value from phone input
                 Object.entries(data).forEach(([key, value]) => {
                     if (key === 'drivingLicence' || key === 'idDocument') {
+                        return;
+                    }
+                    if (key === 'phone') {
+                        // Use the phoneValue from react-phone-input
+                        formData.append(key, phoneValue);
                         return;
                     }
                     if (value !== undefined && value !== null) {
@@ -237,15 +268,13 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                     }
                 });
 
-                // Add files
                 formData.append('drivingLicence', dlFile);
                 formData.append('idDocument', idFile);
 
-                // Map field names to match backend expectations
                 const mappedData = new FormData();
                 mappedData.append('customerName', data.fullName);
                 mappedData.append('email', data.email);
-                mappedData.append('phone', data.phone);
+                mappedData.append('phone', phoneValue);
                 mappedData.append('pickupDate', data.pickupDate);
                 mappedData.append('returnDate', data.returnDate);
                 mappedData.append('carType', data.vehicle);
@@ -257,7 +286,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 mappedData.append('termsAccepted', 'true');
                 mappedData.append('drivingLicense', dlFile);
                 mappedData.append('idDocument', idFile);
-                // Add a dummy deposit proof since the backend expects it
                 const dummyBlob = new Blob(['dummy'], { type: 'text/plain' });
                 const dummyFile = new File([dummyBlob], 'dummy.txt', { type: 'text/plain' });
                 mappedData.append('depositProof', dummyFile);
@@ -296,11 +324,11 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         const HeroSection = () => (
             <div className="hero-section" style={styles.hero}>
                 <div style={styles.heroLogo}>
-                    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="60" cy="60" r="58" fill="#FF6B35" stroke="#fff" strokeWidth="4" />
-                        <text x="30" y="70" fontFamily="Arial, sans-serif" fontSize="28" fontWeight="bold" fill="#fff">V1</text>
-                        <text x="28" y="92" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold" fill="#fff">CAR HIRE</text>
-                    </svg>
+                    <img 
+                        src="/assets/images/logo.png" 
+                        alt="Vision One Services Logo" 
+                        style={{ width: '120px', height: '120px', objectFit: 'contain' }}
+                    />
                 </div>
                 <div style={styles.heroContent}>
                     <h1 style={styles.heroTitle}>Vehicle Booking Form</h1>
@@ -330,6 +358,86 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </div>
                     ))}
                 </div>
+            </div>
+        );
+
+        // Summary component for step 4
+        const BookingSummary = () => {
+            const v = watchedValues;
+            const formatDate = (dateStr: string) => {
+                if (!dateStr) return 'Not provided';
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+            };
+            const getFileName = (fileList: FileList) => {
+                if (!fileList || fileList.length === 0) return 'Not uploaded';
+                return fileList[0].name;
+            };
+
+            return (
+                <div style={styles.summaryGrid}>
+                    <div style={styles.summarySection}>
+                        <h4 style={styles.summaryTitle}>📋 Booking Details</h4>
+                        <div style={styles.summaryRow}><span>Vehicle:</span><span>{v.vehicle || '—'}</span></div>
+                        <div style={styles.summaryRow}><span>Pickup Location:</span><span>{v.pickupLocation || '—'}</span></div>
+                        <div style={styles.summaryRow}><span>Pickup Date:</span><span>{formatDate(v.pickupDate)}</span></div>
+                        <div style={styles.summaryRow}><span>Return Date:</span><span>{formatDate(v.returnDate)}</span></div>
+                        <div style={styles.summaryRow}><span>Pickup Time:</span><span>{v.pickupTime || 'Not specified'}</span></div>
+                        <div style={styles.summaryRow}><span>Return Location:</span><span>{v.returnLocation || 'Same as pickup'}</span></div>
+                        {v.notes && <div style={styles.summaryRow}><span>Notes:</span><span>{v.notes}</span></div>}
+                    </div>
+
+                    <div style={styles.summarySection}>
+                        <h4 style={styles.summaryTitle}>👤 Client Details</h4>
+                        <div style={styles.summaryRow}><span>Full Name:</span><span>{v.fullName || '—'}</span></div>
+                        <div style={styles.summaryRow}><span>Email:</span><span>{v.email || '—'}</span></div>
+                        <div style={styles.summaryRow}><span>Phone:</span><span>{phoneValue || '—'}</span></div>
+                        <div style={styles.summaryRow}><span>Address:</span><span>{v.address || 'Not provided'}</span></div>
+                    </div>
+
+                    <div style={styles.summarySection}>
+                        <h4 style={styles.summaryTitle}>📎 Documents & Declarations</h4>
+                        <div style={styles.summaryRow}><span>Driving Licence:</span><span>{getFileName(v.drivingLicence)}</span></div>
+                        <div style={styles.summaryRow}><span>ID / Passport:</span><span>{getFileName(v.idDocument)}</span></div>
+                        <div style={styles.summaryRow}><span>Consent:</span><span>{v.consent ? '✅ Accepted' : '❌ Not accepted'}</span></div>
+                        <div style={styles.summaryRow}><span>Accuracy:</span><span>{v.accuracy ? '✅ Confirmed' : '❌ Not confirmed'}</span></div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Navigation buttons
+        const NavigationButtons = ({ showSubmit = false }) => (
+            <div style={styles.navigation}>
+                {activeStep > 1 && (
+                    <button
+                        type="button"
+                        onClick={onPrevStep}
+                        style={styles.prevBtn}
+                    >
+                        ← Previous
+                    </button>
+                )}
+                {!showSubmit ? (
+                    <button
+                        type="button"
+                        onClick={onNextStep}
+                        style={styles.nextBtn}
+                    >
+                        Next →
+                    </button>
+                ) : (
+                    <button
+                        type="submit"
+                        disabled={isSubmitting || confirmed || !isFormComplete}
+                        style={{
+                            ...styles.submitBtn,
+                            ...((isSubmitting || confirmed || !isFormComplete) ? styles.submitBtnDisabled : {}),
+                        }}
+                    >
+                        {isSubmitting ? 'Submitting…' : confirmed ? '✓ Booking Confirmed' : 'Submit Booking Request'}
+                    </button>
+                )}
             </div>
         );
 
@@ -367,6 +475,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                         <input
                                             id="pickupLocation"
                                             type="text"
+                                            placeholder="e.g. Nairobi, JKIA, Mombasa Road"
                                             {...register('pickupLocation', { required: 'Pickup location is required' })}
                                             style={styles.input}
                                         />
@@ -416,6 +525,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                             type="time"
                                             {...register('pickupTime')}
                                             style={styles.input}
+                                            placeholder="Select time"
                                         />
                                     </div>
                                     <div>
@@ -425,6 +535,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                         <input
                                             id="returnLocation"
                                             type="text"
+                                            placeholder="e.g. Same as pickup"
                                             {...register('returnLocation')}
                                             style={styles.input}
                                         />
@@ -435,6 +546,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                         </label>
                                         <textarea
                                             id="notes"
+                                            placeholder="Any special requests or additional information..."
                                             {...register('notes')}
                                             style={styles.textarea}
                                             rows={3}
@@ -443,183 +555,216 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                 </div>
                             </section>
                             <RatesSection />
+                            <NavigationButtons />
                         </>
                     );
                 case 2:
                     return (
-                        <section className="card" style={styles.card}>
-                            <h2 style={styles.cardTitle}>Client details</h2>
-                            <div style={styles.grid2}>
-                                <div>
-                                    <label style={styles.label} htmlFor="fullName">
-                                        Full name <span style={styles.required}>*</span>
-                                    </label>
-                                    <input
-                                        id="fullName"
-                                        type="text"
-                                        {...register('fullName', { required: 'Full name is required' })}
-                                        style={styles.input}
-                                        autoComplete="name"
-                                    />
-                                    {errors.fullName && <p style={styles.errorText}>{errors.fullName.message}</p>}
+                        <>
+                            <section className="card" style={styles.card}>
+                                <h2 style={styles.cardTitle}>Client details</h2>
+                                <div style={styles.grid2}>
+                                    <div>
+                                        <label style={styles.label} htmlFor="fullName">
+                                            Full name <span style={styles.required}>*</span>
+                                        </label>
+                                        <input
+                                            id="fullName"
+                                            type="text"
+                                            placeholder="Enter your full name"
+                                            {...register('fullName', { required: 'Full name is required' })}
+                                            style={styles.input}
+                                            autoComplete="name"
+                                        />
+                                        {errors.fullName && <p style={styles.errorText}>{errors.fullName.message}</p>}
+                                    </div>
+                                    <div>
+                                        <label style={styles.label} htmlFor="email">
+                                            Email address <span style={styles.required}>*</span>
+                                        </label>
+                                        <input
+                                            id="email"
+                                            type="email"
+                                            placeholder="Enter your email address"
+                                            {...register('email', {
+                                                required: 'Email is required',
+                                                pattern: {
+                                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                                    message: 'Invalid email address',
+                                                },
+                                            })}
+                                            style={styles.input}
+                                            autoComplete="email"
+                                        />
+                                        {errors.email && <p style={styles.errorText}>{errors.email.message}</p>}
+                                    </div>
+                                    <div style={styles.fullWidth}>
+                                        <label style={styles.label} htmlFor="phone">
+                                            Phone / WhatsApp <span style={styles.required}>*</span>
+                                        </label>
+                                        <PhoneInput
+                                            country={DEFAULT_COUNTRY}
+                                            value={phoneValue}
+                                            onChange={(value: string) => {
+                                                setPhoneValue(value);
+                                                setValue('phone', value, { shouldValidate: true });
+                                            }}
+                                            inputStyle={{
+                                                width: '100%',
+                                                height: '54px',
+                                                fontSize: '14px',
+                                                borderRadius: '10px',
+                                                border: '1px solid #d9dee7',
+                                                paddingLeft: '80px',
+                                                background: '#fff',
+                                            }}
+                                            buttonStyle={{
+                                                borderRadius: '10px 0 0 10px',
+                                                border: '1px solid #d9dee7',
+                                                background: '#f8f9fa',
+                                                height: '54px',
+                                            }}
+                                            dropdownStyle={{
+                                                borderRadius: '10px',
+                                                border: '1px solid #d9dee7',
+                                                maxHeight: '300px',
+                                                overflowY: 'auto',
+                                            }}
+                                            searchPlaceholder="Search country..."
+                                            placeholder="Enter phone number"
+                                            enableSearch={true}
+                                            searchNotFound="No country found"
+                                            countryCodeEditable={false}
+                                        />
+                                        <div style={styles.helpText}>
+                                            Enter your phone number with country code. We'll contact you via WhatsApp if available.
+                                        </div>
+                                        {errors.phone && <p style={styles.errorText}>{errors.phone.message}</p>}
+                                    </div>
+                                    <div style={styles.fullWidth}>
+                                        <label style={styles.label} htmlFor="address">
+                                            Residential address
+                                        </label>
+                                        <input
+                                            id="address"
+                                            type="text"
+                                            placeholder="Enter your residential address (optional)"
+                                            {...register('address')}
+                                            style={styles.input}
+                                            autoComplete="off"
+                                            data-form-type="other"
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label style={styles.label} htmlFor="email">
-                                        Email address <span style={styles.required}>*</span>
-                                    </label>
-                                    <input
-                                        id="email"
-                                        type="email"
-                                        {...register('email', {
-                                            required: 'Email is required',
-                                            pattern: {
-                                                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                                message: 'Invalid email address',
-                                            },
-                                        })}
-                                        style={styles.input}
-                                        autoComplete="email"
-                                    />
-                                    {errors.email && <p style={styles.errorText}>{errors.email.message}</p>}
+
+                                {/* Declarations (Checkboxes) */}
+                                <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                                    <h3 style={{ fontSize: '16px', margin: '0 0 12px', color: '#a80f0f' }}>
+                                        Declarations & Consent
+                                    </h3>
+                                    <div style={styles.checkboxRow}>
+                                        <input
+                                            id="consent"
+                                            type="checkbox"
+                                            {...register('consent', { required: 'You must consent to processing' })}
+                                            style={styles.checkbox}
+                                        />
+                                        <label htmlFor="consent" style={styles.checkboxLabel}>
+                                            I consent to Vision One Services receiving and using the information and identification documents
+                                            submitted here for the purpose of processing this vehicle booking request. <span style={styles.required}>*</span>
+                                        </label>
+                                    </div>
+                                    {errors.consent && <p style={styles.errorText}>{errors.consent.message}</p>}
+
+                                    <div style={{ ...styles.checkboxRow, marginTop: '12px' }}>
+                                        <input
+                                            id="accuracy"
+                                            type="checkbox"
+                                            {...register('accuracy', { required: 'You must confirm accuracy' })}
+                                            style={styles.checkbox}
+                                        />
+                                        <label htmlFor="accuracy" style={styles.checkboxLabel}>
+                                            I confirm that the information provided is accurate and that I am authorised to provide these documents. <span style={styles.required}>*</span>
+                                        </label>
+                                    </div>
+                                    {errors.accuracy && <p style={styles.errorText}>{errors.accuracy.message}</p>}
                                 </div>
-                                <div>
-                                    <label style={styles.label} htmlFor="phone">
-                                        Phone / WhatsApp <span style={styles.required}>*</span>
-                                    </label>
-                                    <input
-                                        id="phone"
-                                        type="tel"
-                                        {...register('phone', {
-                                            required: 'Phone number is required',
-                                            pattern: {
-                                                value: /^[\+]?[1-9][\d]{0,15}$/,
-                                                message: 'Invalid phone number',
-                                            },
-                                        })}
-                                        style={styles.input}
-                                        autoComplete="tel"
-                                    />
-                                    {errors.phone && <p style={styles.errorText}>{errors.phone.message}</p>}
-                                </div>
-                                <div>
-                                    <label style={styles.label} htmlFor="address">
-                                        Residential address
-                                    </label>
-                                    <input
-                                        id="address"
-                                        type="text"
-                                        {...register('address')}
-                                        style={styles.input}
-                                        autoComplete="street-address"
-                                    />
-                                </div>
-                            </div>
-                        </section>
+                            </section>
+                            <NavigationButtons />
+                        </>
                     );
                 case 3:
                     return (
-                        <section className="card" style={styles.card}>
-                            <h2 style={styles.cardTitle}>Mandatory identity documents</h2>
-                            <div style={styles.noteBox}>
-                                Both documents are required. On most phones, tap <strong>Choose File</strong> and select the camera
-                                to photograph the document. Make sure the whole document is visible and readable.
-                            </div>
-                            <div style={{ ...styles.grid2, marginTop: '16px' }}>
-                                <div>
-                                    <label style={styles.label} htmlFor="drivingLicence">
-                                        Driving licence <span style={styles.required}>*</span>
-                                    </label>
-                                    <input
-                                        id="drivingLicence"
-                                        type="file"
-                                        accept="image/jpeg,image/png,image/webp,application/pdf"
-                                        {...register('drivingLicence', {
-                                            required: 'Driving licence is required',
-                                            validate: {
-                                                filePresent: (value) => {
-                                                    if (!value || value.length === 0) return 'Driving licence is required';
-                                                    return true;
+                        <>
+                            <section className="card" style={styles.card}>
+                                <h2 style={styles.cardTitle}>Mandatory identity documents</h2>
+                                <div style={styles.noteBox}>
+                                    Both documents are required. On most phones, tap <strong>Choose File</strong> and select the camera
+                                    to photograph the document. Make sure the whole document is visible and readable.
+                                </div>
+                                <div style={{ ...styles.grid2, marginTop: '16px' }}>
+                                    <div>
+                                        <label style={styles.label} htmlFor="drivingLicence">
+                                            Driving licence <span style={styles.required}>*</span>
+                                        </label>
+                                        <input
+                                            id="drivingLicence"
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                                            {...register('drivingLicence', {
+                                                required: 'Driving licence is required',
+                                                validate: {
+                                                    filePresent: (value) => {
+                                                        if (!value || value.length === 0) return 'Driving licence is required';
+                                                        return true;
+                                                    },
                                                 },
-                                            },
-                                        })}
-                                        style={styles.fileInput}
-                                    />
-                                    <div style={styles.helpText}>Required: clear photo or PDF.</div>
-                                    {errors.drivingLicence && <p style={styles.errorText}>{errors.drivingLicence.message}</p>}
-                                </div>
-                                <div>
-                                    <label style={styles.label} htmlFor="idDocument">
-                                        National ID or passport <span style={styles.required}>*</span>
-                                    </label>
-                                    <input
-                                        id="idDocument"
-                                        type="file"
-                                        accept="image/jpeg,image/png,image/webp,application/pdf"
-                                        {...register('idDocument', {
-                                            required: 'ID or passport is required',
-                                            validate: {
-                                                filePresent: (value) => {
-                                                    if (!value || value.length === 0) return 'ID or passport is required';
-                                                    return true;
+                                            })}
+                                            style={styles.fileInput}
+                                        />
+                                        <div style={styles.helpText}>Required: clear photo or PDF.</div>
+                                        {errors.drivingLicence && <p style={styles.errorText}>{errors.drivingLicence.message}</p>}
+                                    </div>
+                                    <div>
+                                        <label style={styles.label} htmlFor="idDocument">
+                                            National ID or passport <span style={styles.required}>*</span>
+                                        </label>
+                                        <input
+                                            id="idDocument"
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                                            {...register('idDocument', {
+                                                required: 'ID or passport is required',
+                                                validate: {
+                                                    filePresent: (value) => {
+                                                        if (!value || value.length === 0) return 'ID or passport is required';
+                                                        return true;
+                                                    },
                                                 },
-                                            },
-                                        })}
-                                        style={styles.fileInput}
-                                    />
-                                    <div style={styles.helpText}>Required: clear photo or PDF.</div>
-                                    {errors.idDocument && <p style={styles.errorText}>{errors.idDocument.message}</p>}
+                                            })}
+                                            style={styles.fileInput}
+                                        />
+                                        <div style={styles.helpText}>Required: clear photo or PDF.</div>
+                                        {errors.idDocument && <p style={styles.errorText}>{errors.idDocument.message}</p>}
+                                    </div>
                                 </div>
-                            </div>
-                            <div style={{ marginTop: '16px' }}>
-                                <div style={styles.checkboxRow}>
-                                    <input
-                                        id="consent"
-                                        type="checkbox"
-                                        {...register('consent', { required: 'You must consent to processing' })}
-                                        style={styles.checkbox}
-                                    />
-                                    <label htmlFor="consent" style={styles.checkboxLabel}>
-                                        I consent to Vision One Services receiving and using the information and identification documents
-                                        submitted here for the purpose of processing this vehicle booking request. <span style={styles.required}>*</span>
-                                    </label>
-                                </div>
-                                {errors.consent && <p style={styles.errorText}>{errors.consent.message}</p>}
-
-                                <div style={{ ...styles.checkboxRow, marginTop: '12px' }}>
-                                    <input
-                                        id="accuracy"
-                                        type="checkbox"
-                                        {...register('accuracy', { required: 'You must confirm accuracy' })}
-                                        style={styles.checkbox}
-                                    />
-                                    <label htmlFor="accuracy" style={styles.checkboxLabel}>
-                                        I confirm that the information provided is accurate and that I am authorised to provide these documents. <span style={styles.required}>*</span>
-                                    </label>
-                                </div>
-                                {errors.accuracy && <p style={styles.errorText}>{errors.accuracy.message}</p>}
-                            </div>
-                        </section>
+                            </section>
+                            <NavigationButtons />
+                        </>
                     );
                 case 4:
                     return (
-                        <section className="card" style={styles.card}>
-                            <h2 style={styles.cardTitle}>Review & Confirm</h2>
-                            <p>Please review your details and click the button below to submit your booking request.</p>
-                            {/* You can optionally display a summary here */}
-                            <button
-                                type="submit"
-                                disabled={isSubmitting || confirmed}
-                                style={{
-                                    ...styles.submitBtn,
-                                    ...((isSubmitting || confirmed) ? styles.submitBtnDisabled : {}),
-                                }}
-                            >
-                                {isSubmitting ? 'Submitting…' : confirmed ? '✓ Booking Confirmed' : 'Submit Booking Request'}
-                            </button>
+                        <>
+                            <section className="card" style={styles.card}>
+                                <h2 style={styles.cardTitle}>Review & Confirm</h2>
+                                <p style={{ marginBottom: '16px' }}>Please review your details below. If everything is correct, click the submit button to finalize your booking.</p>
+                                <BookingSummary />
+                            </section>
+                            <NavigationButtons showSubmit={true} />
                             <div style={styles.contactInfo}>
                                 +254 705 336 311 / +44 7397 549 590 · visionwanservices@gmail.com
                             </div>
-                        </section>
+                        </>
                     );
                 default:
                     return null;
@@ -643,7 +788,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
     }
 );
 
-// Styles (unchanged)
+// Styles
 const styles: { [key: string]: React.CSSProperties } = {
     container: {
         maxWidth: '980px',
@@ -782,19 +927,31 @@ const styles: { [key: string]: React.CSSProperties } = {
     },
     checkboxRow: {
         display: 'flex',
-        gap: '10px',
+        gap: '12px',
         alignItems: 'flex-start',
+        marginBottom: '8px',
     },
     checkbox: {
-        marginTop: '4px',
-        width: 'auto',
+        width: '20px',
+        height: '20px',
+        minWidth: '20px',
+        minHeight: '20px',
+        marginTop: '2px',
+        cursor: 'pointer',
+        accentColor: '#FF6B35',
+        border: '2px solid #d9dee7',
+        borderRadius: '4px',
+        appearance: 'auto',
+        WebkitAppearance: 'checkbox',
+        MozAppearance: 'checkbox',
         flexShrink: 0,
     },
     checkboxLabel: {
-        fontWeight: '600',
+        fontWeight: '500',
         fontSize: '14px',
-        lineHeight: '1.4',
+        lineHeight: '1.5',
         cursor: 'pointer',
+        color: '#1f2328',
     },
     ratesGrid: {
         display: 'grid',
@@ -829,20 +986,49 @@ const styles: { [key: string]: React.CSSProperties } = {
     ratePrice: {
         fontWeight: 'bold',
     },
-    submitBtn: {
-        width: '100%',
-        padding: '16px',
-        border: '0',
-        borderRadius: '12px',
-        background: 'linear-gradient(90deg, #a80707, #f34a22)',
-        color: 'white',
-        fontSize: '18px',
-        fontWeight: '800',
+    navigation: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginTop: '20px',
+        gap: '12px',
+    },
+    prevBtn: {
+        padding: '12px 24px',
+        background: '#e5e7eb',
+        border: 'none',
+        borderRadius: '10px',
+        fontWeight: '600',
+        fontSize: '16px',
         cursor: 'pointer',
+        transition: 'background 0.2s',
+        color: '#1f2328',
+    },
+    nextBtn: {
+        padding: '12px 24px',
+        background: 'linear-gradient(135deg, #FF6B35, #FF8B35)',
+        border: 'none',
+        borderRadius: '10px',
+        fontWeight: '600',
+        fontSize: '16px',
+        cursor: 'pointer',
+        color: '#fff',
         transition: 'opacity 0.2s',
+        marginLeft: 'auto',
+    },
+    submitBtn: {
+        padding: '12px 24px',
+        background: 'linear-gradient(135deg, #FF6B35, #FF8B35)',
+        border: 'none',
+        borderRadius: '10px',
+        fontWeight: '600',
+        fontSize: '16px',
+        cursor: 'pointer',
+        color: '#fff',
+        transition: 'opacity 0.2s',
+        marginLeft: 'auto',
     },
     submitBtnDisabled: {
-        opacity: '0.55',
+        opacity: '0.5',
         cursor: 'not-allowed',
     },
     contactInfo: {
@@ -851,6 +1037,32 @@ const styles: { [key: string]: React.CSSProperties } = {
         margin: '16px 0 4px',
         fontSize: '14px',
         color: '#667085',
+    },
+    summaryGrid: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '20px',
+        margin: '16px 0',
+    },
+    summarySection: {
+        background: '#f8f9fa',
+        padding: '16px',
+        borderRadius: '10px',
+        border: '1px solid #e9ecef',
+    },
+    summaryTitle: {
+        margin: '0 0 12px',
+        fontSize: '16px',
+        color: '#a80f0f',
+        borderBottom: '2px solid #FF6B35',
+        paddingBottom: '6px',
+    },
+    summaryRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '4px 0',
+        fontSize: '14px',
+        borderBottom: '1px solid #f1f3f5',
     },
 };
 
