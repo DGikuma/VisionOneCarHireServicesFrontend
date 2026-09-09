@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/components/ContactPage.tsx
 import * as React from 'react';
 import { useState, useEffect } from 'react';
@@ -152,7 +153,8 @@ const ContactPage: React.FC = () => {
         // Log environment info
         console.group('🌍 Environment Information');
         console.log('API Base URL:', API_BASE_URL);
-        console.log('Node Environment:', process.env.NODE_ENV);
+        // Use Vite's import.meta.env to avoid relying on Node globals in the browser
+        console.log('Node Environment:', import.meta.env.MODE || (import.meta.env.DEV ? 'development' : 'production'));
         console.log('Full API URL for contact endpoint:', `${API_BASE_URL}/api/contact`);
         console.groupEnd();
 
@@ -327,7 +329,7 @@ const ContactPage: React.FC = () => {
             console.groupEnd();
 
             // Optionally log full error for debugging
-            if (process.env.NODE_ENV === 'development') {
+            if (import.meta.env.DEV) {
                 console.error('🔍 Full error object:', error);
             }
         } finally {

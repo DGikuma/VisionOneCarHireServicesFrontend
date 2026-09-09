@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState, useRef } from 'react';
-import BookingForm, { BookingFormRef } from '../components/BookingForm';
+import BookingForm from '../components/BookingForm';
+import type { BookingFormRef } from '../components/BookingForm';
 import {
     ShieldCheckIcon,
     DocumentTextIcon,
@@ -19,7 +20,6 @@ import { CheckCircleIcon } from '@heroicons/react/24/solid';
 const BookingPage: React.FC = () => {
     const [activeStep, setActiveStep] = useState<number>(1);
     const bookingFormRef = useRef<BookingFormRef>(null);
-    // Fixed: Removed duplicate formRef since we're using bookingFormRef
 
     const handleNextStep = async () => {
         if (bookingFormRef.current) {
