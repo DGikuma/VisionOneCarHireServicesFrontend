@@ -21,9 +21,6 @@ const Footer: React.FC = () => {
                     {/* Company Info */}
                     <div>
                         <div className="flex items-center mb-6">
-                            <div className="h-10 w-10 bg-primary-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold text-lg">V1</span>
-                            </div>
                             <div className="ml-3">
                                 <h2 className="text-xl font-bold">Vision Wan</h2>
                                 <p className="text-gray-400 text-sm">Services</p>
