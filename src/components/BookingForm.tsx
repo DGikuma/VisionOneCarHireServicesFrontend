@@ -595,7 +595,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                             <span style={styles.reviewCardIcon}>👤</span>
                             <h4 style={styles.reviewCardTitle}>Your Details</h4>
                         </div>
-                        <div style={styles.reviewCardBody}>
+                        <div className="bf-review-body" style={styles.reviewCardBody}>
                             <div style={styles.reviewRow}>
                                 <span style={styles.reviewLabel}>Full Name</span>
                                 <span style={styles.reviewValue}>{v.fullName || '—'}</span>
@@ -632,7 +632,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                             <span style={styles.reviewCardIcon}>🚗</span>
                             <h4 style={styles.reviewCardTitle}>Rental Details</h4>
                         </div>
-                        <div style={styles.reviewCardBody}>
+                        <div className="bf-review-body" style={styles.reviewCardBody}>
                             <div style={styles.reviewRow}>
                                 <span style={styles.reviewLabel}>Vehicle</span>
                                 <span style={styles.reviewValue}>{v.vehicle || '—'}</span>
@@ -673,7 +673,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                             <span style={styles.reviewCardIcon}>💰</span>
                             <h4 style={styles.reviewCardTitle}>Booking Estimate</h4>
                         </div>
-                        <div style={styles.reviewCardBody}>
+                        <div className="bf-review-body" style={styles.reviewCardBody}>
                             <div style={styles.reviewRow}>
                                 <span style={styles.reviewLabel}>Applicable Tier</span>
                                 <span style={styles.reviewValue}>{autoPeriodLabel}</span>
@@ -704,7 +704,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                             <span style={styles.reviewCardIcon}>📎</span>
                             <h4 style={styles.reviewCardTitle}>Uploaded Documents</h4>
                         </div>
-                        <div style={styles.reviewCardBody}>
+                        <div className="bf-review-body" style={styles.reviewCardBody}>
                             <div className="bf-doc-preview-grid" style={styles.docPreviewGrid}>
                                 <div style={styles.docPreviewItem}>
                                     <div style={styles.docPreviewLabel}>
@@ -768,8 +768,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                             <span style={styles.reviewCardIcon}>✅</span>
                             <h4 style={styles.reviewCardTitle}>Declaration</h4>
                         </div>
-                        <div style={styles.reviewCardBody}>
-                            <div style={styles.consentBox}>
+                        <div className="bf-review-body" style={styles.reviewCardBody}>
+                            <div className="bf-consent-box" style={styles.consentBox}>
                                 <input
                                     id="consent"
                                     type="checkbox"
@@ -1309,9 +1309,53 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         max-width: 100% !important;
                     }
 
+                    /* ✅ Declaration checkbox mobile fix */
+                    .bf-consent-box {
+                        display: flex;
+                        gap: 12px;
+                        align-items: flex-start;
+                        width: 100%;
+                        max-width: 100%;
+                        box-sizing: border-box;
+                    }
+                    .bf-consent-box input[type="checkbox"] {
+                        flex-shrink: 0;
+                        margin-top: 2px;
+                    }
+                    .bf-consent-box label {
+                        flex: 1 1 auto;
+                        min-width: 0;
+                        word-break: break-word;
+                        overflow-wrap: anywhere;
+                        line-height: 1.5;
+                        text-align: left;
+                    }
+
+                    /* Mobile: stack checkbox and label cleanly */
+                    @media (max-width: 640px) {
+                        .bf-consent-box {
+                            padding: 12px !important;
+                            gap: 10px !important;
+                            align-items: flex-start !important;
+                        }
+                        .bf-consent-box label {
+                            font-size: 13px !important;
+                            line-height: 1.5 !important;
+                            text-align: left !important;
+                            padding-right: 0 !important;
+                            margin-right: 0 !important;
+                        }
+                        .bf-consent-box input[type="checkbox"] {
+                            width: 22px !important;
+                            height: 22px !important;
+                            min-width: 22px !important;
+                            min-height: 22px !important;
+                        }
+                    }
+
                     /* Review card body padding */
                     @media (max-width: 640px) {
-                        .bf-container [style*="reviewCardBody"] {
+                        .bf-review-body {
                             padding: 14px !important;
                         }
                     }
@@ -1885,6 +1929,9 @@ const styles: { [key: string]: React.CSSProperties } = {
         padding: '14px',
         borderRadius: '10px',
         border: '1px solid #e9ecef',
+        flexWrap: 'wrap',
+        width: '100%',
+        boxSizing: 'border-box',
     },
     consentCheckbox: {
         width: '20px',
@@ -1902,6 +1949,11 @@ const styles: { [key: string]: React.CSSProperties } = {
         lineHeight: '1.5',
         cursor: 'pointer',
         color: '#1f2328',
+        flex: 1,
+        minWidth: 0,
+        wordBreak: 'break-word',
+        overflowWrap: 'anywhere',
+        textAlign: 'left',
     },
     reviewNote: {
         display: 'flex',
