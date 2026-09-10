@@ -9,15 +9,12 @@ import axios from 'axios';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
-// API base URL from environment variables or default
 const API_BASE_URL =
     import.meta.env.VITE_API_URL ||
     'https://visiononecarhireservicesbackend-1.onrender.com';
 
-// Default country from environment or fallback to Kenya (ke)
 const DEFAULT_COUNTRY = import.meta.env.VITE_DEFAULT_COUNTRY || 'ke';
 
-// ✅ Period categories (auto-detected from days)
 type PeriodCategory = 'short' | 'medium' | 'long';
 
 interface BookingFormData {
@@ -35,6 +32,7 @@ interface BookingFormData {
     notes: string;
     drivingLicense: FileList;
     idDocument: FileList;
+    depositProof: FileList;
     consent: boolean;
     accuracy: boolean;
 }
@@ -77,15 +75,18 @@ const pickupLocations = [
 const stepFields: Record<number, (keyof BookingFormData)[]> = {
     1: ['fullName', 'email', 'phone', 'nationality', 'idNumber', 'idType'],
     2: ['vehicle', 'pickupDate', 'returnDate', 'pickupLocation', 'deliveryAddress', 'notes'],
-    3: ['drivingLicense', 'idDocument'],
+    3: ['drivingLicense', 'idDocument', 'depositProof'],
     4: [],
 };
 
 const allRequiredFields: (keyof BookingFormData)[] = [
     'fullName', 'email', 'phone', 'idNumber', 'idType',
     'vehicle', 'pickupDate', 'returnDate', 'pickupLocation',
-    'drivingLicense', 'idDocument', 'consent'
+    'drivingLicense', 'idDocument', 'depositProof', 'consent'
 ];
+
+// ✅ List of all FileList fields (used to detect complete uploads)
+const fileFields: (keyof BookingFormData)[] = ['drivingLicense', 'idDocument', 'depositProof'];
 
 const getPeriodFromDays = (days: number): PeriodCategory => {
     if (days <= 7) return 'short';
@@ -100,9 +101,15 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         const [, setBookingData] = useState<any>(null);
         const formRef = useRef<HTMLFormElement>(null);
         const [phoneValue, setPhoneValue] = useState('');
-        const [previewUrls, setPreviewUrls] = useState<{ drivingLicense: string | null; idDocument: string | null }>({
+
+        const [previewUrls, setPreviewUrls] = useState<{
+            drivingLicense: string | null;
+            idDocument: string | null;
+            depositProof: string | null;
+        }>({
             drivingLicense: null,
             idDocument: null,
+            depositProof: null,
         });
 
         const [estimate, setEstimate] = useState<{
@@ -146,12 +153,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         const vehicle = watch('vehicle');
         const drivingLicenseFile = watch('drivingLicense');
         const idDocumentFile = watch('idDocument');
+        const depositProofFile = watch('depositProof');
 
         const watchedValues = watch();
 
+        // ✅ FIX: Use `fileFields` array to reliably detect FileList fields
         const isFormComplete = allRequiredFields.every(field => {
             const value = watchedValues[field];
-            if (field === 'drivingLicense' || field === 'idDocument') {
+            if (fileFields.includes(field)) {
                 return value instanceof FileList && value.length > 0;
             }
             if (typeof value === 'boolean') {
@@ -219,10 +228,16 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             });
         }, [pickupDate, returnDate, vehicle]);
 
+        // ✅ FIX: `urls` type now includes `depositProof`
         useEffect(() => {
-            const urls: { drivingLicense: string | null; idDocument: string | null } = {
+            const urls: {
+                drivingLicense: string | null;
+                idDocument: string | null;
+                depositProof: string | null;
+            } = {
                 drivingLicense: null,
                 idDocument: null,
+                depositProof: null,
             };
 
             if (drivingLicenseFile?.[0]) {
@@ -239,13 +254,21 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 }
             }
 
+            if (depositProofFile?.[0]) {
+                const file = depositProofFile[0];
+                if (file.type.startsWith('image/')) {
+                    urls.depositProof = URL.createObjectURL(file);
+                }
+            }
+
             setPreviewUrls(urls);
 
             return () => {
                 if (urls.drivingLicense) URL.revokeObjectURL(urls.drivingLicense);
                 if (urls.idDocument) URL.revokeObjectURL(urls.idDocument);
+                if (urls.depositProof) URL.revokeObjectURL(urls.depositProof);
             };
-        }, [drivingLicenseFile, idDocumentFile]);
+        }, [drivingLicenseFile, idDocumentFile, depositProofFile]);
 
         const validateFile = (file: File, maxSizeMB: number = 10): string | null => {
             const maxSize = maxSizeMB * 1024 * 1024;
@@ -274,7 +297,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 setConfirmed(false);
                 setBookingData(null);
                 setIsSubmitting(false);
-                setPreviewUrls({ drivingLicense: null, idDocument: null });
+                setPreviewUrls({ drivingLicense: null, idDocument: null, depositProof: null });
                 setEstimate({ days: null, rate: null, total: null, error: null, autoPeriod: null });
                 toast.info('Form has been reset.');
             },
@@ -283,6 +306,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         const onSubmit = async (data: BookingFormData) => {
             const dlFile = data.drivingLicense?.[0];
             const idFile = data.idDocument?.[0];
+            const proofFile = data.depositProof?.[0];
 
             if (!dlFile) {
                 toast.error('Please upload your driving licence');
@@ -290,6 +314,10 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             }
             if (!idFile) {
                 toast.error('Please upload your ID or passport');
+                return;
+            }
+            if (!proofFile) {
+                toast.error('Please upload proof of payment');
                 return;
             }
 
@@ -301,6 +329,11 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             const idError = validateFile(idFile);
             if (idError) {
                 toast.error(idError);
+                return;
+            }
+            const proofError = validateFile(proofFile);
+            if (proofError) {
+                toast.error(proofError);
                 return;
             }
 
@@ -328,6 +361,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 mappedData.append('termsAccepted', 'true');
                 mappedData.append('drivingLicense', dlFile);
                 mappedData.append('idDocument', idFile);
+                mappedData.append('depositProof', proofFile);
 
                 if (estimate.rate && estimate.autoPeriod) {
                     mappedData.append('periodCategory', estimate.autoPeriod);
@@ -575,6 +609,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
 
             const drivingLicenseName = getFileName(v.drivingLicense);
             const idDocumentName = getFileName(v.idDocument);
+            const depositProofName = getFileName(v.depositProof);
             const formatNumber = (num: number) => num.toLocaleString('en-KE');
             const autoPeriodLabel = estimate.autoPeriod
                 ? periodCategories.find(p => p.value === estimate.autoPeriod)?.label
@@ -699,6 +734,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </div>
                     </div>
 
+                    {/* ✅ FIXED: single grid wrapper with all three document previews */}
                     <div style={styles.reviewCard}>
                         <div style={styles.reviewCardHeader}>
                             <span style={styles.reviewCardIcon}>📎</span>
@@ -706,6 +742,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </div>
                         <div className="bf-review-body" style={styles.reviewCardBody}>
                             <div className="bf-doc-preview-grid" style={styles.docPreviewGrid}>
+                                {/* Driving Licence */}
                                 <div style={styles.docPreviewItem}>
                                     <div style={styles.docPreviewLabel}>
                                         <span>🪪 Driving Licence</span>
@@ -733,6 +770,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                     )}
                                 </div>
 
+                                {/* ID / Passport */}
                                 <div style={styles.docPreviewItem}>
                                     <div style={styles.docPreviewLabel}>
                                         <span>🆔 ID / Passport</span>
@@ -752,6 +790,34 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                         <div style={styles.docPreviewFile}>
                                             <span style={styles.docPreviewFileIcon}>📄</span>
                                             <span style={styles.docPreviewFileName}>{idDocumentName}</span>
+                                        </div>
+                                    ) : (
+                                        <div style={styles.docPreviewEmpty}>
+                                            <span>No file uploaded</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Proof of Payment */}
+                                <div style={{ ...styles.docPreviewItem, gridColumn: '1 / -1' }}>
+                                    <div style={styles.docPreviewLabel}>
+                                        <span>💳 Proof of Payment</span>
+                                        {depositProofName ? (
+                                            <span style={styles.docStatusOk}>✓ Uploaded</span>
+                                        ) : (
+                                            <span style={styles.docStatusMissing}>✗ Missing</span>
+                                        )}
+                                    </div>
+                                    {previewUrls.depositProof ? (
+                                        <img
+                                            src={previewUrls.depositProof}
+                                            alt="Proof of Payment Preview"
+                                            style={styles.docPreviewImage}
+                                        />
+                                    ) : depositProofName ? (
+                                        <div style={styles.docPreviewFile}>
+                                            <span style={styles.docPreviewFileIcon}>📄</span>
+                                            <span style={styles.docPreviewFileName}>{depositProofName}</span>
                                         </div>
                                     ) : (
                                         <div style={styles.docPreviewEmpty}>
@@ -1070,10 +1136,10 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                             <section className="bf-card" style={styles.card}>
                                 <h2 className="bf-card-title" style={styles.cardTitle}>Upload documents</h2>
                                 <p className="bf-card-subtitle" style={styles.cardSubtitle}>
-                                    Upload a clear copy or photo of the primary driver's ID/passport and valid driving licence.
+                                    Upload a clear copy or photo of the primary driver's ID/passport, valid driving licence, and proof of payment.
                                 </p>
                                 <div style={styles.noteBox}>
-                                    Both documents are required. On most phones, tap <strong>Choose File</strong> and select the camera
+                                    All three documents are required. On most phones, tap <strong>Choose File</strong> and select the camera
                                     to photograph the document. Make sure the whole document is visible and readable.
                                 </div>
                                 <div className="bf-grid-2" style={{ ...styles.grid2, marginTop: '16px' }}>
@@ -1121,6 +1187,32 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                         <div style={styles.helpText}>JPG, PNG or PDF. Max 10 MB.</div>
                                         {errors.drivingLicense && <p style={styles.errorText}>{errors.drivingLicense.message}</p>}
                                     </div>
+
+                                    {/* ✅ Proof of Payment */}
+                                    <div style={{ gridColumn: '1 / -1' }}>
+                                        <label style={styles.label} htmlFor="depositProof">
+                                            Proof of Payment <span style={styles.required}>*</span>
+                                        </label>
+                                        <input
+                                            id="depositProof"
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                                            {...register('depositProof', {
+                                                required: 'Proof of payment is required',
+                                                validate: {
+                                                    filePresent: (value) => {
+                                                        if (!value || value.length === 0) return 'Proof of payment is required';
+                                                        return true;
+                                                    },
+                                                },
+                                            })}
+                                            style={styles.fileInput}
+                                        />
+                                        <div style={styles.helpText}>
+                                            Upload a receipt, bank transfer confirmation, M-Pesa screenshot, or deposit slip. JPG, PNG or PDF. Max 10 MB.
+                                        </div>
+                                        {errors.depositProof && <p style={styles.errorText}>{errors.depositProof.message}</p>}
+                                    </div>
                                 </div>
                             </section>
                             <NavigationButtons />
@@ -1150,9 +1242,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
 
         return (
             <>
-                {/* ✅ Responsive CSS for mobile fixes */}
                 <style>{`
-                    /* Base container - edge to edge on mobile */
                     .bf-container {
                         max-width: 980px;
                         margin: 0 auto;
@@ -1161,221 +1251,83 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         width: 100%;
                     }
                     @media (max-width: 640px) {
-                        .bf-container {
-                            padding: 12px;
-                            border-radius: 0;
-                        }
+                        .bf-container { padding: 12px; border-radius: 0; }
                     }
-
-                    /* Hero section - stack on mobile */
-                    .bf-hero {
-                        display: flex;
-                        flex-direction: row;
-                    }
+                    .bf-hero { display: flex; flex-direction: row; }
                     @media (max-width: 640px) {
                         .bf-hero {
-                            flex-direction: column;
-                            text-align: center;
-                            padding: 20px 14px !important;
-                            gap: 12px !important;
+                            flex-direction: column; text-align: center;
+                            padding: 20px 14px !important; gap: 12px !important;
                         }
-                        .bf-hero-title {
-                            font-size: 22px !important;
-                        }
-                        .bf-hero-subtitle {
-                            font-size: 13px !important;
-                        }
+                        .bf-hero-title { font-size: 22px !important; }
+                        .bf-hero-subtitle { font-size: 13px !important; }
                     }
-
-                    /* Card padding on mobile */
-                    .bf-card {
-                        padding: 22px;
-                    }
+                    .bf-card { padding: 22px; }
                     @media (max-width: 640px) {
-                        .bf-card {
-                            padding: 16px 14px !important;
-                            border-radius: 14px !important;
-                            margin: 12px 0 !important;
-                        }
-                        .bf-card-title {
-                            font-size: 18px !important;
-                        }
-                        .bf-card-subtitle {
-                            font-size: 13px !important;
-                            margin-bottom: 14px !important;
-                        }
+                        .bf-card { padding: 16px 14px !important; border-radius: 14px !important; margin: 12px 0 !important; }
+                        .bf-card-title { font-size: 18px !important; }
+                        .bf-card-subtitle { font-size: 13px !important; margin-bottom: 14px !important; }
                     }
-
-                    /* Grids collapse to 1 column on mobile */
-                    .bf-grid-2,
-                    .bf-grid-3 {
-                        display: grid;
-                    }
+                    .bf-grid-2, .bf-grid-3 { display: grid; }
                     @media (max-width: 640px) {
-                        .bf-grid-2,
-                        .bf-grid-3 {
-                            grid-template-columns: 1fr !important;
-                            gap: 12px !important;
-                        }
+                        .bf-grid-2, .bf-grid-3 { grid-template-columns: 1fr !important; gap: 12px !important; }
                     }
-
-                    /* Period category grid */
-                    .bf-period-grid {
-                        display: grid;
-                        grid-template-columns: repeat(3, 1fr);
-                    }
+                    .bf-period-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
                     @media (max-width: 640px) {
-                        .bf-period-grid {
-                            grid-template-columns: 1fr !important;
-                            gap: 8px !important;
-                        }
+                        .bf-period-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
                     }
-
-                    /* Vehicle grid - 5 cols → 2 cols → 1 col */
-                    .bf-vehicle-grid {
-                        display: grid;
-                        grid-template-columns: repeat(5, 1fr);
-                    }
-                    @media (max-width: 900px) {
-                        .bf-vehicle-grid {
-                            grid-template-columns: repeat(3, 1fr) !important;
-                        }
-                    }
+                    .bf-vehicle-grid { display: grid; grid-template-columns: repeat(5, 1fr); }
+                    @media (max-width: 900px) { .bf-vehicle-grid { grid-template-columns: repeat(3, 1fr) !important; } }
+                    @media (max-width: 640px) { .bf-vehicle-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; } }
+                    @media (max-width: 400px) { .bf-vehicle-grid { grid-template-columns: 1fr !important; } }
+                    .bf-doc-preview-grid { display: grid; grid-template-columns: repeat(2, 1fr); }
                     @media (max-width: 640px) {
-                        .bf-vehicle-grid {
-                            grid-template-columns: repeat(2, 1fr) !important;
-                            gap: 8px !important;
-                        }
+                        .bf-doc-preview-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
                     }
-                    @media (max-width: 400px) {
-                        .bf-vehicle-grid {
-                            grid-template-columns: 1fr !important;
-                        }
-                    }
-
-                    /* Doc preview grid */
-                    .bf-doc-preview-grid {
-                        display: grid;
-                        grid-template-columns: repeat(2, 1fr);
-                    }
+                    .bf-navigation { display: flex; gap: 12px; }
                     @media (max-width: 640px) {
-                        .bf-doc-preview-grid {
-                            grid-template-columns: 1fr !important;
-                            gap: 10px !important;
-                        }
-                    }
-
-                    /* Navigation buttons - full width on mobile */
-                    .bf-navigation {
-                        display: flex;
-                        gap: 12px;
-                    }
-                    @media (max-width: 640px) {
-                        .bf-navigation {
-                            flex-direction: column-reverse !important;
-                            gap: 10px !important;
-                        }
+                        .bf-navigation { flex-direction: column-reverse !important; gap: 10px !important; }
                         .bf-navigation button {
-                            width: 100% !important;
-                            justify-content: center !important;
-                            padding: 14px 18px !important;
-                            font-size: 15px !important;
+                            width: 100% !important; justify-content: center !important;
+                            padding: 14px 18px !important; font-size: 15px !important;
                         }
                     }
-
-                    /* Phone input adjustments on mobile */
                     @media (max-width: 640px) {
                         .bf-phone-input .form-control {
-                            font-size: 14px !important;
-                            height: 50px !important;
-                            padding-left: 70px !important;
+                            font-size: 14px !important; height: 50px !important; padding-left: 70px !important;
                         }
-                        .bf-phone-input .flag-dropdown {
-                            height: 50px !important;
-                        }
+                        .bf-phone-input .flag-dropdown { height: 50px !important; }
                     }
-
-                    /* Prevent overflow */
-                    .bf-container * {
-                        max-width: 100%;
-                        box-sizing: border-box;
+                    .bf-container * { max-width: 100%; box-sizing: border-box; }
+                    .bf-container input, .bf-container select, .bf-container textarea {
+                        width: 100% !important; max-width: 100% !important;
                     }
-
-                    /* Inputs full width */
-                    .bf-container input,
-                    .bf-container select,
-                    .bf-container textarea {
-                        width: 100% !important;
-                        max-width: 100% !important;
-                    }
-
-                    /* ✅ Declaration checkbox mobile fix */
                     .bf-consent-box {
-                        display: flex;
-                        gap: 12px;
-                        align-items: flex-start;
-                        width: 100%;
-                        max-width: 100%;
-                        box-sizing: border-box;
+                        display: flex; gap: 12px; align-items: flex-start;
+                        width: 100%; max-width: 100%; box-sizing: border-box;
                     }
-                    .bf-consent-box input[type="checkbox"] {
-                        flex-shrink: 0;
-                        margin-top: 2px;
-                    }
+                    .bf-consent-box input[type="checkbox"] { flex-shrink: 0; margin-top: 2px; }
                     .bf-consent-box label {
-                        flex: 1 1 auto;
-                        min-width: 0;
-                        word-break: break-word;
-                        overflow-wrap: anywhere;
-                        line-height: 1.5;
-                        text-align: left;
+                        flex: 1 1 auto; min-width: 0;
+                        word-break: break-word; overflow-wrap: anywhere;
+                        line-height: 1.5; text-align: left;
                     }
-
-                    /* Mobile: stack checkbox and label cleanly */
                     @media (max-width: 640px) {
-                        .bf-consent-box {
-                            padding: 12px !important;
-                            gap: 10px !important;
-                            align-items: flex-start !important;
-                        }
-                        .bf-consent-box label {
-                            font-size: 13px !important;
-                            line-height: 1.5 !important;
-                            text-align: left !important;
-                            padding-right: 0 !important;
-                            margin-right: 0 !important;
-                        }
+                        .bf-consent-box { padding: 12px !important; gap: 10px !important; align-items: flex-start !important; }
+                        .bf-consent-box label { font-size: 13px !important; line-height: 1.5 !important; text-align: left !important; }
                         .bf-consent-box input[type="checkbox"] {
-                            width: 22px !important;
-                            height: 22px !important;
-                            min-width: 22px !important;
-                            min-height: 22px !important;
+                            width: 22px !important; height: 22px !important;
+                            min-width: 22px !important; min-height: 22px !important;
                         }
                     }
-
-                    /* Review card body padding */
                     @media (max-width: 640px) {
-                        .bf-review-body {
-                            padding: 14px !important;
-                        }
+                        .bf-review-body { padding: 14px !important; }
                     }
-
-                    /* Ensure text wraps */
-                    .bf-container p,
-                    .bf-container h1,
-                    .bf-container h2,
-                    .bf-container h3,
-                    .bf-container h4,
-                    .bf-container span,
-                    .bf-container label {
-                        overflow-wrap: break-word;
-                        word-wrap: break-word;
+                    .bf-container p, .bf-container h1, .bf-container h2, .bf-container h3,
+                    .bf-container h4, .bf-container span, .bf-container label {
+                        overflow-wrap: break-word; word-wrap: break-word;
                     }
-
-                    /* Banner text wrap */
-                    .bf-container [style*="reviewBanner"] {
-                        flex-wrap: wrap;
-                    }
+                    .bf-container [style*="reviewBanner"] { flex-wrap: wrap; }
                 `}</style>
 
                 <div className="bf-container" style={styles.container}>
@@ -1429,557 +1381,217 @@ const styles: { [key: string]: React.CSSProperties } = {
         alignItems: 'center',
         justifyContent: 'center',
     },
-    heroContent: {
-        flex: 1,
-        minWidth: 0,
-    },
-    heroTitle: {
-        margin: '0 0 8px',
-        fontSize: 'clamp(20px, 5vw, 42px)',
-        color: '#fff',
-    },
-    heroSubtitle: {
-        margin: '0',
-        color: 'rgba(255,255,255,0.95)',
-        lineHeight: '1.5',
-        fontSize: 'clamp(13px, 2.5vw, 16px)',
-    },
+    heroContent: { flex: 1, minWidth: 0 },
+    heroTitle: { margin: '0 0 8px', fontSize: 'clamp(20px, 5vw, 42px)', color: '#fff' },
+    heroSubtitle: { margin: '0', color: 'rgba(255,255,255,0.95)', lineHeight: '1.5', fontSize: 'clamp(13px, 2.5vw, 16px)' },
     heroPill: {
-        display: 'inline-block',
-        marginTop: '10px',
-        background: '#e6007e',
-        color: 'white',
-        fontWeight: 'bold',
-        padding: '7px 14px',
-        borderRadius: '999px',
-        fontSize: '13px',
+        display: 'inline-block', marginTop: '10px', background: '#e6007e', color: 'white',
+        fontWeight: 'bold', padding: '7px 14px', borderRadius: '999px', fontSize: '13px',
         boxShadow: '0 6px 16px rgba(230, 0, 126, 0.35)',
     },
-    form: {
-        marginTop: '18px',
-    },
+    form: { marginTop: '18px' },
     card: {
-        background: 'white',
-        borderRadius: '18px',
-        padding: '22px',
-        margin: '18px 0',
-        boxShadow: '0 7px 24px rgba(0,0,0,0.07)',
+        background: 'white', borderRadius: '18px', padding: '22px',
+        margin: '18px 0', boxShadow: '0 7px 24px rgba(0,0,0,0.07)',
     },
-    cardTitle: {
-        margin: '0 0 6px',
-        color: '#a80f0f',
-        fontSize: '22px',
-        fontWeight: 'bold',
-    },
-    cardSubtitle: {
-        margin: '0 0 18px',
-        color: '#6b7280',
-        fontSize: '14px',
-    },
-    grid2: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: '16px',
-    },
-    grid3: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '16px',
-    },
-    fullWidth: {
-        gridColumn: '1 / -1',
-    },
-    label: {
-        display: 'block',
-        fontWeight: '700',
-        marginBottom: '7px',
-        fontSize: '14px',
-    },
-    required: {
-        color: '#c40000',
-    },
+    cardTitle: { margin: '0 0 6px', color: '#a80f0f', fontSize: '22px', fontWeight: 'bold' },
+    cardSubtitle: { margin: '0 0 18px', color: '#6b7280', fontSize: '14px' },
+    grid2: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' },
+    grid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' },
+    fullWidth: { gridColumn: '1 / -1' },
+    label: { display: 'block', fontWeight: '700', marginBottom: '7px', fontSize: '14px' },
+    required: { color: '#c40000' },
     input: {
-        width: '100%',
-        padding: '13px',
-        border: '1px solid #d9dee7',
-        borderRadius: '12px',
-        font: 'inherit',
-        background: '#fff',
-        fontSize: '14px',
-        boxSizing: 'border-box',
-        outline: 'none',
+        width: '100%', padding: '13px', border: '1px solid #d9dee7',
+        borderRadius: '12px', font: 'inherit', background: '#fff', fontSize: '14px',
+        boxSizing: 'border-box', outline: 'none',
         transition: 'border-color 0.2s, box-shadow 0.2s',
     },
     select: {
-        width: '100%',
-        padding: '13px',
-        border: '1px solid #d9dee7',
-        borderRadius: '12px',
-        font: 'inherit',
-        background: '#fff',
-        fontSize: '14px',
-        boxSizing: 'border-box',
-        outline: 'none',
+        width: '100%', padding: '13px', border: '1px solid #d9dee7',
+        borderRadius: '12px', font: 'inherit', background: '#fff', fontSize: '14px',
+        boxSizing: 'border-box', outline: 'none',
     },
     textarea: {
-        width: '100%',
-        padding: '13px',
-        border: '1px solid #d9dee7',
-        borderRadius: '12px',
-        font: 'inherit',
-        background: '#fff',
-        fontSize: '14px',
-        resize: 'vertical',
-        boxSizing: 'border-box',
-        minHeight: '90px',
+        width: '100%', padding: '13px', border: '1px solid #d9dee7',
+        borderRadius: '12px', font: 'inherit', background: '#fff', fontSize: '14px',
+        resize: 'vertical', boxSizing: 'border-box', minHeight: '90px',
     },
-    fileInput: {
-        width: '100%',
-        padding: '10px 0',
-        fontSize: '14px',
-        boxSizing: 'border-box',
-    },
-    helpText: {
-        fontSize: '13px',
-        color: '#667085',
-        marginTop: '6px',
-        lineHeight: '1.45',
-    },
-    errorText: {
-        color: '#c40000',
-        fontSize: '13px',
-        marginTop: '5px',
-    },
+    fileInput: { width: '100%', padding: '10px 0', fontSize: '14px', boxSizing: 'border-box' },
+    helpText: { fontSize: '13px', color: '#667085', marginTop: '6px', lineHeight: '1.45' },
+    errorText: { color: '#c40000', fontSize: '13px', marginTop: '5px' },
     noteBox: {
-        background: '#fff4dc',
-        borderLeft: '4px solid #ffb31a',
-        padding: '12px 14px',
-        borderRadius: '8px',
-        fontSize: '14px',
-        lineHeight: '1.5',
+        background: '#fff4dc', borderLeft: '4px solid #ffb31a',
+        padding: '12px 14px', borderRadius: '8px', fontSize: '14px', lineHeight: '1.5',
     },
-    periodGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '12px',
-    },
+    periodGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' },
     periodCard: {
-        position: 'relative',
-        border: '2px solid #e5e7eb',
-        borderRadius: '14px',
-        padding: '16px 12px',
-        cursor: 'pointer',
-        background: '#fff',
-        transition: 'all 0.2s',
-        textAlign: 'center',
-        display: 'block',
+        position: 'relative', border: '2px solid #e5e7eb', borderRadius: '14px',
+        padding: '16px 12px', cursor: 'pointer', background: '#fff',
+        transition: 'all 0.2s', textAlign: 'center', display: 'block',
     },
     periodCardSelected: {
         border: '2px solid #e10b0b',
         background: 'linear-gradient(135deg, #fff7f7, #fff1f2)',
         boxShadow: '0 8px 18px rgba(225, 11, 11, 0.15)',
     },
-    periodRadio: {
-        position: 'absolute',
-        opacity: 0,
-        pointerEvents: 'none',
-    },
-    periodLabel: {
-        fontWeight: '800',
-        fontSize: '15px',
-        marginBottom: '6px',
-        color: '#1f2937',
-    },
-    periodRate: {
-        fontSize: '13px',
-        color: '#e10b0b',
-        fontWeight: '700',
-    },
-    periodRateHint: {
-        fontSize: '12px',
-        color: '#9ca3af',
-        fontStyle: 'italic',
-    },
-    vehicleGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(5, 1fr)',
-        gap: '10px',
-    },
+    periodRadio: { position: 'absolute', opacity: 0, pointerEvents: 'none' },
+    periodLabel: { fontWeight: '800', fontSize: '15px', marginBottom: '6px', color: '#1f2937' },
+    periodRate: { fontSize: '13px', color: '#e10b0b', fontWeight: '700' },
+    periodRateHint: { fontSize: '12px', color: '#9ca3af', fontStyle: 'italic' },
+    vehicleGrid: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' },
     vehicleCard: {
-        position: 'relative',
-        border: '1px solid #e5e7eb',
-        borderRadius: '14px',
-        padding: '12px',
-        cursor: 'pointer',
-        background: '#fff',
-        transition: 'all 0.2s',
-        minHeight: '106px',
-        display: 'block',
+        position: 'relative', border: '1px solid #e5e7eb', borderRadius: '14px',
+        padding: '12px', cursor: 'pointer', background: '#fff',
+        transition: 'all 0.2s', minHeight: '106px', display: 'block',
     },
     vehicleCardSelected: {
-        border: '2px solid #e10b0b',
-        background: '#fff7f7',
+        border: '2px solid #e10b0b', background: '#fff7f7',
         boxShadow: '0 8px 18px rgba(225, 11, 11, 0.15)',
     },
-    vehicleRadio: {
-        position: 'absolute',
-        opacity: 0,
-        pointerEvents: 'none',
-    },
-    vehicleName: {
-        fontWeight: '800',
-        fontSize: '15px',
-        marginBottom: '5px',
-        color: '#1f2937',
-    },
-    vehicleRates: {
-        fontSize: '12px',
-        color: '#4b5563',
-        lineHeight: '1.45',
-    },
+    vehicleRadio: { position: 'absolute', opacity: 0, pointerEvents: 'none' },
+    vehicleName: { fontWeight: '800', fontSize: '15px', marginBottom: '5px', color: '#1f2937' },
+    vehicleRates: { fontSize: '12px', color: '#4b5563', lineHeight: '1.45' },
     vehicleRatesHighlight: {
-        background: 'rgba(255, 107, 53, 0.08)',
-        padding: '6px 8px',
-        borderRadius: '6px',
-        fontSize: '12px',
-        color: '#a80f0f',
-        lineHeight: '1.4',
+        background: 'rgba(255, 107, 53, 0.08)', padding: '6px 8px',
+        borderRadius: '6px', fontSize: '12px', color: '#a80f0f', lineHeight: '1.4',
     },
     estimateCard: {
         background: 'linear-gradient(135deg, #fff7ed, #fff1f2)',
-        border: '1px solid #fed7aa',
-        borderRadius: '16px',
-        padding: '18px',
+        border: '1px solid #fed7aa', borderRadius: '16px', padding: '18px',
     },
-    estimateTitle: {
-        margin: '0 0 12px',
-        fontSize: '16px',
-        color: '#9f1239',
-        fontWeight: '700',
-    },
-    estimateRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        gap: '20px',
-        padding: '8px 0',
-        fontSize: '14px',
-        flexWrap: 'wrap',
-    },
-    estimateLabel: {
-        color: '#6b7280',
-        fontWeight: '500',
-    },
-    estimateValue: {
-        color: '#1f2937',
-        fontWeight: '700',
-        textAlign: 'right',
-    },
-    estimateTotal: {
-        borderTop: '1px solid #fed7aa',
-        marginTop: '6px',
-        paddingTop: '12px',
-    },
-    estimateValueHighlight: {
-        color: '#e10b0b',
-        fontWeight: '800',
-        fontSize: '16px',
-        textAlign: 'right',
-    },
-    navigation: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        marginTop: '20px',
-        gap: '12px',
-    },
+    estimateTitle: { margin: '0 0 12px', fontSize: '16px', color: '#9f1239', fontWeight: '700' },
+    estimateRow: { display: 'flex', justifyContent: 'space-between', gap: '20px', padding: '8px 0', fontSize: '14px', flexWrap: 'wrap' },
+    estimateLabel: { color: '#6b7280', fontWeight: '500' },
+    estimateValue: { color: '#1f2937', fontWeight: '700', textAlign: 'right' },
+    estimateTotal: { borderTop: '1px solid #fed7aa', marginTop: '6px', paddingTop: '12px' },
+    estimateValueHighlight: { color: '#e10b0b', fontWeight: '800', fontSize: '16px', textAlign: 'right' },
+    navigation: { display: 'flex', justifyContent: 'space-between', marginTop: '20px', gap: '12px' },
     prevBtn: {
-        padding: '12px 24px',
-        background: '#e5e7eb',
-        border: 'none',
-        borderRadius: '12px',
-        fontWeight: '700',
-        fontSize: '16px',
-        cursor: 'pointer',
-        transition: 'background 0.2s',
-        color: '#1f2328',
+        padding: '12px 24px', background: '#e5e7eb', border: 'none',
+        borderRadius: '12px', fontWeight: '700', fontSize: '16px',
+        cursor: 'pointer', transition: 'background 0.2s', color: '#1f2328',
     },
     nextBtn: {
         padding: '12px 24px',
         background: 'linear-gradient(135deg, #b70000, #e10b0b, #ff5a1f)',
-        border: 'none',
-        borderRadius: '12px',
-        fontWeight: '700',
-        fontSize: '16px',
-        cursor: 'pointer',
-        color: '#fff',
-        transition: 'opacity 0.2s',
-        marginLeft: 'auto',
+        border: 'none', borderRadius: '12px', fontWeight: '700',
+        fontSize: '16px', cursor: 'pointer', color: '#fff',
+        transition: 'opacity 0.2s', marginLeft: 'auto',
         boxShadow: '0 4px 14px rgba(225, 11, 11, 0.3)',
     },
     submitBtn: {
         padding: '14px 32px',
         background: 'linear-gradient(135deg, #b70000, #e10b0b, #ff5a1f)',
-        border: 'none',
-        borderRadius: '12px',
-        fontWeight: '800',
-        fontSize: '16px',
-        cursor: 'pointer',
-        color: '#fff',
-        transition: 'opacity 0.2s',
-        marginLeft: 'auto',
+        border: 'none', borderRadius: '12px', fontWeight: '800',
+        fontSize: '16px', cursor: 'pointer', color: '#fff',
+        transition: 'opacity 0.2s', marginLeft: 'auto',
         boxShadow: '0 4px 14px rgba(225, 11, 11, 0.35)',
     },
-    submitBtnDisabled: {
-        opacity: '0.5',
-        cursor: 'not-allowed',
-        boxShadow: 'none',
-    },
+    submitBtnDisabled: { opacity: '0.5', cursor: 'not-allowed', boxShadow: 'none' },
     contactInfo: {
-        textAlign: 'center',
-        fontWeight: 'bold',
-        margin: '16px 0 4px',
-        fontSize: '14px',
-        color: '#667085',
-        padding: '0 8px',
-        wordBreak: 'break-word',
+        textAlign: 'center', fontWeight: 'bold', margin: '16px 0 4px',
+        fontSize: '14px', color: '#667085', padding: '0 8px', wordBreak: 'break-word',
     },
-    reviewContainer: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-        marginTop: '8px',
-    },
+    reviewContainer: { display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' },
     reviewBanner: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
+        display: 'flex', alignItems: 'center', gap: '16px',
         background: 'linear-gradient(135deg, #e10b0b, #ff5a1f, #ff9a1f)',
-        color: '#fff',
-        padding: '20px 24px',
-        borderRadius: '14px',
-        boxShadow: '0 6px 20px rgba(225, 11, 11, 0.3)',
-        flexWrap: 'wrap',
+        color: '#fff', padding: '20px 24px', borderRadius: '14px',
+        boxShadow: '0 6px 20px rgba(225, 11, 11, 0.3)', flexWrap: 'wrap',
     },
     reviewBannerIcon: {
-        width: '48px',
-        height: '48px',
-        borderRadius: '50%',
-        background: 'rgba(255,255,255,0.25)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '24px',
-        fontWeight: 'bold',
-        flexShrink: 0,
+        width: '48px', height: '48px', borderRadius: '50%',
+        background: 'rgba(255,255,255,0.25)', display: 'flex',
+        alignItems: 'center', justifyContent: 'center',
+        fontSize: '24px', fontWeight: 'bold', flexShrink: 0,
     },
-    reviewBannerTitle: {
-        margin: '0 0 4px',
-        fontSize: '18px',
-        fontWeight: '700',
-    },
-    reviewBannerText: {
-        margin: '0',
-        fontSize: '14px',
-        opacity: 0.95,
-        lineHeight: '1.4',
-    },
+    reviewBannerTitle: { margin: '0 0 4px', fontSize: '18px', fontWeight: '700' },
+    reviewBannerText: { margin: '0', fontSize: '14px', opacity: 0.95, lineHeight: '1.4' },
     reviewCard: {
-        background: '#fff',
-        borderRadius: '14px',
-        border: '1px solid #e9ecef',
-        overflow: 'hidden',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+        background: '#fff', borderRadius: '14px', border: '1px solid #e9ecef',
+        overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
     },
     reviewCardHeader: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
+        display: 'flex', alignItems: 'center', gap: '10px',
         padding: '14px 18px',
         background: 'linear-gradient(90deg, #fff8f3 0%, #fff 100%)',
         borderBottom: '2px solid #e10b0b',
     },
-    reviewCardIcon: {
-        fontSize: '20px',
-    },
-    reviewCardTitle: {
-        margin: 0,
-        fontSize: '16px',
-        fontWeight: '700',
-        color: '#a80f0f',
-    },
-    reviewCardBody: {
-        padding: '16px 18px',
-    },
+    reviewCardIcon: { fontSize: '20px' },
+    reviewCardTitle: { margin: 0, fontSize: '16px', fontWeight: '700', color: '#a80f0f' },
+    reviewCardBody: { padding: '16px 18px' },
     reviewRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        padding: '10px 0',
-        borderBottom: '1px dashed #f1f3f5',
-        fontSize: '14px',
-        gap: '12px',
-        flexWrap: 'wrap',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+        padding: '10px 0', borderBottom: '1px dashed #f1f3f5',
+        fontSize: '14px', gap: '12px', flexWrap: 'wrap',
     },
-    reviewLabel: {
-        color: '#667085',
-        fontWeight: '600',
-        flexShrink: 0,
-    },
+    reviewLabel: { color: '#667085', fontWeight: '600', flexShrink: 0 },
     reviewValue: {
-        color: '#1f2328',
-        fontWeight: '500',
-        textAlign: 'right',
-        wordBreak: 'break-word',
-        maxWidth: '100%',
+        color: '#1f2328', fontWeight: '500', textAlign: 'right',
+        wordBreak: 'break-word', maxWidth: '100%',
     },
-    reviewValueHighlight: {
-        color: '#e10b0b',
-        fontWeight: '700',
-        textAlign: 'right',
-    },
+    reviewValueHighlight: { color: '#e10b0b', fontWeight: '700', textAlign: 'right' },
     reviewTotalRow: {
-        borderTop: '2px solid #fed7aa',
-        borderBottom: 'none',
-        marginTop: '6px',
-        paddingTop: '12px',
+        borderTop: '2px solid #fed7aa', borderBottom: 'none',
+        marginTop: '6px', paddingTop: '12px',
     },
-    reviewTotalValue: {
-        color: '#e10b0b',
-        fontWeight: '800',
-        fontSize: '16px',
-        textAlign: 'right',
-    },
-    docPreviewGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: '16px',
-    },
+    reviewTotalValue: { color: '#e10b0b', fontWeight: '800', fontSize: '16px', textAlign: 'right' },
+    docPreviewGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' },
     docPreviewItem: {
-        background: '#f8f9fa',
-        borderRadius: '10px',
-        padding: '12px',
-        border: '1px solid #e9ecef',
+        background: '#f8f9fa', borderRadius: '10px',
+        padding: '12px', border: '1px solid #e9ecef',
     },
     docPreviewLabel: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '10px',
-        fontSize: '13px',
-        fontWeight: '600',
-        color: '#1f2328',
-        gap: '8px',
-        flexWrap: 'wrap',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        marginBottom: '10px', fontSize: '13px', fontWeight: '600',
+        color: '#1f2328', gap: '8px', flexWrap: 'wrap',
     },
-    docStatusOk: {
-        color: '#10b981',
-        fontSize: '12px',
-        fontWeight: '700',
-    },
-    docStatusMissing: {
-        color: '#ef4444',
-        fontSize: '12px',
-        fontWeight: '700',
-    },
+    docStatusOk: { color: '#10b981', fontSize: '12px', fontWeight: '700' },
+    docStatusMissing: { color: '#ef4444', fontSize: '12px', fontWeight: '700' },
     docPreviewImage: {
-        width: '100%',
-        height: '160px',
-        objectFit: 'cover',
-        borderRadius: '8px',
-        border: '1px solid #e9ecef',
-        background: '#fff',
+        width: '100%', height: '160px', objectFit: 'cover',
+        borderRadius: '8px', border: '1px solid #e9ecef', background: '#fff',
     },
     docPreviewFile: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '160px',
-        background: '#fff',
-        borderRadius: '8px',
-        border: '2px dashed #d9dee7',
-        padding: '16px',
-        textAlign: 'center',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', height: '160px', background: '#fff',
+        borderRadius: '8px', border: '2px dashed #d9dee7',
+        padding: '16px', textAlign: 'center',
     },
-    docPreviewFileIcon: {
-        fontSize: '40px',
-        marginBottom: '8px',
-    },
+    docPreviewFileIcon: { fontSize: '40px', marginBottom: '8px' },
     docPreviewFileName: {
-        fontSize: '12px',
-        color: '#667085',
-        wordBreak: 'break-all',
-        lineHeight: '1.4',
+        fontSize: '12px', color: '#667085',
+        wordBreak: 'break-all', lineHeight: '1.4',
     },
     docPreviewEmpty: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '160px',
-        background: '#fff',
-        borderRadius: '8px',
-        border: '2px dashed #e9ecef',
-        color: '#adb5bd',
-        fontSize: '13px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '160px', background: '#fff', borderRadius: '8px',
+        border: '2px dashed #e9ecef', color: '#adb5bd', fontSize: '13px',
     },
     consentBox: {
-        display: 'flex',
-        gap: '12px',
-        alignItems: 'flex-start',
-        background: '#f8f9fa',
-        padding: '14px',
-        borderRadius: '10px',
-        border: '1px solid #e9ecef',
-        flexWrap: 'wrap',
-        width: '100%',
-        boxSizing: 'border-box',
+        display: 'flex', gap: '12px', alignItems: 'flex-start',
+        background: '#f8f9fa', padding: '14px', borderRadius: '10px',
+        border: '1px solid #e9ecef', flexWrap: 'wrap',
+        width: '100%', boxSizing: 'border-box',
     },
     consentCheckbox: {
-        width: '20px',
-        height: '20px',
-        minWidth: '20px',
-        minHeight: '20px',
-        marginTop: '2px',
-        cursor: 'pointer',
-        accentColor: '#e10b0b',
-        flexShrink: 0,
+        width: '20px', height: '20px', minWidth: '20px', minHeight: '20px',
+        marginTop: '2px', cursor: 'pointer', accentColor: '#e10b0b', flexShrink: 0,
     },
     consentLabel: {
-        fontWeight: '500',
-        fontSize: '14px',
-        lineHeight: '1.5',
-        cursor: 'pointer',
-        color: '#1f2328',
-        flex: 1,
-        minWidth: 0,
-        wordBreak: 'break-word',
-        overflowWrap: 'anywhere',
-        textAlign: 'left',
+        fontWeight: '500', fontSize: '14px', lineHeight: '1.5',
+        cursor: 'pointer', color: '#1f2328', flex: 1, minWidth: 0,
+        wordBreak: 'break-word', overflowWrap: 'anywhere', textAlign: 'left',
     },
     reviewNote: {
-        display: 'flex',
-        gap: '12px',
-        alignItems: 'flex-start',
-        background: '#f0f9ff',
-        border: '1px solid #bae6fd',
-        borderRadius: '10px',
-        padding: '14px 16px',
+        display: 'flex', gap: '12px', alignItems: 'flex-start',
+        background: '#f0f9ff', border: '1px solid #bae6fd',
+        borderRadius: '10px', padding: '14px 16px',
     },
-    reviewNoteIcon: {
-        fontSize: '18px',
-        flexShrink: 0,
-        lineHeight: 1.4,
-    },
-    reviewNoteText: {
-        margin: 0,
-        fontSize: '13px',
-        color: '#0c4a6e',
-        lineHeight: '1.5',
-    },
-    reviewNoteLink: {
-        color: '#e10b0b',
-        fontWeight: '600',
-        textDecoration: 'underline',
-    },
+    reviewNoteIcon: { fontSize: '18px', flexShrink: 0, lineHeight: 1.4 },
+    reviewNoteText: { margin: 0, fontSize: '13px', color: '#0c4a6e', lineHeight: '1.5' },
+    reviewNoteLink: { color: '#e10b0b', fontWeight: '600', textDecoration: 'underline' },
 };
 
 export default BookingForm;
