@@ -17,16 +17,20 @@ const API_BASE_URL =
 // Default country from environment or fallback to Kenya (ke)
 const DEFAULT_COUNTRY = import.meta.env.VITE_DEFAULT_COUNTRY || 'ke';
 
+// ✅ Period categories
+type PeriodCategory = 'short' | 'medium' | 'long';
+
 interface BookingFormData {
     // Client details (Step 1)
     fullName: string;
     email: string;
     phone: string;
     nationality: string;
-    idNumber: string;      
-    idType: 'id' | 'passport';  
+    idNumber: string;
+    idType: 'id' | 'passport';
     // Rental details (Step 2)
     vehicle: string;
+    periodCategory: PeriodCategory;  // ✅ NEW: manual period selection
     pickupDate: string;
     returnDate: string;
     pickupLocation: string;
@@ -56,38 +60,65 @@ export interface BookingFormProps {
 
 const API_URL = `${API_BASE_URL}/api/bookings`;
 
-// ✅ Updated: Vehicle options with rates matching HTML form
+// ✅ Vehicle options with rates for each period category
 const vehicleOptions = [
     {
         value: 'Fielder',
         label: 'Fielder',
-        rates: { r1: 4000, r2: 3500, r3: 3000 },
-        displayRates: '1–7 days: KES 4,000/day\n7–20 days: KES 3,500/day\n20+ days: KES 3,000/day'
+        rates: { short: 4000, medium: 3500, long: 3000 },
+        displayRates: {
+            short: 'KES 4,000/day',
+            medium: 'KES 3,500/day',
+            long: 'KES 3,000/day',
+        },
     },
     {
         value: 'Mazda CX-5',
         label: 'Mazda CX-5',
-        rates: { r1: 7000, r2: 6500, r3: 6000 },
-        displayRates: '1–7 days: KES 7,000/day\n7–20 days: KES 6,500/day\n20+ days: KES 6,000/day'
+        rates: { short: 7000, medium: 6500, long: 6000 },
+        displayRates: {
+            short: 'KES 7,000/day',
+            medium: 'KES 6,500/day',
+            long: 'KES 6,000/day',
+        },
     },
     {
         value: 'Harrier',
         label: 'Harrier',
-        rates: { r1: 8000, r2: 7500, r3: 7000 },
-        displayRates: '1–7 days: KES 8,000/day\n7–20 days: KES 7,500/day\n20+ days: KES 7,000/day'
+        rates: { short: 8000, medium: 7500, long: 7000 },
+        displayRates: {
+            short: 'KES 8,000/day',
+            medium: 'KES 7,500/day',
+            long: 'KES 7,000/day',
+        },
     },
     {
         value: 'Lexus',
         label: 'Lexus',
-        rates: { r1: 9000, r2: 8500, r3: 8000 },
-        displayRates: '1–7 days: KES 9,000/day\n7–20 days: KES 8,500/day\n20+ days: KES 8,000/day'
+        rates: { short: 9000, medium: 8500, long: 8000 },
+        displayRates: {
+            short: 'KES 9,000/day',
+            medium: 'KES 8,500/day',
+            long: 'KES 8,000/day',
+        },
     },
     {
         value: 'Prado',
         label: 'Prado',
-        rates: { r1: 12000, r2: 11000, r3: 10000 },
-        displayRates: '1–7 days: KES 12,000/day\n7–20 days: KES 11,000/day\n20+ days: KES 10,000/day'
+        rates: { short: 12000, medium: 11000, long: 10000 },
+        displayRates: {
+            short: 'KES 12,000/day',
+            medium: 'KES 11,000/day',
+            long: 'KES 10,000/day',
+        },
     },
+];
+
+// ✅ Period category definitions
+const periodCategories: { value: PeriodCategory; label: string; days: string }[] = [
+    { value: 'short', label: '1–7 days', days: 'short' },
+    { value: 'medium', label: '7–20 days', days: 'medium' },
+    { value: 'long', label: '20+ days', days: 'long' },
 ];
 
 // ✅ Pickup locations matching HTML form
@@ -101,7 +132,7 @@ const pickupLocations = [
 // Define which fields belong to each step (UPDATED)
 const stepFields: Record<number, (keyof BookingFormData)[]> = {
     1: ['fullName', 'email', 'phone', 'nationality', 'idNumber', 'idType'],
-    2: ['vehicle', 'pickupDate', 'returnDate', 'pickupLocation', 'deliveryAddress', 'notes'],
+    2: ['vehicle', 'periodCategory', 'pickupDate', 'returnDate', 'pickupLocation', 'deliveryAddress', 'notes'],
     3: ['drivingLicense', 'idDocument'],
     4: [],
 };
@@ -109,7 +140,7 @@ const stepFields: Record<number, (keyof BookingFormData)[]> = {
 // List of all required fields (for submit button enablement) - UPDATED
 const allRequiredFields: (keyof BookingFormData)[] = [
     'fullName', 'email', 'phone', 'idNumber', 'idType',
-    'vehicle', 'pickupDate', 'returnDate', 'pickupLocation',
+    'vehicle', 'periodCategory', 'pickupDate', 'returnDate', 'pickupLocation',
     'drivingLicense', 'idDocument', 'consent'
 ];
 
@@ -149,9 +180,10 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 fullName: '',
                 email: '',
                 nationality: '',
-                idNumber: '',      
-                idType: 'id', 
+                idNumber: '',
+                idType: 'id',
                 vehicle: '',
+                periodCategory: 'short',  // ✅ Default period
                 pickupDate: '',
                 returnDate: '',
                 pickupLocation: '',
@@ -164,6 +196,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         const pickupDate = watch('pickupDate');
         const returnDate = watch('returnDate');
         const vehicle = watch('vehicle');
+        const periodCategory = watch('periodCategory');
         const drivingLicenseFile = watch('drivingLicense');
         const idDocumentFile = watch('idDocument');
 
@@ -202,11 +235,37 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             }
         }, [pickupDate, returnDate, setValue]);
 
-        // ✅ Calculate estimate when dates or vehicle change
+        // ✅ Auto-detect and suggest the correct period category based on days
+        // (but do NOT override if the user has manually selected one)
         useEffect(() => {
-            const newEstimate = { days: null as number | null, rate: null as number | null, total: null as number | null, error: null as string | null };
+            if (!pickupDate || !returnDate) return;
 
-            if (!pickupDate || !returnDate || !vehicle) {
+            const p = new Date(pickupDate + 'T00:00:00');
+            const d = new Date(returnDate + 'T00:00:00');
+            const days = Math.ceil((d.getTime() - p.getTime()) / (1000 * 60 * 60 * 24));
+
+            if (days <= 0) return;
+
+            // Suggest a category based on days
+            let suggested: PeriodCategory = 'short';
+            if (days > 20) suggested = 'long';
+            else if (days > 7) suggested = 'medium';
+
+            // Only auto-set if the user hasn't manually chosen (or chose the default short)
+            // We check if the current value matches the default and the new suggestion differs
+            setValue('periodCategory', suggested, { shouldValidate: false });
+        }, [pickupDate, returnDate, setValue]);
+
+        // ✅ Calculate estimate based on selected period category (not days)
+        useEffect(() => {
+            const newEstimate = {
+                days: null as number | null,
+                rate: null as number | null,
+                total: null as number | null,
+                error: null as string | null,
+            };
+
+            if (!pickupDate || !returnDate || !vehicle || !periodCategory) {
                 setEstimate(newEstimate);
                 return;
             }
@@ -226,10 +285,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 return;
             }
 
-            let rate: number;
-            if (days <= 7) rate = selectedVehicle.rates.r1;
-            else if (days <= 20) rate = selectedVehicle.rates.r2;
-            else rate = selectedVehicle.rates.r3;
+            // ✅ Use the rate from the SELECTED period category
+            const rate = selectedVehicle.rates[periodCategory];
 
             setEstimate({
                 days,
@@ -237,7 +294,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 total: rate * days,
                 error: null,
             });
-        }, [pickupDate, returnDate, vehicle]);
+        }, [pickupDate, returnDate, vehicle, periodCategory]);
 
         // Generate preview URLs when files change
         useEffect(() => {
@@ -351,13 +408,18 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 mappedData.append('dropoffLocation', data.deliveryAddress || data.pickupLocation);
                 mappedData.append('additionalInfo', data.notes || '');
                 mappedData.append('nationality', data.nationality || '');
-                mappedData.append('idNumber', data.idNumber);      
-                mappedData.append('idType', data.idType);          
-                mappedData.append('idNumber', '');
-                mappedData.append('idType', 'id');
+                mappedData.append('idNumber', data.idNumber);
+                mappedData.append('idType', data.idType);
                 mappedData.append('termsAccepted', 'true');
                 mappedData.append('drivingLicense', dlFile);
                 mappedData.append('idDocument', idFile);
+
+                // ✅ Include period and estimate info
+                if (estimate.rate) {
+                    mappedData.append('periodCategory', data.periodCategory);
+                    mappedData.append('dailyRate', String(estimate.rate));
+                    mappedData.append('estimatedTotal', String(estimate.total || 0));
+                }
 
                 const response = await axios.post(API_URL, mappedData, {
                     headers: {
@@ -409,37 +471,82 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             </div>
         );
 
-        // ✅ Vehicle Selector Cards (matching HTML form)
+        // ✅ Period Category Selector
+        const PeriodCategorySelector = () => (
+            <div style={styles.periodGrid}>
+                {periodCategories.map((period) => {
+                    const selectedVehicle = vehicleOptions.find(v => v.value === vehicle);
+                    const rateForPeriod = selectedVehicle?.rates[period.value];
+                    const isSelected = periodCategory === period.value;
+
+                    return (
+                        <label
+                            key={period.value}
+                            style={{
+                                ...styles.periodCard,
+                                ...(isSelected ? styles.periodCardSelected : {}),
+                            }}
+                        >
+                            <input
+                                type="radio"
+                                value={period.value}
+                                {...register('periodCategory', { required: 'Please select a rental period' })}
+                                style={styles.periodRadio}
+                            />
+                            <div style={styles.periodLabel}>{period.label}</div>
+                            {rateForPeriod !== undefined ? (
+                                <div style={styles.periodRate}>
+                                    KES {rateForPeriod.toLocaleString()}/day
+                                </div>
+                            ) : (
+                                <div style={styles.periodRateHint}>
+                                    Select a vehicle to see rate
+                                </div>
+                            )}
+                        </label>
+                    );
+                })}
+            </div>
+        );
+
+        // ✅ Vehicle Selector Cards (now shows rates for the selected period)
         const VehicleSelector = () => (
             <div style={styles.vehicleGrid}>
-                {vehicleOptions.map((option) => (
-                    <label
-                        key={option.value}
-                        style={{
-                            ...styles.vehicleCard,
-                            ...(vehicle === option.value ? styles.vehicleCardSelected : {}),
-                        }}
-                    >
-                        <input
-                            type="radio"
-                            value={option.value}
-                            {...register('vehicle', { required: 'Please select a vehicle' })}
-                            style={styles.vehicleRadio}
-                        />
-                        <div style={styles.vehicleName}>{option.label}</div>
-                        <div style={styles.vehicleRates}>
-                            {option.displayRates.split('\n').map((line, i) => (
-                                <div key={i}>{line}</div>
-                            ))}
-                        </div>
-                    </label>
-                ))}
+                {vehicleOptions.map((option) => {
+                    const isSelected = vehicle === option.value;
+                    const rateForPeriod = option.rates[periodCategory];
+
+                    return (
+                        <label
+                            key={option.value}
+                            style={{
+                                ...styles.vehicleCard,
+                                ...(isSelected ? styles.vehicleCardSelected : {}),
+                            }}
+                        >
+                            <input
+                                type="radio"
+                                value={option.value}
+                                {...register('vehicle', { required: 'Please select a vehicle' })}
+                                style={styles.vehicleRadio}
+                            />
+                            <div style={styles.vehicleName}>{option.label}</div>
+                            <div style={styles.vehicleRates}>
+                                <div style={styles.vehicleRatesHighlight}>
+                                    {periodCategories.find(p => p.value === periodCategory)?.label}: {' '}
+                                    <strong>KES {rateForPeriod.toLocaleString()}/day</strong>
+                                </div>
+                            </div>
+                        </label>
+                    );
+                })}
             </div>
         );
 
         // ✅ Booking Estimate Component
         const BookingEstimate = () => {
             const formatNumber = (num: number) => num.toLocaleString('en-KE');
+            const selectedPeriodLabel = periodCategories.find(p => p.value === periodCategory)?.label || '—';
 
             return (
                 <div style={styles.estimateCard}>
@@ -447,6 +554,10 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                     <div style={styles.estimateRow}>
                         <span style={styles.estimateLabel}>Vehicle</span>
                         <strong style={styles.estimateValue}>{vehicle || '—'}</strong>
+                    </div>
+                    <div style={styles.estimateRow}>
+                        <span style={styles.estimateLabel}>Period Category</span>
+                        <strong style={styles.estimateValue}>{selectedPeriodLabel}</strong>
                     </div>
                     <div style={styles.estimateRow}>
                         <span style={styles.estimateLabel}>Rental period</span>
@@ -526,6 +637,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             const drivingLicenseName = getFileName(v.drivingLicense);
             const idDocumentName = getFileName(v.idDocument);
             const formatNumber = (num: number) => num.toLocaleString('en-KE');
+            const selectedPeriodLabel = periodCategories.find(p => p.value === periodCategory)?.label || '—';
 
             return (
                 <div style={styles.reviewContainer}>
@@ -588,6 +700,10 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                 <span style={styles.reviewValue}>{v.vehicle || '—'}</span>
                             </div>
                             <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>Period Category</span>
+                                <span style={styles.reviewValue}>{selectedPeriodLabel}</span>
+                            </div>
+                            <div style={styles.reviewRow}>
                                 <span style={styles.reviewLabel}>Pickup Location</span>
                                 <span style={styles.reviewValue}>{v.pickupLocation || '—'}</span>
                             </div>
@@ -621,6 +737,10 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                             <h4 style={styles.reviewCardTitle}>Booking Estimate</h4>
                         </div>
                         <div style={styles.reviewCardBody}>
+                            <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>Period Category</span>
+                                <span style={styles.reviewValue}>{selectedPeriodLabel}</span>
+                            </div>
                             <div style={styles.reviewRow}>
                                 <span style={styles.reviewLabel}>Rental Period</span>
                                 <span style={styles.reviewValue}>
@@ -745,7 +865,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         // Render content based on activeStep
         const renderStepContent = () => {
             switch (activeStep) {
-                // STEP 1: Your Details (matches HTML form step 1)
+                // STEP 1: Your Details
                 case 1:
                     return (
                         <>
@@ -844,7 +964,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                             autoComplete="country-name"
                                         />
                                     </div>
-                                    {/* ✅ NEW: ID Type */}
                                     <div>
                                         <label style={styles.label} htmlFor="idType">
                                             ID Type <span style={styles.required}>*</span>
@@ -859,7 +978,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                         </select>
                                         {errors.idType && <p style={styles.errorText}>{errors.idType.message}</p>}
                                     </div>
-                                    {/* ✅ NEW: ID Number */}
                                     <div>
                                         <label style={styles.label} htmlFor="idNumber">
                                             ID / Passport Number <span style={styles.required}>*</span>
@@ -887,13 +1005,15 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </>
                     );
 
-                // STEP 2: Rental Details (matches HTML form step 2)
+                // STEP 2: Rental Details
                 case 2:
                     return (
                         <>
                             <section className="card" style={styles.card}>
                                 <h2 style={styles.cardTitle}>Rental details</h2>
-                                <p style={styles.cardSubtitle}>Select dates and the vehicle you would like to book.</p>
+                                <p style={styles.cardSubtitle}>Select dates, vehicle, and rental period category.</p>
+
+                                {/* Dates and Location */}
                                 <div style={styles.grid3}>
                                     <div>
                                         <label style={styles.label} htmlFor="pickupDate">
@@ -950,15 +1070,35 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                     </div>
                                 </div>
 
-                                <div style={{ marginTop: '18px' }}>
+                                {/* ✅ Period Category Selector */}
+                                <div style={{ marginTop: '22px' }}>
+                                    <label style={styles.label}>
+                                        Rental Period Category <span style={styles.required}>*</span>
+                                    </label>
+                                    <p style={{ ...styles.helpText, marginBottom: '10px' }}>
+                                        Choose the period that matches your rental duration. The daily rate will be based on this selection.
+                                    </p>
+                                    <PeriodCategorySelector />
+                                    {errors.periodCategory && <p style={styles.errorText}>{errors.periodCategory.message}</p>}
+                                </div>
+
+                                {/* Vehicle Selector */}
+                                <div style={{ marginTop: '22px' }}>
                                     <label style={styles.label}>
                                         Vehicle <span style={styles.required}>*</span>
                                     </label>
+                                    <p style={{ ...styles.helpText, marginBottom: '10px' }}>
+                                        Rates shown reflect your selected period category
+                                        {periodCategories.find(p => p.value === periodCategory) && (
+                                            <>: <strong>{periodCategories.find(p => p.value === periodCategory)?.label}</strong></>
+                                        )}.
+                                    </p>
                                     <VehicleSelector />
                                     {errors.vehicle && <p style={styles.errorText}>{errors.vehicle.message}</p>}
                                 </div>
 
-                                <div style={{ ...styles.grid2, marginTop: '18px' }}>
+                                {/* Optional extras */}
+                                <div style={{ ...styles.grid2, marginTop: '22px' }}>
                                     <div>
                                         <label style={styles.label} htmlFor="deliveryAddress">
                                             Delivery / exact pick-up address
@@ -986,7 +1126,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                 </div>
 
                                 {/* Live Estimate */}
-                                <div style={{ marginTop: '20px' }}>
+                                <div style={{ marginTop: '22px' }}>
                                     <BookingEstimate />
                                 </div>
                             </section>
@@ -994,7 +1134,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </>
                     );
 
-                // STEP 3: Upload Documents (matches HTML form step 3)
+                // STEP 3: Upload Documents
                 case 3:
                     return (
                         <>
@@ -1058,14 +1198,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </>
                     );
 
-                // STEP 4: Review & Submit (matches HTML form step 4)
+                // STEP 4: Review & Submit
                 case 4:
                     return (
                         <>
                             <section className="card" style={styles.card}>
                                 <h2 style={styles.cardTitle}>Review & Submit</h2>
                                 <p style={styles.cardSubtitle}>
-                                    The estimate below is based on your selected dates and vehicle. Review everything before submitting.
+                                    The estimate below uses the daily rate from your selected period category.
                                 </p>
                                 <BookingSummary />
                             </section>
@@ -1254,6 +1394,50 @@ const styles: { [key: string]: React.CSSProperties } = {
         lineHeight: '1.5',
     },
 
+    // ✅ Period category selector
+    periodGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '12px',
+    },
+    periodCard: {
+        position: 'relative',
+        border: '2px solid #e5e7eb',
+        borderRadius: '14px',
+        padding: '16px 12px',
+        cursor: 'pointer',
+        background: '#fff',
+        transition: 'all 0.2s',
+        textAlign: 'center',
+        display: 'block',
+    },
+    periodCardSelected: {
+        border: '2px solid #e10b0b',
+        background: 'linear-gradient(135deg, #fff7f7, #fff1f2)',
+        boxShadow: '0 8px 18px rgba(225, 11, 11, 0.15)',
+    },
+    periodRadio: {
+        position: 'absolute',
+        opacity: 0,
+        pointerEvents: 'none',
+    },
+    periodLabel: {
+        fontWeight: '800',
+        fontSize: '15px',
+        marginBottom: '6px',
+        color: '#1f2937',
+    },
+    periodRate: {
+        fontSize: '13px',
+        color: '#e10b0b',
+        fontWeight: '700',
+    },
+    periodRateHint: {
+        fontSize: '12px',
+        color: '#9ca3af',
+        fontStyle: 'italic',
+    },
+
     // ✅ Vehicle selector cards
     vehicleGrid: {
         display: 'grid',
@@ -1291,6 +1475,14 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontSize: '12px',
         color: '#4b5563',
         lineHeight: '1.45',
+    },
+    vehicleRatesHighlight: {
+        background: 'rgba(255, 107, 53, 0.08)',
+        padding: '6px 8px',
+        borderRadius: '6px',
+        fontSize: '12px',
+        color: '#a80f0f',
+        lineHeight: '1.4',
     },
 
     // ✅ Estimate card

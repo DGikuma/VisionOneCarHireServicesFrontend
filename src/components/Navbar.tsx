@@ -61,9 +61,9 @@ const Navbar: React.FC = () => {
 
     return (
         <>
-            <nav className={`fixed top-0 w-full z-40 transition-all duration-300 ${isScrolled
-                ? 'bg-white/98 backdrop-blur-xl shadow-2xl shadow-gray-900/5'
-                : 'bg-white/95 backdrop-blur-lg'
+            <nav className={`fixed top-0 w-full z-40 transition-all duration-300 bg-white ${isScrolled
+                ? 'shadow-2xl shadow-gray-900/5'
+                : ''
                 }`}>
                 {/* Executive Top Bar - Hidden below lg (1024px) */}
                 <div className="w-full bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 hidden lg:block">
