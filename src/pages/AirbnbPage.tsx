@@ -46,6 +46,8 @@ const AirbnbPage: React.FC = () => {
     const [sortBy, setSortBy] = useState<string>('popular');
     const [selectedProperty, setSelectedProperty] = useState<AirbnbProperty | null>(null);
 
+    // ✅ HD images sourced from Unsplash (free to use, no attribution required for demos)
+    // Format: https://images.unsplash.com/photo-{id}?auto=format&fit=crop&w=1200&q=80
     const properties: AirbnbProperty[] = [
         {
             id: '1',
@@ -59,9 +61,9 @@ const AirbnbPage: React.FC = () => {
             beds: 5,
             bathrooms: 3,
             images: [
-                '/assets/airbnb/villa1.jpg',
-                '/assets/airbnb/villa2.jpg',
-                '/assets/airbnb/villa3.jpg'
+                'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
             ],
             amenities: ['Pool', 'WiFi', 'Kitchen', 'Parking', 'AC', 'TV', 'Gym'],
             type: 'Villa',
@@ -82,9 +84,9 @@ const AirbnbPage: React.FC = () => {
             beds: 4,
             bathrooms: 2,
             images: [
-                '/assets/airbnb/cottage1.jpg',
-                '/assets/airbnb/cottage2.jpg',
-                '/assets/airbnb/cottage3.jpg'
+                'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?auto=format&fit=crop&w=1200&q=80',
             ],
             amenities: ['Lake View', 'WiFi', 'Kitchen', 'Fireplace', 'BBQ', 'Garden'],
             type: 'Cottage',
@@ -105,9 +107,9 @@ const AirbnbPage: React.FC = () => {
             beds: 2,
             bathrooms: 2,
             images: [
-                '/assets/airbnb/apartment1.jpg',
-                '/assets/airbnb/apartment2.jpg',
-                '/assets/airbnb/apartment3.jpg'
+                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80',
             ],
             amenities: ['City View', 'WiFi', 'Gym', 'Pool', 'Parking', 'Concierge'],
             type: 'Apartment',
@@ -128,9 +130,9 @@ const AirbnbPage: React.FC = () => {
             beds: 6,
             bathrooms: 4,
             images: [
-                '/assets/airbnb/beach1.jpg',
-                '/assets/airbnb/beach2.jpg',
-                '/assets/airbnb/beach3.jpg'
+                'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1505142468610-359e7d316be0?auto=format&fit=crop&w=1200&q=80',
             ],
             amenities: ['Beachfront', 'Private Pool', 'WiFi', 'Chef', 'Garden', 'BBQ'],
             type: 'Beach House',
@@ -151,9 +153,9 @@ const AirbnbPage: React.FC = () => {
             beds: 3,
             bathrooms: 2,
             images: [
-                '/assets/airbnb/cabin1.jpg',
-                '/assets/airbnb/cabin2.jpg',
-                '/assets/airbnb/cabin3.jpg'
+                'https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80',
             ],
             amenities: ['Mountain View', 'Fireplace', 'WiFi', 'Hot Tub', 'Hiking Trails'],
             type: 'Cabin',
@@ -174,9 +176,9 @@ const AirbnbPage: React.FC = () => {
             beds: 4,
             bathrooms: 3,
             images: [
-                '/assets/airbnb/penthouse1.jpg',
-                '/assets/airbnb/penthouse2.jpg',
-                '/assets/airbnb/penthouse3.jpg'
+                'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=80',
             ],
             amenities: ['Rooftop Pool', 'WiFi', 'Gym', 'Concierge', 'Valet', 'Cinema Room'],
             type: 'Penthouse',
@@ -197,9 +199,9 @@ const AirbnbPage: React.FC = () => {
             beds: 8,
             bathrooms: 6,
             images: [
-                '/assets/airbnb/lodge1.jpg',
-                '/assets/airbnb/lodge2.jpg',
-                '/assets/airbnb/lodge3.jpg'
+                'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1523805009345-7448845a9e53?auto=format&fit=crop&w=1200&q=80',
             ],
             amenities: ['Game Drives', 'Pool', 'Spa', 'WiFi', 'Guide', 'Bush Dinner'],
             type: 'Lodge',
@@ -220,9 +222,9 @@ const AirbnbPage: React.FC = () => {
             beds: 1,
             bathrooms: 1,
             images: [
-                '/assets/airbnb/loft1.jpg',
-                '/assets/airbnb/loft2.jpg',
-                '/assets/airbnb/loft3.jpg'
+                'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80',
             ],
             amenities: ['City Center', 'WiFi', 'Workspace', 'Netflix', 'Laundry'],
             type: 'Loft',
@@ -237,7 +239,7 @@ const AirbnbPage: React.FC = () => {
     const PropertyTypeIcon = ({ name }: { name: string }) => {
         switch (name) {
             case 'Villa':
-                return ;
+                return <HeroHomeModernIcon className="h-4 w-4" />;
             case 'Apartment':
                 return <HeroBuildingOfficeIcon className="h-4 w-4" />;
             case 'Cottage':
@@ -479,12 +481,13 @@ const AirbnbPage: React.FC = () => {
                                 </div>
                             )}
 
-                            {/* Image Carousel */}
+                            {/* Image */}
                             <div className="relative h-64 overflow-hidden cursor-pointer" onClick={() => openPropertyModal(property)}>
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-10" />
                                 <img
                                     src={property.images[0]}
                                     alt={property.title}
+                                    loading="lazy"
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
 
@@ -777,6 +780,7 @@ const AirbnbPage: React.FC = () => {
                                                 key={index}
                                                 src={image}
                                                 alt={`${selectedProperty.title} - View ${index + 1}`}
+                                                loading="lazy"
                                                 className="w-full h-48 object-cover rounded-xl"
                                             />
                                         ))}
