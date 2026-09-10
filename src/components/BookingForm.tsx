@@ -21,35 +21,29 @@ const DEFAULT_COUNTRY = import.meta.env.VITE_DEFAULT_COUNTRY || 'ke';
 type PeriodCategory = 'short' | 'medium' | 'long';
 
 interface BookingFormData {
-    // Client details (Step 1)
     fullName: string;
     email: string;
     phone: string;
     nationality: string;
     idNumber: string;
     idType: 'id' | 'passport';
-    // Rental details (Step 2)
     vehicle: string;
     pickupDate: string;
     returnDate: string;
     pickupLocation: string;
     deliveryAddress: string;
     notes: string;
-    // Documents (Step 3)
     drivingLicense: FileList;
     idDocument: FileList;
-    // Consent (Step 4)
     consent: boolean;
     accuracy: boolean;
 }
 
-// ✅ Exported so BookingPage can use it
 export interface BookingFormRef {
     validateStep: () => Promise<boolean>;
     resetForm: () => void;
 }
 
-// ✅ Updated props to match what BookingPage passes
 export interface BookingFormProps {
     activeStep: number;
     onNextStep: () => void;
@@ -59,43 +53,20 @@ export interface BookingFormProps {
 
 const API_URL = `${API_BASE_URL}/api/bookings`;
 
-// ✅ Vehicle options with rates for each period category
 const vehicleOptions = [
-    {
-        value: 'Fielder',
-        label: 'Fielder',
-        rates: { short: 4000, medium: 3500, long: 3000 },
-    },
-    {
-        value: 'Mazda CX-5',
-        label: 'Mazda CX-5',
-        rates: { short: 7000, medium: 6500, long: 6000 },
-    },
-    {
-        value: 'Harrier',
-        label: 'Harrier',
-        rates: { short: 8000, medium: 7500, long: 7000 },
-    },
-    {
-        value: 'Lexus',
-        label: 'Lexus',
-        rates: { short: 9000, medium: 8500, long: 8000 },
-    },
-    {
-        value: 'Prado',
-        label: 'Prado',
-        rates: { short: 12000, medium: 11000, long: 10000 },
-    },
+    { value: 'Fielder', label: 'Fielder', rates: { short: 4000, medium: 3500, long: 3000 } },
+    { value: 'Mazda CX-5', label: 'Mazda CX-5', rates: { short: 7000, medium: 6500, long: 6000 } },
+    { value: 'Harrier', label: 'Harrier', rates: { short: 8000, medium: 7500, long: 7000 } },
+    { value: 'Lexus', label: 'Lexus', rates: { short: 9000, medium: 8500, long: 8000 } },
+    { value: 'Prado', label: 'Prado', rates: { short: 12000, medium: 11000, long: 10000 } },
 ];
 
-// ✅ Period category definitions
 const periodCategories: { value: PeriodCategory; label: string; minDays: number; maxDays: number }[] = [
     { value: 'short', label: '1–7 days', minDays: 1, maxDays: 7 },
     { value: 'medium', label: '7–20 days', minDays: 8, maxDays: 20 },
     { value: 'long', label: '20+ days', minDays: 21, maxDays: Infinity },
 ];
 
-// ✅ Pickup locations matching HTML form
 const pickupLocations = [
     'Nairobi',
     'Jomo Kenyatta International Airport',
@@ -103,7 +74,6 @@ const pickupLocations = [
     'Other / delivery requested',
 ];
 
-// Define which fields belong to each step
 const stepFields: Record<number, (keyof BookingFormData)[]> = {
     1: ['fullName', 'email', 'phone', 'nationality', 'idNumber', 'idType'],
     2: ['vehicle', 'pickupDate', 'returnDate', 'pickupLocation', 'deliveryAddress', 'notes'],
@@ -111,14 +81,12 @@ const stepFields: Record<number, (keyof BookingFormData)[]> = {
     4: [],
 };
 
-// List of all required fields (for submit button enablement)
 const allRequiredFields: (keyof BookingFormData)[] = [
     'fullName', 'email', 'phone', 'idNumber', 'idType',
     'vehicle', 'pickupDate', 'returnDate', 'pickupLocation',
     'drivingLicense', 'idDocument', 'consent'
 ];
 
-// ✅ Helper: determine period category from days
 const getPeriodFromDays = (days: number): PeriodCategory => {
     if (days <= 7) return 'short';
     if (days <= 20) return 'medium';
@@ -137,7 +105,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             idDocument: null,
         });
 
-        // ✅ Estimate calculation state (auto-detected from days)
         const [estimate, setEstimate] = useState<{
             days: number | null;
             rate: number | null;
@@ -180,10 +147,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         const drivingLicenseFile = watch('drivingLicense');
         const idDocumentFile = watch('idDocument');
 
-        // Watch all required fields to determine if form is complete
         const watchedValues = watch();
 
-        // Check if all required fields are filled
         const isFormComplete = allRequiredFields.every(field => {
             const value = watchedValues[field];
             if (field === 'drivingLicense' || field === 'idDocument') {
@@ -198,12 +163,10 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             return value && value.toString().trim().length > 0;
         });
 
-        // Set min dates for pickup and return
         const today = new Date();
         today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
         const todayStr = today.toISOString().slice(0, 10);
 
-        // Update return date min when pickup changes
         useEffect(() => {
             if (pickupDate) {
                 const pickup = new Date(pickupDate);
@@ -215,9 +178,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             }
         }, [pickupDate, returnDate, setValue]);
 
-        // ✅ AUTO-CALCULATE estimate from actual rental days
-        // - Days determined from pickup and return dates
-        // - Rate tier auto-detected (1–7 = short, 7–20 = medium, 20+ = long)
         useEffect(() => {
             const newEstimate = {
                 days: null as number | null,
@@ -247,7 +207,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 return;
             }
 
-            // ✅ Auto-detect period category from actual days
             const autoPeriod = getPeriodFromDays(days);
             const rate = selectedVehicle.rates[autoPeriod];
 
@@ -260,7 +219,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             });
         }, [pickupDate, returnDate, vehicle]);
 
-        // Generate preview URLs when files change
         useEffect(() => {
             const urls: { drivingLicense: string | null; idDocument: string | null } = {
                 drivingLicense: null,
@@ -289,7 +247,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             };
         }, [drivingLicenseFile, idDocumentFile]);
 
-        // Validate file size and type
         const validateFile = (file: File, maxSizeMB: number = 10): string | null => {
             const maxSize = maxSizeMB * 1024 * 1024;
             if (file.size > maxSize) {
@@ -302,9 +259,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             return null;
         };
 
-        // ------------------------------------------------
-        // Expose methods to the parent via ref
-        // ------------------------------------------------
         useImperativeHandle(ref, () => ({
             validateStep: async () => {
                 const fieldsToValidate = stepFields[activeStep] || [];
@@ -326,9 +280,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             },
         }));
 
-        // ------------------------------------------------
-        // Form submission
-        // ------------------------------------------------
         const onSubmit = async (data: BookingFormData) => {
             const dlFile = data.drivingLicense?.[0];
             const idFile = data.idDocument?.[0];
@@ -378,7 +329,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 mappedData.append('drivingLicense', dlFile);
                 mappedData.append('idDocument', idFile);
 
-                // ✅ Include auto-detected period and estimate info
                 if (estimate.rate && estimate.autoPeriod) {
                     mappedData.append('periodCategory', estimate.autoPeriod);
                     mappedData.append('dailyRate', String(estimate.rate));
@@ -414,21 +364,18 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             }
         };
 
-        // ------------------------------------------------
-        // Sub-components
-        // ------------------------------------------------
         const HeroSection = () => (
-            <div className="hero-section" style={styles.hero}>
+            <div className="bf-hero" style={styles.hero}>
                 <div style={styles.heroLogo}>
                     <img
                         src="/assets/images/logo.png"
                         alt="Vision One Services Logo"
-                        style={{ width: '120px', height: '120px', objectFit: 'contain' }}
+                        style={{ width: '100px', height: '100px', objectFit: 'contain' }}
                     />
                 </div>
                 <div style={styles.heroContent}>
-                    <h1 style={styles.heroTitle}>Vehicle Booking Form</h1>
-                    <p style={styles.heroSubtitle}>
+                    <h1 className="bf-hero-title" style={styles.heroTitle}>Vehicle Booking Form</h1>
+                    <p className="bf-hero-subtitle" style={styles.heroSubtitle}>
                         Complete the details below and attach the required identification documents.
                     </p>
                     <span style={styles.heroPill}>Special Offer Rates</span>
@@ -436,10 +383,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             </div>
         );
 
-        // ✅ Auto-Detected Period Category Display (read-only)
         const PeriodCategoryDisplay = () => {
             return (
-                <div style={styles.periodGrid}>
+                <div className="bf-period-grid" style={styles.periodGrid}>
                     {periodCategories.map((period) => {
                         const isActive = estimate.autoPeriod === period.value;
                         const selectedVehicle = vehicleOptions.find(v => v.value === vehicle);
@@ -483,9 +429,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             );
         };
 
-        // ✅ Vehicle Selector Cards (shows rates for the auto-detected period)
         const VehicleSelector = () => (
-            <div style={styles.vehicleGrid}>
+            <div className="bf-vehicle-grid" style={styles.vehicleGrid}>
                 {vehicleOptions.map((option) => {
                     const isSelected = vehicle === option.value;
                     const activePeriod = estimate.autoPeriod || 'short';
@@ -523,7 +468,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             </div>
         );
 
-        // ✅ Booking Estimate Component (auto-calculated)
         const BookingEstimate = () => {
             const formatNumber = (num: number) => num.toLocaleString('en-KE');
             const autoPeriodLabel = estimate.autoPeriod
@@ -564,7 +508,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </strong>
                     </div>
 
-                    {/* Info note about auto-calculation */}
                     {estimate.days && (
                         <div style={{
                             marginTop: '12px',
@@ -583,9 +526,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             );
         };
 
-        // Navigation buttons
         const NavigationButtons = ({ showSubmit = false }) => (
-            <div style={styles.navigation}>
+            <div className="bf-navigation" style={styles.navigation}>
                 {activeStep > 1 && (
                     <button
                         type="button"
@@ -618,7 +560,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             </div>
         );
 
-        // ✅ Review Summary (used in Step 4)
         const BookingSummary = () => {
             const v = watchedValues;
             const formatDate = (dateStr: string) => {
@@ -641,7 +582,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
 
             return (
                 <div style={styles.reviewContainer}>
-                    {/* Success Banner */}
                     <div style={styles.reviewBanner}>
                         <div style={styles.reviewBannerIcon}>✓</div>
                         <div>
@@ -650,7 +590,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </div>
                     </div>
 
-                    {/* Client Details Card */}
                     <div style={styles.reviewCard}>
                         <div style={styles.reviewCardHeader}>
                             <span style={styles.reviewCardIcon}>👤</span>
@@ -688,7 +627,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </div>
                     </div>
 
-                    {/* Rental Details Card */}
                     <div style={styles.reviewCard}>
                         <div style={styles.reviewCardHeader}>
                             <span style={styles.reviewCardIcon}>🚗</span>
@@ -730,7 +668,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </div>
                     </div>
 
-                    {/* Estimate Card */}
                     <div style={styles.reviewCard}>
                         <div style={styles.reviewCardHeader}>
                             <span style={styles.reviewCardIcon}>💰</span>
@@ -762,14 +699,13 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </div>
                     </div>
 
-                    {/* Document Previews Card */}
                     <div style={styles.reviewCard}>
                         <div style={styles.reviewCardHeader}>
                             <span style={styles.reviewCardIcon}>📎</span>
                             <h4 style={styles.reviewCardTitle}>Uploaded Documents</h4>
                         </div>
                         <div style={styles.reviewCardBody}>
-                            <div style={styles.docPreviewGrid}>
+                            <div className="bf-doc-preview-grid" style={styles.docPreviewGrid}>
                                 <div style={styles.docPreviewItem}>
                                     <div style={styles.docPreviewLabel}>
                                         <span>🪪 Driving Licence</span>
@@ -827,7 +763,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </div>
                     </div>
 
-                    {/* Consent Card */}
                     <div style={styles.reviewCard}>
                         <div style={styles.reviewCardHeader}>
                             <span style={styles.reviewCardIcon}>✅</span>
@@ -849,7 +784,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </div>
                     </div>
 
-                    {/* Info Note */}
                     <div style={styles.reviewNote}>
                         <span style={styles.reviewNoteIcon}>ℹ️</span>
                         <p style={styles.reviewNoteText}>
@@ -862,17 +796,15 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             );
         };
 
-        // Render content based on activeStep
         const renderStepContent = () => {
             switch (activeStep) {
-                // STEP 1: Your Details
                 case 1:
                     return (
                         <>
-                            <section className="card" style={styles.card}>
-                                <h2 style={styles.cardTitle}>Your details</h2>
-                                <p style={styles.cardSubtitle}>Enter the primary driver's contact and identification information.</p>
-                                <div style={styles.grid2}>
+                            <section className="bf-card" style={styles.card}>
+                                <h2 className="bf-card-title" style={styles.cardTitle}>Your details</h2>
+                                <p className="bf-card-subtitle" style={styles.cardSubtitle}>Enter the primary driver's contact and identification information.</p>
+                                <div className="bf-grid-2" style={styles.grid2}>
                                     <div>
                                         <label style={styles.label} htmlFor="fullName">
                                             Full name <span style={styles.required}>*</span>
@@ -898,6 +830,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                                 setPhoneValue(value);
                                                 setValue('phone', value, { shouldValidate: true });
                                             }}
+                                            containerClass="bf-phone-input"
                                             inputStyle={{
                                                 width: '100%',
                                                 height: '54px',
@@ -1005,16 +938,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </>
                     );
 
-                // STEP 2: Rental Details
                 case 2:
                     return (
                         <>
-                            <section className="card" style={styles.card}>
-                                <h2 style={styles.cardTitle}>Rental details</h2>
-                                <p style={styles.cardSubtitle}>Select dates and the vehicle you would like to book.</p>
+                            <section className="bf-card" style={styles.card}>
+                                <h2 className="bf-card-title" style={styles.cardTitle}>Rental details</h2>
+                                <p className="bf-card-subtitle" style={styles.cardSubtitle}>Select dates and the vehicle you would like to book.</p>
 
-                                {/* Dates and Location */}
-                                <div style={styles.grid3}>
+                                <div className="bf-grid-3" style={styles.grid3}>
                                     <div>
                                         <label style={styles.label} htmlFor="pickupDate">
                                             Pick-up date <span style={styles.required}>*</span>
@@ -1070,7 +1001,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                     </div>
                                 </div>
 
-                                {/* ✅ Auto-detected Period Category Display */}
                                 <div style={{ marginTop: '22px' }}>
                                     <label style={styles.label}>Rental Period Category</label>
                                     <p style={{ ...styles.helpText, marginBottom: '10px' }}>
@@ -1080,7 +1010,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                     <PeriodCategoryDisplay />
                                 </div>
 
-                                {/* Vehicle Selector */}
                                 <div style={{ marginTop: '22px' }}>
                                     <label style={styles.label}>
                                         Vehicle <span style={styles.required}>*</span>
@@ -1100,8 +1029,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                     {errors.vehicle && <p style={styles.errorText}>{errors.vehicle.message}</p>}
                                 </div>
 
-                                {/* Optional extras */}
-                                <div style={{ ...styles.grid2, marginTop: '22px' }}>
+                                <div className="bf-grid-2" style={{ ...styles.grid2, marginTop: '22px' }}>
                                     <div>
                                         <label style={styles.label} htmlFor="deliveryAddress">
                                             Delivery / exact pick-up address
@@ -1128,7 +1056,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                     </div>
                                 </div>
 
-                                {/* Live Estimate */}
                                 <div style={{ marginTop: '22px' }}>
                                     <BookingEstimate />
                                 </div>
@@ -1137,20 +1064,19 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </>
                     );
 
-                // STEP 3: Upload Documents
                 case 3:
                     return (
                         <>
-                            <section className="card" style={styles.card}>
-                                <h2 style={styles.cardTitle}>Upload documents</h2>
-                                <p style={styles.cardSubtitle}>
+                            <section className="bf-card" style={styles.card}>
+                                <h2 className="bf-card-title" style={styles.cardTitle}>Upload documents</h2>
+                                <p className="bf-card-subtitle" style={styles.cardSubtitle}>
                                     Upload a clear copy or photo of the primary driver's ID/passport and valid driving licence.
                                 </p>
                                 <div style={styles.noteBox}>
                                     Both documents are required. On most phones, tap <strong>Choose File</strong> and select the camera
                                     to photograph the document. Make sure the whole document is visible and readable.
                                 </div>
-                                <div style={{ ...styles.grid2, marginTop: '16px' }}>
+                                <div className="bf-grid-2" style={{ ...styles.grid2, marginTop: '16px' }}>
                                     <div>
                                         <label style={styles.label} htmlFor="idDocument">
                                             National ID / Passport <span style={styles.required}>*</span>
@@ -1201,13 +1127,12 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </>
                     );
 
-                // STEP 4: Review & Submit
                 case 4:
                     return (
                         <>
-                            <section className="card" style={styles.card}>
-                                <h2 style={styles.cardTitle}>Review & Submit</h2>
-                                <p style={styles.cardSubtitle}>
+                            <section className="bf-card" style={styles.card}>
+                                <h2 className="bf-card-title" style={styles.cardTitle}>Review & Submit</h2>
+                                <p className="bf-card-subtitle" style={styles.cardSubtitle}>
                                     The estimate below uses the daily rate automatically matched to your rental duration.
                                 </p>
                                 <BookingSummary />
@@ -1224,17 +1149,203 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         };
 
         return (
-            <div style={styles.container}>
-                <HeroSection />
-                <form
-                    ref={formRef}
-                    onSubmit={handleSubmit(onSubmit)}
-                    style={styles.form}
-                    encType="multipart/form-data"
-                >
-                    {renderStepContent()}
-                </form>
-            </div>
+            <>
+                {/* ✅ Responsive CSS for mobile fixes */}
+                <style>{`
+                    /* Base container - edge to edge on mobile */
+                    .bf-container {
+                        max-width: 980px;
+                        margin: 0 auto;
+                        padding: 18px;
+                        box-sizing: border-box;
+                        width: 100%;
+                    }
+                    @media (max-width: 640px) {
+                        .bf-container {
+                            padding: 12px;
+                            border-radius: 0;
+                        }
+                    }
+
+                    /* Hero section - stack on mobile */
+                    .bf-hero {
+                        display: flex;
+                        flex-direction: row;
+                    }
+                    @media (max-width: 640px) {
+                        .bf-hero {
+                            flex-direction: column;
+                            text-align: center;
+                            padding: 20px 14px !important;
+                            gap: 12px !important;
+                        }
+                        .bf-hero-title {
+                            font-size: 22px !important;
+                        }
+                        .bf-hero-subtitle {
+                            font-size: 13px !important;
+                        }
+                    }
+
+                    /* Card padding on mobile */
+                    .bf-card {
+                        padding: 22px;
+                    }
+                    @media (max-width: 640px) {
+                        .bf-card {
+                            padding: 16px 14px !important;
+                            border-radius: 14px !important;
+                            margin: 12px 0 !important;
+                        }
+                        .bf-card-title {
+                            font-size: 18px !important;
+                        }
+                        .bf-card-subtitle {
+                            font-size: 13px !important;
+                            margin-bottom: 14px !important;
+                        }
+                    }
+
+                    /* Grids collapse to 1 column on mobile */
+                    .bf-grid-2,
+                    .bf-grid-3 {
+                        display: grid;
+                    }
+                    @media (max-width: 640px) {
+                        .bf-grid-2,
+                        .bf-grid-3 {
+                            grid-template-columns: 1fr !important;
+                            gap: 12px !important;
+                        }
+                    }
+
+                    /* Period category grid */
+                    .bf-period-grid {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                    }
+                    @media (max-width: 640px) {
+                        .bf-period-grid {
+                            grid-template-columns: 1fr !important;
+                            gap: 8px !important;
+                        }
+                    }
+
+                    /* Vehicle grid - 5 cols → 2 cols → 1 col */
+                    .bf-vehicle-grid {
+                        display: grid;
+                        grid-template-columns: repeat(5, 1fr);
+                    }
+                    @media (max-width: 900px) {
+                        .bf-vehicle-grid {
+                            grid-template-columns: repeat(3, 1fr) !important;
+                        }
+                    }
+                    @media (max-width: 640px) {
+                        .bf-vehicle-grid {
+                            grid-template-columns: repeat(2, 1fr) !important;
+                            gap: 8px !important;
+                        }
+                    }
+                    @media (max-width: 400px) {
+                        .bf-vehicle-grid {
+                            grid-template-columns: 1fr !important;
+                        }
+                    }
+
+                    /* Doc preview grid */
+                    .bf-doc-preview-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                    @media (max-width: 640px) {
+                        .bf-doc-preview-grid {
+                            grid-template-columns: 1fr !important;
+                            gap: 10px !important;
+                        }
+                    }
+
+                    /* Navigation buttons - full width on mobile */
+                    .bf-navigation {
+                        display: flex;
+                        gap: 12px;
+                    }
+                    @media (max-width: 640px) {
+                        .bf-navigation {
+                            flex-direction: column-reverse !important;
+                            gap: 10px !important;
+                        }
+                        .bf-navigation button {
+                            width: 100% !important;
+                            justify-content: center !important;
+                            padding: 14px 18px !important;
+                            font-size: 15px !important;
+                        }
+                    }
+
+                    /* Phone input adjustments on mobile */
+                    @media (max-width: 640px) {
+                        .bf-phone-input .form-control {
+                            font-size: 14px !important;
+                            height: 50px !important;
+                            padding-left: 70px !important;
+                        }
+                        .bf-phone-input .flag-dropdown {
+                            height: 50px !important;
+                        }
+                    }
+
+                    /* Prevent overflow */
+                    .bf-container * {
+                        max-width: 100%;
+                        box-sizing: border-box;
+                    }
+
+                    /* Inputs full width */
+                    .bf-container input,
+                    .bf-container select,
+                    .bf-container textarea {
+                        width: 100% !important;
+                        max-width: 100% !important;
+                    }
+
+                    /* Review card body padding */
+                    @media (max-width: 640px) {
+                        .bf-container [style*="reviewCardBody"] {
+                            padding: 14px !important;
+                        }
+                    }
+
+                    /* Ensure text wraps */
+                    .bf-container p,
+                    .bf-container h1,
+                    .bf-container h2,
+                    .bf-container h3,
+                    .bf-container h4,
+                    .bf-container span,
+                    .bf-container label {
+                        overflow-wrap: break-word;
+                        word-wrap: break-word;
+                    }
+
+                    /* Banner text wrap */
+                    .bf-container [style*="reviewBanner"] {
+                        flex-wrap: wrap;
+                    }
+                `}</style>
+
+                <div className="bf-container" style={styles.container}>
+                    <HeroSection />
+                    <form
+                        ref={formRef}
+                        onSubmit={handleSubmit(onSubmit)}
+                        style={styles.form}
+                        encType="multipart/form-data"
+                    >
+                        {renderStepContent()}
+                    </form>
+                </div>
+            </>
         );
     }
 );
@@ -1250,6 +1361,8 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontFamily: 'Inter, Arial, Helvetica, sans-serif',
         color: '#1f2328',
         background: 'linear-gradient(180deg, #eaf9ff 0%, #ffffff 48%, #f6fbff 100%)',
+        boxSizing: 'border-box',
+        width: '100%',
     },
     hero: {
         background: 'linear-gradient(135deg, #d90000 0%, #ff1b0a 45%, #ff9a1f 100%)',
@@ -1268,19 +1381,24 @@ const styles: { [key: string]: React.CSSProperties } = {
         borderRadius: '50%',
         padding: '6px',
         border: '4px solid rgba(255,255,255,0.75)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     heroContent: {
         flex: 1,
+        minWidth: 0,
     },
     heroTitle: {
         margin: '0 0 8px',
-        fontSize: 'clamp(26px, 5vw, 42px)',
+        fontSize: 'clamp(20px, 5vw, 42px)',
         color: '#fff',
     },
     heroSubtitle: {
         margin: '0',
         color: 'rgba(255,255,255,0.95)',
         lineHeight: '1.5',
+        fontSize: 'clamp(13px, 2.5vw, 16px)',
     },
     heroPill: {
         display: 'inline-block',
@@ -1290,7 +1408,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontWeight: 'bold',
         padding: '7px 14px',
         borderRadius: '999px',
-        fontSize: '14px',
+        fontSize: '13px',
         boxShadow: '0 6px 16px rgba(230, 0, 126, 0.35)',
     },
     form: {
@@ -1396,8 +1514,6 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontSize: '14px',
         lineHeight: '1.5',
     },
-
-    // ✅ Period category selector
     periodGrid: {
         display: 'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',
@@ -1440,8 +1556,6 @@ const styles: { [key: string]: React.CSSProperties } = {
         color: '#9ca3af',
         fontStyle: 'italic',
     },
-
-    // ✅ Vehicle selector cards
     vehicleGrid: {
         display: 'grid',
         gridTemplateColumns: 'repeat(5, 1fr)',
@@ -1487,8 +1601,6 @@ const styles: { [key: string]: React.CSSProperties } = {
         color: '#a80f0f',
         lineHeight: '1.4',
     },
-
-    // ✅ Estimate card
     estimateCard: {
         background: 'linear-gradient(135deg, #fff7ed, #fff1f2)',
         border: '1px solid #fed7aa',
@@ -1507,6 +1619,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         gap: '20px',
         padding: '8px 0',
         fontSize: '14px',
+        flexWrap: 'wrap',
     },
     estimateLabel: {
         color: '#6b7280',
@@ -1528,8 +1641,6 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontSize: '16px',
         textAlign: 'right',
     },
-
-    // Navigation
     navigation: {
         display: 'flex',
         justifyContent: 'space-between',
@@ -1584,9 +1695,9 @@ const styles: { [key: string]: React.CSSProperties } = {
         margin: '16px 0 4px',
         fontSize: '14px',
         color: '#667085',
+        padding: '0 8px',
+        wordBreak: 'break-word',
     },
-
-    // Review styles
     reviewContainer: {
         display: 'flex',
         flexDirection: 'column',
@@ -1602,6 +1713,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         padding: '20px 24px',
         borderRadius: '14px',
         boxShadow: '0 6px 20px rgba(225, 11, 11, 0.3)',
+        flexWrap: 'wrap',
     },
     reviewBannerIcon: {
         width: '48px',
@@ -1660,7 +1772,8 @@ const styles: { [key: string]: React.CSSProperties } = {
         padding: '10px 0',
         borderBottom: '1px dashed #f1f3f5',
         fontSize: '14px',
-        gap: '16px',
+        gap: '12px',
+        flexWrap: 'wrap',
     },
     reviewLabel: {
         color: '#667085',
@@ -1672,6 +1785,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontWeight: '500',
         textAlign: 'right',
         wordBreak: 'break-word',
+        maxWidth: '100%',
     },
     reviewValueHighlight: {
         color: '#e10b0b',
