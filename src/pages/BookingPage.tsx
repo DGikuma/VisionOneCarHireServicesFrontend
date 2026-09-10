@@ -4,14 +4,14 @@ import BookingForm from '../components/BookingForm';
 import type { BookingFormRef } from '../components/BookingForm';
 import {
     ShieldCheckIcon,
-    DocumentTextIcon,
     CheckBadgeIcon,
     SparklesIcon,
     LockClosedIcon,
     CalendarIcon,
     MapPinIcon,
     UserIcon,
-    CreditCardIcon,
+    DocumentArrowUpIcon,
+    ClipboardDocumentCheckIcon,
     ChatBubbleLeftRightIcon,
     PhoneIcon
 } from '@heroicons/react/24/outline';
@@ -24,7 +24,7 @@ const BookingPage: React.FC = () => {
     const handleNextStep = async () => {
         if (bookingFormRef.current) {
             const isValid = await bookingFormRef.current.validateStep();
-            if (isValid && activeStep < 4) { // Changed from 3 to 4
+            if (isValid && activeStep < 4) {
                 setActiveStep(activeStep + 1);
             }
         }
@@ -37,7 +37,6 @@ const BookingPage: React.FC = () => {
     };
 
     const handleComplete = () => {
-        // Reset form and steps
         if (bookingFormRef.current) {
             bookingFormRef.current.resetForm();
         }
@@ -46,10 +45,8 @@ const BookingPage: React.FC = () => {
 
     const handleStepClick = async (step: number) => {
         if (step < activeStep) {
-            // Allow going back without validation
             setActiveStep(step);
         } else if (step > activeStep && bookingFormRef.current) {
-            // Validate current step before moving forward
             const isValid = await bookingFormRef.current.validateStep();
             if (isValid) {
                 setActiveStep(step);
@@ -57,33 +54,34 @@ const BookingPage: React.FC = () => {
         }
     };
 
+    // ✅ UPDATED: Steps now match the BookingForm's actual steps
     const processSteps = [
         {
             step: 1,
-            icon: DocumentTextIcon,
-            title: 'Reservation Details',
-            description: 'Select your vehicle and travel dates',
+            icon: UserIcon,
+            title: 'Your Details',
+            description: 'Contact info and identification',
             color: 'from-[#FF6B35] to-[#FF8B35]'
         },
         {
             step: 2,
-            icon: UserIcon,
-            title: 'Personal Information',
-            description: 'Provide your contact and ID details',
+            icon: CalendarIcon,
+            title: 'Rental Details',
+            description: 'Dates, location, and vehicle',
             color: 'from-[#FF8B35] to-[#FF7B35]'
         },
         {
             step: 3,
-            icon: CreditCardIcon,
-            title: 'Security Deposit',
-            description: 'Pay deposit and upload documents',
+            icon: DocumentArrowUpIcon,
+            title: 'Upload Documents',
+            description: 'ID and driving licence',
             color: 'from-[#FF7B35] to-[#FF6B35]'
         },
         {
             step: 4,
-            icon: CheckBadgeIcon,
-            title: 'Confirmation',
-            description: 'Review and confirm your booking',
+            icon: ClipboardDocumentCheckIcon,
+            title: 'Review & Submit',
+            description: 'Confirm your booking',
             color: 'from-[#FF6B35] to-[#FF8B35]'
         }
     ];
@@ -146,12 +144,12 @@ const BookingPage: React.FC = () => {
 
                         <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed">
                             Experience seamless booking for our premium fleet. Reserve your luxury vehicle
-                            with our three-step executive process and enjoy white-glove service.
+                            with our four-step executive process and enjoy white-glove service.
                         </p>
 
                         <div className="flex flex-wrap justify-center gap-4">
                             <div className="px-6 py-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/20">
-                                <span className="text-2xl font-bold text-white">3</span>
+                                <span className="text-2xl font-bold text-white">4</span>
                                 <p className="text-sm text-gray-400">Simple Steps</p>
                             </div>
                             <div className="px-6 py-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/20">
@@ -172,16 +170,16 @@ const BookingPage: React.FC = () => {
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-8">
                         <div className="relative">
-                            {/* Progress Line - Updated for 4 steps */}
+                            {/* Progress Line */}
                             <div className="hidden md:block absolute top-6 left-0 right-0 h-0.5 bg-gray-200">
                                 <div
                                     className="h-full bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] transition-all duration-500"
-                                    style={{ width: `${((activeStep - 1) / 3) * 100}%` }} // CHANGE THIS LINE to use 4 instead of 3
+                                    style={{ width: `${((activeStep - 1) / 3) * 100}%` }}
                                 />
                             </div>
 
-                            {/* Step Circles - Already updated for 4 steps */}
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6"> {/* Changed from 3 to 4 */}
+                            {/* Step Circles */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                                 {processSteps.map((step) => (
                                     <div
                                         key={step.step}
@@ -202,7 +200,6 @@ const BookingPage: React.FC = () => {
                                                         }`} />
                                                 )}
 
-                                                {/* Active Step Indicator */}
                                                 {activeStep === step.step && (
                                                     <div className="absolute -inset-3 border-2 border-[#FF6B35]/30 rounded-full animate-pulse" />
                                                 )}
@@ -231,8 +228,8 @@ const BookingPage: React.FC = () => {
                                                 </p>
                                             </div>
 
-                                            {/* Connection Line for Mobile - Updated for 4 steps */}
-                                            {step.step < 4 && ( // Changed from 3 to 4
+                                            {/* Connection Line for Mobile */}
+                                            {step.step < 4 && (
                                                 <div className="md:hidden absolute top-8 right-0 w-1/2 h-0.5 bg-gray-200 transform translate-x-1/2">
                                                     <div
                                                         className={`h-full ${activeStep > step.step
@@ -343,7 +340,7 @@ const BookingPage: React.FC = () => {
                                     <div className="hidden md:block">
                                         <div className="px-4 py-2 bg-gray-100 rounded-lg">
                                             <span className="text-sm font-medium text-gray-700">
-                                                Step {activeStep} of 3
+                                                Step {activeStep} of 4
                                             </span>
                                         </div>
                                     </div>
