@@ -14,7 +14,7 @@ const SEOPage: React.FC = () => {
     const structuredData = {
         "@context": "https://schema.org",
         "@type": "CarRental",
-        "name": "Vision One Car Hire Services",
+        "name": "Vision Wan Car Hire Services",
         "description": "Premium car hire services offering luxury vehicles, SUVs, electric cars, and family vehicles for business, leisure, and special occasions.",
         "address": {
             "@type": "PostalAddress",
@@ -77,10 +77,10 @@ const SEOPage: React.FC = () => {
     return (
         <>
             <Helmet>
-                <title>Car Hire Services | Premium Vehicle Rental | Vision One</title>
-                <meta name="description" content="Vision One Car Hire offers premium car rental services with luxury vehicles, SUVs, electric cars, and family vehicles. Best rates, 24/7 support, nationwide locations." />
+                <title>Car Hire Services | Premium Vehicle Rental | Vision Wan</title>
+                <meta name="description" content="Vision Wan Car Hire offers premium car rental services with luxury vehicles, SUVs, electric cars, and family vehicles. Best rates, 24/7 support, nationwide locations." />
                 <meta name="keywords" content="car hire, car rental, luxury car rental, SUV rental, electric car rental, premium vehicles, business car hire, family car rental" />
-                <meta property="og:title" content="Vision One Car Hire Services | Premium Vehicle Rental" />
+                <meta property="og:title" content="Vision Wan Car Hire Services | Premium Vehicle Rental" />
                 <meta property="og:description" content="Experience premium car hire with our luxury fleet. Best rates, exceptional service, nationwide coverage." />
                 <meta property="og:type" content="website" />
                 <script type="application/ld+json">
@@ -92,7 +92,7 @@ const SEOPage: React.FC = () => {
                 {/* Hero Section */}
                 <div className="text-center mb-16">
                     <h1 className="text-5xl font-bold text-gray-900 mb-6">
-                        Vision One Car Hire Services
+                        Vision Wan Car Hire Services
                     </h1>
                     <p className="text-gray-600 text-xl max-w-3xl mx-auto">
                         Premium car rental services offering luxury vehicles, SUVs, electric cars, and family vehicles for business, leisure, and special occasions across the United States.
@@ -107,7 +107,7 @@ const SEOPage: React.FC = () => {
                             Premium Car Hire Services
                         </h2>
                         <p className="text-gray-700 mb-4">
-                            Welcome to <strong>Vision One Car Hire Services</strong>, your premier destination for luxury and premium vehicle rentals. With over a decade of experience in the car rental industry, we provide exceptional service, competitive rates, and a meticulously maintained fleet of vehicles.
+                            Welcome to <strong>Vision Wan Car Hire Services</strong>, your premier destination for luxury and premium vehicle rentals. With over a decade of experience in the car rental industry, we provide exceptional service, competitive rates, and a meticulously maintained fleet of vehicles.
                         </p>
                         <p className="text-gray-700 mb-4">
                             Our comprehensive car hire services cater to diverse needs including business travel, family vacations, special occasions, and long-term rentals. We pride ourselves on delivering unparalleled customer service and ensuring every rental experience exceeds expectations.
@@ -120,7 +120,7 @@ const SEOPage: React.FC = () => {
                             Our Vehicle Fleet
                         </h2>
                         <p className="text-gray-700 mb-4">
-                            At Vision One Car Hire, we maintain an extensive fleet of premium vehicles including:
+                            At Vision Wan Car Hire, we maintain an extensive fleet of premium vehicles including:
                         </p>
                         <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                             {vehicleTypes.map((type, index) => (
@@ -194,7 +194,7 @@ const SEOPage: React.FC = () => {
                     <section className="mb-12">
                         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
                             <DevicePhoneMobileIcon className="h-8 w-8 mr-3 text-primary-600" />
-                            Why Choose Vision One Car Hire?
+                            Why Choose Vision Wan Car Hire?
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
                             {[
@@ -240,7 +240,7 @@ const SEOPage: React.FC = () => {
                             Contact & Booking Information
                         </h2>
                         <p className="text-gray-700 mb-4">
-                            Booking with Vision One Car Hire is simple and convenient. You can reserve your vehicle through our website, mobile app, or by calling our customer service team. We offer:
+                            Booking with Vision Wan Car Hire is simple and convenient. You can reserve your vehicle through our website, mobile app, or by calling our customer service team. We offer:
                         </p>
                         <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-6">
                             <li><strong>Online Booking:</strong> Reserve your vehicle in minutes</li>
@@ -253,7 +253,7 @@ const SEOPage: React.FC = () => {
                                 Get Started Today
                             </h3>
                             <p className="text-gray-700 mb-6">
-                                Experience the difference with Vision One Car Hire. Whether you need a luxury sedan for business, an SUV for family travel, or a convertible for a special occasion, we have the perfect vehicle for you.
+                                Experience the difference with Vision Wan Car Hire. Whether you need a luxury sedan for business, an SUV for family travel, or a convertible for a special occasion, we have the perfect vehicle for you.
                             </p>
                             <Link
                                 to="/booking"

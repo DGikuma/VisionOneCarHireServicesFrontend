@@ -210,7 +210,7 @@ const TermsPage: React.FC = () => {
                     Last updated: January 1, 2024
                 </p>
                 <p className="text-gray-500 mt-4 max-w-3xl mx-auto">
-                    By using Vision One Car Hire Services, you agree to these terms and conditions. Please read them carefully.
+                    By using Vision Wan Car Hire Services, you agree to these terms and conditions. Please read them carefully.
                 </p>
             </div>
 
@@ -340,7 +340,7 @@ const TermsPage: React.FC = () => {
                         By proceeding with your booking, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.
                     </p>
                     <p className="text-gray-700">
-                        These terms constitute the entire agreement between you and Vision One Car Hire Services regarding your rental and supersede all prior agreements and understandings.
+                        These terms constitute the entire agreement between you and Vision Wan Car Hire Services regarding your rental and supersede all prior agreements and understandings.
                     </p>
                     <div className="bg-white p-6 rounded-xl border border-gray-200">
                         <div className="flex items-center">
@@ -395,7 +395,7 @@ const TermsPage: React.FC = () => {
             {/* Final Notice */}
             <div className="mt-12 p-6 border-t border-gray-200 text-center">
                 <p className="text-gray-600">
-                    © 2024 Vision One Car Hire Services. All rights reserved.
+                    © 2024 Vision Wan Car Hire Services. All rights reserved.
                 </p>
                 <p className="text-gray-500 text-sm mt-2">
                     These Terms and Conditions are legally binding. Please retain a copy for your records.

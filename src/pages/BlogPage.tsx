@@ -7,7 +7,6 @@ import {
     TagIcon,
     ArrowRightIcon,
     MagnifyingGlassIcon,
-    SparklesIcon,
     ChartBarIcon,
     BuildingOfficeIcon,
     ArrowTrendingUpIcon,
@@ -81,7 +80,7 @@ const BlogPage: React.FC = () => {
             excerpt: 'An in-depth analysis of emerging trends in premium mobility and their impact on corporate travel strategies.',
             content: 'Full article content...',
             author: 'Michael Roberts',
-            authorRole: 'CEO, Vision One',
+            authorRole: 'CEO, Vision Wan',
             authorImage: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200',
             date: 'Jan 15, 2024',
             readTime: '8 min read',
@@ -117,7 +116,7 @@ const BlogPage: React.FC = () => {
             excerpt: 'Advanced strategies for maximizing return on investment through intelligent fleet management solutions.',
             content: 'Full article content...',
             author: 'David Chen',
-            authorRole: 'CTO, Vision One',
+            authorRole: 'CTO, Vision Wan',
             authorImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200',
             date: 'Jan 8, 2024',
             readTime: '7 min read',
@@ -232,13 +231,12 @@ const BlogPage: React.FC = () => {
 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35]/10 backdrop-blur-sm rounded-full border border-[#FF6B35]/20 mb-6">
-                        <SparklesIcon className="h-4 w-4 text-[#FF6B35]" />
                         <span className="text-sm font-semibold text-[#FF6B35]">EXECUTIVE INSIGHTS</span>
                     </div>
 
                     <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
                         <span className="bg-gradient-to-r from-white via-gray-100 to-gray-200 bg-clip-text text-transparent">
-                            Vision One Insights
+                            Vision Wan Insights
                         </span>
                     </h1>
 
@@ -344,7 +342,6 @@ const BlogPage: React.FC = () => {
                         {filteredPosts.find(post => post.featured) && (
                             <div className="mb-12">
                                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35]/10 rounded-full mb-6">
-                                    <SparklesIcon className="h-4 w-4 text-[#FF6B35]" />
                                     <span className="text-sm font-semibold text-[#FF6B35]">FEATURED INSIGHT</span>
                                 </div>
 

@@ -20,7 +20,7 @@ const PrivacyPolicyPage: React.FC = () => {
             {/* Introduction */}
             <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <p className="text-gray-700 mb-6">
-                    At Vision One Car Hire Services, we are committed to protecting your privacy and personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
+                    At Vision Wan Car Hire Services, we are committed to protecting your privacy and personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
                 </p>
                 <p className="text-gray-700">
                     Please read this privacy policy carefully. By using our services, you consent to the data practices described in this policy.
@@ -289,7 +289,7 @@ const PrivacyPolicyPage: React.FC = () => {
                     </div>
                     <div className="flex items-center text-gray-700">
                         <DocumentTextIcon className="h-5 w-5 mr-3 text-primary-600" />
-                        <span>Vision One Car Hire Services<br />123 Main Street, City, State 12345</span>
+                        <span>Vision Wan Car Hire Services<br />123 Main Street, City, State 12345</span>
                     </div>
                 </div>
             </div>

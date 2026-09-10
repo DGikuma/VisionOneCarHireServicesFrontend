@@ -5,7 +5,6 @@ import type { BookingFormRef } from '../components/BookingForm';
 import {
     ShieldCheckIcon,
     CheckBadgeIcon,
-    SparklesIcon,
     LockClosedIcon,
     CalendarIcon,
     MapPinIcon,
@@ -133,7 +132,6 @@ const BookingPage: React.FC = () => {
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FF6B35]/10 backdrop-blur-sm rounded-full border border-[#FF6B35]/20 mb-4 sm:mb-6">
-                            <SparklesIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#FF6B35]" />
                             <span className="text-xs sm:text-sm font-semibold text-[#FF6B35]">PREMIUM BOOKING</span>
                         </div>
 

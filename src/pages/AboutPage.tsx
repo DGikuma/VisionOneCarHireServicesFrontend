@@ -5,7 +5,6 @@ import {
     UserGroupIcon,
     GlobeAltIcon,
     LightBulbIcon,
-    SparklesIcon,
     BuildingOfficeIcon,
     ShieldCheckIcon,
     ArrowTrendingUpIcon,
@@ -23,7 +22,7 @@ const AboutPage: React.FC = () => {
             image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80',
             bio: 'Former executive at major automotive corporations with 20+ years in luxury mobility. MBA from Harvard Business School.',
             expertise: ['Strategic Vision', 'Luxury Market Expansion', 'Corporate Governance'],
-            achievements: ['Founded Vision One in 2010', 'Expanded to 50+ locations', 'Industry Innovation Awards 2023'],
+            achievements: ['Founded Vision Wan in 2010', 'Expanded to 50+ locations', 'Industry Innovation Awards 2023'],
             linkedin: '#'
         },
         {
@@ -160,9 +159,8 @@ const AboutPage: React.FC = () => {
                 </div>
 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35]/10 backdrop-blur-sm rounded-full border border-[#FF6B35]/20 mb-6">
-                        <SparklesIcon className="h-4 w-4 text-[#FF6B35]" />
-                        <span className="text-sm font-semibold text-[#FF6B35]">ABOUT VISION ONE</span>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35]/10 backdrop-blur-sm rounded-full border border-[#FF6B35]/20 mb-6">                  
+                        <span className="text-sm font-semibold text-[#FF6B35]">ABOUT Vision Wan</span>
                     </div>
 
                     <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
@@ -172,7 +170,7 @@ const AboutPage: React.FC = () => {
                     </h1>
 
                     <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed">
-                        For over a decade, Vision One has been at the forefront of luxury mobility,
+                        For over a decade, Vision Wan has been at the forefront of luxury mobility,
                         combining cutting-edge technology with unparalleled service excellence for discerning clients worldwide.
                     </p>
 
@@ -204,7 +202,7 @@ const AboutPage: React.FC = () => {
                         <div className="relative rounded-2xl overflow-hidden shadow-2xl">
                             <img
                                 src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=80"
-                                alt="Vision One Headquarters"
+                                alt="Vision Wan Headquarters"
                                 className="w-full h-[500px] object-cover"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -230,7 +228,7 @@ const AboutPage: React.FC = () => {
 
                         <div className="space-y-4 mb-8">
                             <p className="text-lg text-gray-600 leading-relaxed">
-                                Founded in 2010, Vision One emerged from a simple yet profound insight:
+                                Founded in 2010, Vision Wan emerged from a simple yet profound insight:
                                 luxury mobility should be seamless, sophisticated, and consistently exceptional.
                             </p>
                             <p className="text-lg text-gray-600 leading-relaxed">
@@ -276,7 +274,7 @@ const AboutPage: React.FC = () => {
                         </h2>
 
                         <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-                            Our values are the foundation of every decision, interaction, and innovation at Vision One.
+                            Our values are the foundation of every decision, interaction, and innovation at Vision Wan.
                         </p>
                     </div>
 

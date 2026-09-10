@@ -20,7 +20,7 @@ const SingleBlogPage: React.FC = () => {
         excerpt: 'Discover the most breathtaking road trip destinations to explore this year with your rental car.',
         content: `
       <h2>Introduction to Road Trip Adventures</h2>
-      <p>Road trips offer an unparalleled sense of freedom and adventure. As we enter 2024, the open road calls with new destinations waiting to be explored. At Vision One Car Hire, we believe that the journey is just as important as the destination, which is why we've curated this list of must-visit road trip destinations for the coming year.</p>
+      <p>Road trips offer an unparalleled sense of freedom and adventure. As we enter 2024, the open road calls with new destinations waiting to be explored. At Vision Wan Car Hire, we believe that the journey is just as important as the destination, which is why we've curated this list of must-visit road trip destinations for the coming year.</p>
       
       <h2>1. Pacific Coast Highway, California</h2>
       <p>Often called one of the most scenic drives in the world, the Pacific Coast Highway offers breathtaking ocean views, rugged cliffs, and charming coastal towns. Start in San Francisco and wind your way down to Los Angeles, stopping at iconic spots like Big Sur, Monterey, and Santa Barbara.</p>
@@ -31,7 +31,7 @@ const SingleBlogPage: React.FC = () => {
       <h2>3. Route 66, Chicago to Santa Monica</h2>
       <p>Experience classic Americana on this historic route. While much of the original road has been replaced by interstates, preserved sections offer a glimpse into America's past with vintage diners, motels, and roadside attractions.</p>
       
-      <h2>Road Trip Tips from Vision One</h2>
+      <h2>Road Trip Tips from Vision Wan</h2>
       <ul>
         <li><strong>Choose the Right Vehicle:</strong> For family trips, consider our spacious SUVs. For couples, a luxury convertible might be perfect.</li>
         <li><strong>Plan Your Stops:</strong> Don't just focus on the destination. The best road trips include interesting stops along the way.</li>
@@ -39,11 +39,11 @@ const SingleBlogPage: React.FC = () => {
         <li><strong>Book in Advance:</strong> Popular travel seasons can mean high demand for rental vehicles.</li>
       </ul>
       
-      <h2>Why Choose Vision One for Your Road Trip</h2>
+      <h2>Why Choose Vision Wan for Your Road Trip</h2>
       <p>Our premium fleet is meticulously maintained and equipped with the latest features for comfort and safety. We offer flexible rental terms, unlimited mileage options, and 24/7 roadside assistance to ensure your journey is worry-free.</p>
       
       <h2>Conclusion</h2>
-      <p>Whether you're seeking coastal views, mountain adventures, or historic routes, 2024 offers endless possibilities for road trip enthusiasts. With the right planning and the perfect vehicle from Vision One Car Hire, your dream road trip awaits.</p>
+      <p>Whether you're seeking coastal views, mountain adventures, or historic routes, 2024 offers endless possibilities for road trip enthusiasts. With the right planning and the perfect vehicle from Vision Wan Car Hire, your dream road trip awaits.</p>
     `,
         author: 'Sarah Johnson',
         authorBio: 'Travel expert with 10+ years of experience in luxury travel and car hire services.',
@@ -228,7 +228,7 @@ const SingleBlogPage: React.FC = () => {
                                 </div>
                             </div>
                             <p className="text-gray-700">
-                                Great article! Planning my road trip using these tips. Can't wait to rent from Vision One!
+                                Great article! Planning my road trip using these tips. Can't wait to rent from Vision Wan!
                             </p>
                         </div>
                     ))}

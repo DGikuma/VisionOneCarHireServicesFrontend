@@ -369,7 +369,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 <div style={styles.heroLogo}>
                     <img
                         src="/assets/images/logo.png"
-                        alt="Vision One Services Logo"
+                        alt="Vision Wan Services Logo"
                         style={{ width: '100px', height: '100px', objectFit: 'contain' }}
                     />
                 </div>

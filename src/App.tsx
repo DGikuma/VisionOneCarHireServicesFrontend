@@ -24,68 +24,23 @@ import BlogPage from './pages/BlogPage';
 import SingleBlogPage from './pages/SingleBlogPage';
 import LocationsPage from './pages/LocationsPage';
 import NotFoundPage from './pages/NotFoundPage';
-// Remove CookiePopup from pages import and add it to components
-import CookiePopup from './components/CookiePopup'; // Move to components folder
-
-// Loader
-import SolarFlareLoader from './components/SolarFlareLoader';
+import CookiePopup from './components/CookiePopup';
 
 function App() {
-    const [isAppReady, setIsAppReady] = useState(false);
-    const [showLoader, setShowLoader] = useState(true);
     const [showCookiePopup, setShowCookiePopup] = useState(false);
 
+    // Check for cookie consent on mount
     useEffect(() => {
-        let loadFinished = false;
-        let minDelayFinished = false;
+        const hasConsent = localStorage.getItem('vision-one-cookie-consent');
+        if (!hasConsent) {
+            // Wait a bit for page to settle, then show cookie popup
+            const timer = setTimeout(() => {
+                setShowCookiePopup(true);
+            }, 1500);
 
-        const checkReady = () => {
-            if (loadFinished && minDelayFinished) {
-                setIsAppReady(true);
-
-                // Keep loader visible for a tiny fade duration (0.5s)
-                setTimeout(() => {
-                    setShowLoader(false);
-                }, 500);
-            }
-        };
-
-        // Minimum 1-second delay (reduced from 5 seconds for better UX)
-        const delayTimer = setTimeout(() => {
-            minDelayFinished = true;
-            checkReady();
-        }, 1000);
-
-        // Wait for browser load
-        const handleLoad = () => {
-            loadFinished = true;
-            checkReady();
-        };
-
-        if (document.readyState === 'complete') {
-            handleLoad();
-        } else {
-            window.addEventListener('load', handleLoad);
+            return () => clearTimeout(timer);
         }
-
-        return () => {
-            clearTimeout(delayTimer);
-            window.removeEventListener('load', handleLoad);
-        };
     }, []);
-
-    // Check for cookie consent when app is ready
-    useEffect(() => {
-        if (isAppReady) {
-            const hasConsent = localStorage.getItem('vision-one-cookie-consent');
-            if (!hasConsent) {
-                // Wait a bit more for page to settle, then show cookie popup
-                setTimeout(() => {
-                    setShowCookiePopup(true);
-                }, 1500);
-            }
-        }
-    }, [isAppReady]);
 
     return (
         <HelmetProvider>
@@ -94,46 +49,30 @@ function App() {
                     {/* Cookie Popup - Rendered conditionally */}
                     {showCookiePopup && <CookiePopup />}
 
-                    {/* Page content */}
-                    {isAppReady && (
-                        <>
-                            <Navbar />
-                            <main className="flex-grow">
-                                <Suspense fallback={<SolarFlareLoader />}>
-                                    <Routes>
-                                        <Route path="/" element={<HomePage />} />
-                                        <Route path="/booking" element={<BookingPage />} />
-                                        <Route path="/fleet" element={<FleetPage />} />
-                                        <Route path="/services" element={<ServicesPage />} />
-                                        <Route path="/about" element={<AboutPage />} />
-                                        <Route path="/contact" element={<ContactPage />} />
-                                        <Route path="/airbnb" element={<AirbnbPage />} />
-                                        <Route path="/locations" element={<LocationsPage />} />
-                                        <Route path="/blog" element={<BlogPage />} />
-                                        <Route path="/blog/:id" element={<SingleBlogPage />} />
-                                        <Route path="/terms" element={<TermsPage />} />
-                                        <Route path="/privacy" element={<PrivacyPolicyPage />} />
-                                        <Route path="/faq" element={<FAQPage />} />
-                                        <Route path="/seo" element={<SEOPage />} />
-                                        <Route path="*" element={<NotFoundPage />} />
-                                        {/* Remove CookiePopup route */}
-                                    </Routes>
-                                </Suspense>
-                            </main>
-                            <Footer />
-                            <ToastContainer position="top-right" autoClose={5000} />
-                        </>
-                    )}
-
-                    {/* Loader overlay */}
-                    {showLoader && (
-                        <div
-                            className={`absolute inset-0 z-50 transition-opacity duration-500 ${isAppReady ? 'opacity-0 pointer-events-none' : 'opacity-100'
-                                }`}
-                        >
-                            <SolarFlareLoader />
-                        </div>
-                    )}
+                    <Navbar />
+                    <main className="flex-grow">
+                        <Suspense fallback={null}>
+                            <Routes>
+                                <Route path="/" element={<HomePage />} />
+                                <Route path="/booking" element={<BookingPage />} />
+                                <Route path="/fleet" element={<FleetPage />} />
+                                <Route path="/services" element={<ServicesPage />} />
+                                <Route path="/about" element={<AboutPage />} />
+                                <Route path="/contact" element={<ContactPage />} />
+                                <Route path="/airbnb" element={<AirbnbPage />} />
+                                <Route path="/locations" element={<LocationsPage />} />
+                                <Route path="/blog" element={<BlogPage />} />
+                                <Route path="/blog/:id" element={<SingleBlogPage />} />
+                                <Route path="/terms" element={<TermsPage />} />
+                                <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                                <Route path="/faq" element={<FAQPage />} />
+                                <Route path="/seo" element={<SEOPage />} />
+                                <Route path="*" element={<NotFoundPage />} />
+                            </Routes>
+                        </Suspense>
+                    </main>
+                    <Footer />
+                    <ToastContainer position="top-right" autoClose={5000} />
                 </div>
             </Router>
         </HelmetProvider>

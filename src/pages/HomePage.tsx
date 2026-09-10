@@ -106,7 +106,7 @@ const HomePage: React.FC = () => {
                                     : 'translate-y-20 opacity-0'
                                     }`}>
                                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-8">
-                                        <SparklesIcon className="h-4 w-4" />
+                                        
                                         <span className="text-sm font-semibold">EXECUTIVE CLASS</span>
                                     </div>
 

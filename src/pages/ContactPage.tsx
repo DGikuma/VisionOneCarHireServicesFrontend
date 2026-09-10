@@ -13,7 +13,6 @@ import {
     BuildingOfficeIcon,
     UserGroupIcon,
     ShieldCheckIcon,
-    SparklesIcon,
     ArrowRightIcon,
     GlobeAltIcon,
     DocumentTextIcon
@@ -380,7 +379,7 @@ const ContactPage: React.FC = () => {
                     </div>
 
                     <p className="text-gray-600 text-sm mb-4">
-                        Thank you for contacting Vision One Executive Services.
+                        Thank you for contacting Vision Wan Executive Services.
                         A confirmation email has been sent to {submissionData.email}.
                         Our team will respond within the estimated time frame.
                     </p>
@@ -494,7 +493,7 @@ const ContactPage: React.FC = () => {
                 window.open(`tel:${channel.details[0].replace(/[^+\d]/g, '')}`);
                 break;
             case 'Send Email':
-                window.open(`mailto:${channel.details[0]}?subject=Inquiry from Vision One Website`);
+                window.open(`mailto:${channel.details[0]}?subject=Inquiry from Vision Wan Website`);
                 break;
             case 'Get Directions':
                 window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(channel.details[0])}`);
@@ -532,7 +531,6 @@ const ContactPage: React.FC = () => {
 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35]/10 backdrop-blur-sm rounded-full border border-[#FF6B35]/20 mb-6">
-                        <SparklesIcon className="h-4 w-4 text-[#FF6B35]" />
                         <span className="text-sm font-semibold text-[#FF6B35]">EXECUTIVE CONNECTIONS</span>
                     </div>
 
@@ -1028,7 +1026,6 @@ const ContactPage: React.FC = () => {
             <div className="relative overflow-hidden py-20">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35]/10 rounded-full mb-6">
-                        <SparklesIcon className="h-4 w-4 text-[#FF6B35]" />
                         <span className="text-sm font-semibold text-[#FF6B35]">PREMIUM PARTNERSHIP</span>
                     </div>
 

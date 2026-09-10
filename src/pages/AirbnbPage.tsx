@@ -11,7 +11,6 @@ import {
     PhoneIcon,
     EnvelopeIcon,
     CheckIcon,
-    SparklesIcon,
     ShieldCheckIcon,
     FilmIcon,
     SunIcon as HeroSunIcon,
@@ -238,7 +237,7 @@ const AirbnbPage: React.FC = () => {
     const PropertyTypeIcon = ({ name }: { name: string }) => {
         switch (name) {
             case 'Villa':
-                return <SparklesIcon className="h-4 w-4" />;
+                return ;
             case 'Apartment':
                 return <HeroBuildingOfficeIcon className="h-4 w-4" />;
             case 'Cottage':
@@ -306,7 +305,7 @@ const AirbnbPage: React.FC = () => {
     const handleEmailEnquiry = (property: AirbnbProperty) => {
         const subject = encodeURIComponent(`Enquiry: ${property.title}`);
         const body = encodeURIComponent(
-            `Dear Vision One Properties,\n\nI am interested in booking "${property.title}" in ${property.location}.\n\nPlease provide me with more information regarding:\n\n1. Available dates\n2. Booking requirements\n3. Payment terms\n4. House rules\n\nThank you,\n[Your Name]`
+            `Dear Vision Wan Properties,\n\nI am interested in booking "${property.title}" in ${property.location}.\n\nPlease provide me with more information regarding:\n\n1. Available dates\n2. Booking requirements\n3. Payment terms\n4. House rules\n\nThank you,\n[Your Name]`
         );
         window.open(`mailto:vison1servicesltd@gmail.com?subject=${subject}&body=${body}`);
     };
@@ -346,7 +345,7 @@ const AirbnbPage: React.FC = () => {
                         </h1>
 
                         <p className="text-lg sm:text-xl text-white/90 max-w-3xl mx-auto mb-10 leading-relaxed px-4">
-                            Discover handpicked luxury homes, villas, and unique stays managed by Vision One.
+                            Discover handpicked luxury homes, villas, and unique stays managed by Vision Wan.
                             Experience exceptional comfort and premium service at every property.
                         </p>
 
@@ -568,7 +567,6 @@ const AirbnbPage: React.FC = () => {
                                 {/* Amenities */}
                                 <div className="mb-6">
                                     <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                                        <SparklesIcon className="h-4 w-4 text-[#FF385C]" />
                                         Top Amenities
                                     </h4>
                                     <div className="flex flex-wrap gap-2">
@@ -717,7 +715,7 @@ const AirbnbPage: React.FC = () => {
                             </div>
 
                             <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-                                Earn More with Vision One
+                                Earn More with Vision Wan
                             </h2>
 
                             <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import {
@@ -7,7 +8,6 @@ import {
     GlobeAltIcon,
     TruckIcon,
     BuildingOfficeIcon,
-    SparklesIcon,
     ShieldCheckIcon,
     MapIcon,
     ArrowRightIcon,
@@ -485,7 +485,6 @@ const LocationsPage: React.FC = () => {
                             <div className="sidebar-card bg-white rounded-2xl shadow-xl border border-gray-200 p-6 opacity-0">
                                 <div className="flex items-center justify-between mb-6">
                                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35]/10 rounded-full">
-                                        <SparklesIcon className="h-4 w-4 text-[#FF6B35]" />
                                         <span className="text-sm font-semibold text-[#FF6B35]">SELECTED LOCATION</span>
                                     </div>
                                     <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
@@ -649,7 +648,6 @@ const LocationsPage: React.FC = () => {
             <div className="relative overflow-hidden py-20">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35]/10 rounded-full mb-6">
-                        <SparklesIcon className="h-4 w-4 text-[#FF6B35]" />
                         <span className="text-sm font-semibold text-[#FF6B35]">GLOBAL MOBILITY</span>
                     </div>
 

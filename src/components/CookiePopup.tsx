@@ -180,7 +180,7 @@ const CookiePopup: React.FC = () => {
                                         Cookie Preferences
                                     </h2>
                                     <p className="text-gray-600 text-sm">
-                                        Vision One Executive Mobility
+                                        Vision Wan Executive Mobility
                                     </p>
                                 </div>
                             </div>

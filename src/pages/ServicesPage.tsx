@@ -178,7 +178,7 @@ const ServicesPage: React.FC = () => {
     const handleEmailEnquiry = () => {
         const subject = encodeURIComponent('Airport Transfer Service Enquiry');
         const body = encodeURIComponent(
-            `Dear Vision One Car Hire,\n\nI am interested in your Premium Airport Transfer Service. Please provide me with more information regarding:\n\n1. Available vehicles for airport transfers\n2. Pricing for airport transfers\n3. Meet & Greet service details\n4. Airport coverage areas\n\nThank you,\n[Your Name]`
+            `Dear Vision Wan Car Hire,\n\nI am interested in your Premium Airport Transfer Service. Please provide me with more information regarding:\n\n1. Available vehicles for airport transfers\n2. Pricing for airport transfers\n3. Meet & Greet service details\n4. Airport coverage areas\n\nThank you,\n[Your Name]`
         );
         window.open(`mailto:info@visionwanservices.com?subject=${subject}&body=${body}`);
     };
@@ -634,7 +634,7 @@ const ServicesPage: React.FC = () => {
                         </div>
 
                         <h2 className="text-4xl font-bold text-white mb-4">
-                            The Vision One Experience
+                            The Vision Wan Experience
                         </h2>
 
                         <p className="text-gray-300 text-lg max-w-3xl mx-auto">
@@ -699,7 +699,7 @@ const ServicesPage: React.FC = () => {
                     </h2>
 
                     <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
-                        Join our exclusive network of satisfied clients who trust Vision One for their premium mobility needs.
+                        Join our exclusive network of satisfied clients who trust Vision Wan for their premium mobility needs.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">

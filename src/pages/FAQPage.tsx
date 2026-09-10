@@ -9,7 +9,6 @@ import {
     TruckIcon,
     PhoneIcon,
     ShieldCheckIcon,
-    SparklesIcon,
     BuildingLibraryIcon,
     ChartBarIcon,
     ClockIcon,
@@ -68,7 +67,7 @@ const FAQPage: React.FC = () => {
             faqs: [
                 {
                     question: 'What corporate documentation is required for enterprise accounts?',
-                    answer: 'We require a signed master services agreement, certificate of insurance naming Vision One as additional insured, authorized signatory list, and corporate credit card on file. International entities need apostilled documentation.'
+                    answer: 'We require a signed master services agreement, certificate of insurance naming Vision Wan as additional insured, authorized signatory list, and corporate credit card on file. International entities need apostilled documentation.'
                 },
                 {
                     question: 'What are the driver qualification standards?',
@@ -101,7 +100,7 @@ const FAQPage: React.FC = () => {
                 },
                 {
                     question: 'Do you offer spend management analytics?',
-                    answer: 'Yes, our Vision One Analytics platform provides real-time spend dashboards, carbon footprint tracking, utilization optimization insights, and predictive budgeting tools with API access.'
+                    answer: 'Yes, our Vision Wan Analytics platform provides real-time spend dashboards, carbon footprint tracking, utilization optimization insights, and predictive budgeting tools with API access.'
                 },
                 {
                     question: 'How are international transactions handled?',
@@ -234,7 +233,6 @@ const FAQPage: React.FC = () => {
                                     className="w-full px-8 py-5 bg-white/95 backdrop-blur-sm border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg shadow-xl"
                                 />
                                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                                    <SparklesIcon className="h-6 w-6 text-blue-500" />
                                 </div>
                             </div>
                         </div>
@@ -349,7 +347,7 @@ const FAQPage: React.FC = () => {
                                 <div className="flex items-center mb-10">
                                     <SparklesSolid className="h-10 w-10 text-amber-400 mr-4" />
                                     <h2 className="text-3xl font-bold">
-                                        Vision One Premium Services
+                                        Vision Wan Premium Services
                                     </h2>
                                 </div>
 
@@ -549,7 +547,7 @@ const FAQPage: React.FC = () => {
                 {/* Footer Note */}
                 <div className="text-center py-8 border-t border-gray-200">
                     <p className="text-gray-500">
-                        © 2024 Vision One Corporate Solutions. All enterprise inquiries handled with strict confidentiality.
+                        © 2024 Vision Wan Corporate Solutions. All enterprise inquiries handled with strict confidentiality.
                     </p>
                     <p className="text-sm text-gray-400 mt-2">
                         ISO 27001 Certified • GDPR Compliant • SOC 2 Type II
