@@ -130,12 +130,12 @@ const Navbar: React.FC = () => {
                                 </a>
 
                                 <a
-                                    href="mailto:vision1servicesltd@outlook.com"
+                                    href="mailto:visionwanservices@gmail.com"
                                     className="group flex items-center space-x-2 hover:text-white transition-all duration-200"
                                 >
                                     <EnvelopeIcon className="h-3.5 w-3.5 text-gray-400 group-hover:text-cyan-400 transition-colors" />
                                     <span className="text-gray-300 font-light tracking-wide">
-                                        vision1servicesltd@outlook.com
+                                        visionwanservices@gmail.com
                                     </span>
                                 </a>
 
@@ -319,11 +319,11 @@ const Navbar: React.FC = () => {
                                     <span className="text-sm">+44 (7397) 549 590</span>
                                 </a>
                                 <a
-                                    href="mailto:vision1servicesltd@outlook.com"
+                                    href="mailto:visionwanservices@gmail.com"
                                     className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-[#FF6B35] transition-colors"
                                 >
                                     <EnvelopeIcon className="h-5 w-5 flex-shrink-0" />
-                                    <span className="text-sm break-all">vision1servicesltd@outlook.com</span>
+                                    <span className="text-sm break-all">visionwanservices@gmail.com</span>
                                 </a>
                             </div>
                         </div>

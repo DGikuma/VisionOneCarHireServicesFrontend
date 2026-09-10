@@ -18,19 +18,24 @@ const API_BASE_URL =
 const DEFAULT_COUNTRY = import.meta.env.VITE_DEFAULT_COUNTRY || 'ke';
 
 interface BookingFormData {
+    // Client details (Step 1)
     fullName: string;
     email: string;
     phone: string;
-    address: string;
+    nationality: string;
+    idNumber: string;      
+    idType: 'id' | 'passport';  
+    // Rental details (Step 2)
     vehicle: string;
-    pickupLocation: string;
     pickupDate: string;
     returnDate: string;
-    pickupTime: string;
-    returnLocation: string;
+    pickupLocation: string;
+    deliveryAddress: string;
     notes: string;
+    // Documents (Step 3)
     drivingLicense: FileList;
     idDocument: FileList;
+    // Consent (Step 4)
     consent: boolean;
     accuracy: boolean;
 }
@@ -51,71 +56,61 @@ export interface BookingFormProps {
 
 const API_URL = `${API_BASE_URL}/api/bookings`;
 
+// ✅ Updated: Vehicle options with rates matching HTML form
 const vehicleOptions = [
-    { value: 'Fielder', label: 'Fielder' },
-    { value: 'Mazda CX5', label: 'Mazda CX5' },
-    { value: 'Harrier', label: 'Harrier' },
-    { value: 'Lexus', label: 'Lexus' },
-    { value: 'Prado', label: 'Prado' },
-];
-
-// Special offer rates data
-const ratesData = [
     {
-        name: 'Fielder',
-        rates: [
-            { label: '1–7 days', price: '4,000/=' },
-            { label: '7–20 days', price: '3,500/=' },
-            { label: '20+ days', price: '3,000/=' },
-        ],
+        value: 'Fielder',
+        label: 'Fielder',
+        rates: { r1: 4000, r2: 3500, r3: 3000 },
+        displayRates: '1–7 days: KES 4,000/day\n7–20 days: KES 3,500/day\n20+ days: KES 3,000/day'
     },
     {
-        name: 'Mazda CX5',
-        rates: [
-            { label: '1–7 days', price: '7,000/=' },
-            { label: '7–20 days', price: '6,500/=' },
-            { label: '20+ days', price: '6,000/=' },
-        ],
+        value: 'Mazda CX-5',
+        label: 'Mazda CX-5',
+        rates: { r1: 7000, r2: 6500, r3: 6000 },
+        displayRates: '1–7 days: KES 7,000/day\n7–20 days: KES 6,500/day\n20+ days: KES 6,000/day'
     },
     {
-        name: 'Harrier',
-        rates: [
-            { label: '1–7 days', price: '8,000/=' },
-            { label: '7–20 days', price: '7,500/=' },
-            { label: '20+ days', price: '7,000/=' },
-        ],
+        value: 'Harrier',
+        label: 'Harrier',
+        rates: { r1: 8000, r2: 7500, r3: 7000 },
+        displayRates: '1–7 days: KES 8,000/day\n7–20 days: KES 7,500/day\n20+ days: KES 7,000/day'
     },
     {
-        name: 'Lexus',
-        rates: [
-            { label: '1–7 days', price: '9,000/=' },
-            { label: '7–20 days', price: '8,500/=' },
-            { label: '20+ days', price: '8,000/=' },
-        ],
+        value: 'Lexus',
+        label: 'Lexus',
+        rates: { r1: 9000, r2: 8500, r3: 8000 },
+        displayRates: '1–7 days: KES 9,000/day\n7–20 days: KES 8,500/day\n20+ days: KES 8,000/day'
     },
     {
-        name: 'Prado',
-        rates: [
-            { label: '1–7 days', price: '12,000/=' },
-            { label: '7–20 days', price: '11,000/=' },
-            { label: '20+ days', price: '10,000/=' },
-        ],
+        value: 'Prado',
+        label: 'Prado',
+        rates: { r1: 12000, r2: 11000, r3: 10000 },
+        displayRates: '1–7 days: KES 12,000/day\n7–20 days: KES 11,000/day\n20+ days: KES 10,000/day'
     },
 ];
 
-// Define which fields belong to each step
+// ✅ Pickup locations matching HTML form
+const pickupLocations = [
+    'Nairobi',
+    'Jomo Kenyatta International Airport',
+    'Wilson Airport',
+    'Other / delivery requested',
+];
+
+// Define which fields belong to each step (UPDATED)
 const stepFields: Record<number, (keyof BookingFormData)[]> = {
-    1: ['vehicle', 'pickupLocation', 'pickupDate', 'returnDate', 'pickupTime', 'returnLocation'],
-    2: ['fullName', 'email', 'phone', 'address', 'consent', 'accuracy'],
+    1: ['fullName', 'email', 'phone', 'nationality', 'idNumber', 'idType'],
+    2: ['vehicle', 'pickupDate', 'returnDate', 'pickupLocation', 'deliveryAddress', 'notes'],
     3: ['drivingLicense', 'idDocument'],
     4: [],
 };
 
-// List of all required fields (for submit button enablement)
+// List of all required fields (for submit button enablement) - UPDATED
 const allRequiredFields: (keyof BookingFormData)[] = [
-    'vehicle', 'pickupLocation', 'pickupDate', 'returnDate',
-    'fullName', 'email', 'phone',
-    'drivingLicense', 'idDocument', 'consent', 'accuracy'
+    'fullName', 'email', 'phone', 'idNumber', 'idType',
+    'vehicle', 'pickupDate', 'returnDate', 'pickupLocation',
+    'drivingLicense', 'idDocument', 'consent'
 ];
 
 const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
@@ -125,6 +120,18 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         const [, setBookingData] = useState<any>(null);
         const formRef = useRef<HTMLFormElement>(null);
         const [phoneValue, setPhoneValue] = useState('');
+        const [previewUrls, setPreviewUrls] = useState<{ drivingLicense: string | null; idDocument: string | null }>({
+            drivingLicense: null,
+            idDocument: null,
+        });
+
+        // ✅ Estimate calculation state
+        const [estimate, setEstimate] = useState<{
+            days: number | null;
+            rate: number | null;
+            total: number | null;
+            error: string | null;
+        }>({ days: null, rate: null, total: null, error: null });
 
         const {
             register,
@@ -141,13 +148,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 phone: '',
                 fullName: '',
                 email: '',
-                address: '',
+                nationality: '',
+                idNumber: '',      
+                idType: 'id', 
                 vehicle: '',
-                pickupLocation: '',
                 pickupDate: '',
                 returnDate: '',
-                pickupTime: '',
-                returnLocation: '',
+                pickupLocation: '',
+                deliveryAddress: '',
                 notes: '',
             },
             mode: 'onChange',
@@ -155,6 +163,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
 
         const pickupDate = watch('pickupDate');
         const returnDate = watch('returnDate');
+        const vehicle = watch('vehicle');
+        const drivingLicenseFile = watch('drivingLicense');
+        const idDocumentFile = watch('idDocument');
 
         // Watch all required fields to determine if form is complete
         const watchedValues = watch();
@@ -191,6 +202,72 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             }
         }, [pickupDate, returnDate, setValue]);
 
+        // ✅ Calculate estimate when dates or vehicle change
+        useEffect(() => {
+            const newEstimate = { days: null as number | null, rate: null as number | null, total: null as number | null, error: null as string | null };
+
+            if (!pickupDate || !returnDate || !vehicle) {
+                setEstimate(newEstimate);
+                return;
+            }
+
+            const p = new Date(pickupDate + 'T00:00:00');
+            const d = new Date(returnDate + 'T00:00:00');
+            const days = Math.ceil((d.getTime() - p.getTime()) / (1000 * 60 * 60 * 24));
+
+            if (days <= 0) {
+                setEstimate({ days: null, rate: null, total: null, error: 'Invalid dates' });
+                return;
+            }
+
+            const selectedVehicle = vehicleOptions.find(v => v.value === vehicle);
+            if (!selectedVehicle) {
+                setEstimate(newEstimate);
+                return;
+            }
+
+            let rate: number;
+            if (days <= 7) rate = selectedVehicle.rates.r1;
+            else if (days <= 20) rate = selectedVehicle.rates.r2;
+            else rate = selectedVehicle.rates.r3;
+
+            setEstimate({
+                days,
+                rate,
+                total: rate * days,
+                error: null,
+            });
+        }, [pickupDate, returnDate, vehicle]);
+
+        // Generate preview URLs when files change
+        useEffect(() => {
+            const urls: { drivingLicense: string | null; idDocument: string | null } = {
+                drivingLicense: null,
+                idDocument: null,
+            };
+
+            if (drivingLicenseFile?.[0]) {
+                const file = drivingLicenseFile[0];
+                if (file.type.startsWith('image/')) {
+                    urls.drivingLicense = URL.createObjectURL(file);
+                }
+            }
+
+            if (idDocumentFile?.[0]) {
+                const file = idDocumentFile[0];
+                if (file.type.startsWith('image/')) {
+                    urls.idDocument = URL.createObjectURL(file);
+                }
+            }
+
+            setPreviewUrls(urls);
+
+            return () => {
+                if (urls.drivingLicense) URL.revokeObjectURL(urls.drivingLicense);
+                if (urls.idDocument) URL.revokeObjectURL(urls.idDocument);
+            };
+        }, [drivingLicenseFile, idDocumentFile]);
+
         // Validate file size and type
         const validateFile = (file: File, maxSizeMB: number = 10): string | null => {
             const maxSize = maxSizeMB * 1024 * 1024;
@@ -222,6 +299,8 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 setConfirmed(false);
                 setBookingData(null);
                 setIsSubmitting(false);
+                setPreviewUrls({ drivingLicense: null, idDocument: null });
+                setEstimate({ days: null, rate: null, total: null, error: null });
                 toast.info('Form has been reset.');
             },
         }));
@@ -261,7 +340,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             setIsSubmitting(true);
 
             try {
-                // Create FormData directly - no need for double mapping
                 const mappedData = new FormData();
                 mappedData.append('customerName', data.fullName);
                 mappedData.append('email', data.email);
@@ -270,15 +348,16 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 mappedData.append('returnDate', data.returnDate);
                 mappedData.append('carType', data.vehicle);
                 mappedData.append('pickupLocation', data.pickupLocation);
-                mappedData.append('dropoffLocation', data.returnLocation || data.pickupLocation);
+                mappedData.append('dropoffLocation', data.deliveryAddress || data.pickupLocation);
                 mappedData.append('additionalInfo', data.notes || '');
+                mappedData.append('nationality', data.nationality || '');
+                mappedData.append('idNumber', data.idNumber);      
+                mappedData.append('idType', data.idType);          
                 mappedData.append('idNumber', '');
                 mappedData.append('idType', 'id');
                 mappedData.append('termsAccepted', 'true');
                 mappedData.append('drivingLicense', dlFile);
                 mappedData.append('idDocument', idFile);
-                
-                // ✅ REMOVED: No dummy file - depositProof is optional
 
                 const response = await axios.post(API_URL, mappedData, {
                     headers: {
@@ -309,14 +388,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         };
 
         // ------------------------------------------------
-        // Sub-components for each step
+        // Sub-components
         // ------------------------------------------------
         const HeroSection = () => (
             <div className="hero-section" style={styles.hero}>
                 <div style={styles.heroLogo}>
-                    <img 
-                        src="/assets/images/logo.png" 
-                        alt="Vision One Services Logo" 
+                    <img
+                        src="/assets/images/logo.png"
+                        alt="Vision One Services Logo"
                         style={{ width: '120px', height: '120px', objectFit: 'contain' }}
                     />
                 </div>
@@ -330,67 +409,66 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             </div>
         );
 
-        const RatesSection = () => (
-            <div className="card" style={styles.card}>
-                <h2 style={styles.cardTitle}>Special offer rates</h2>
-                <div style={styles.ratesGrid}>
-                    {ratesData.map((item) => (
-                        <div key={item.name} style={styles.rateCard}>
-                            <div style={styles.rateHeader}>{item.name}</div>
-                            <div style={styles.rateBody}>
-                                {item.rates.map((r, idx) => (
-                                    <div key={idx} style={styles.rateRow}>
-                                        <span>{r.label}</span>
-                                        <span style={styles.ratePrice}>{r.price}</span>
-                                    </div>
-                                ))}
-                            </div>
+        // ✅ Vehicle Selector Cards (matching HTML form)
+        const VehicleSelector = () => (
+            <div style={styles.vehicleGrid}>
+                {vehicleOptions.map((option) => (
+                    <label
+                        key={option.value}
+                        style={{
+                            ...styles.vehicleCard,
+                            ...(vehicle === option.value ? styles.vehicleCardSelected : {}),
+                        }}
+                    >
+                        <input
+                            type="radio"
+                            value={option.value}
+                            {...register('vehicle', { required: 'Please select a vehicle' })}
+                            style={styles.vehicleRadio}
+                        />
+                        <div style={styles.vehicleName}>{option.label}</div>
+                        <div style={styles.vehicleRates}>
+                            {option.displayRates.split('\n').map((line, i) => (
+                                <div key={i}>{line}</div>
+                            ))}
                         </div>
-                    ))}
-                </div>
+                    </label>
+                ))}
             </div>
         );
 
-        // Summary component for step 4
-        const BookingSummary = () => {
-            const v = watchedValues;
-            const formatDate = (dateStr: string) => {
-                if (!dateStr) return 'Not provided';
-                const d = new Date(dateStr);
-                return d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-            };
-            const getFileName = (fileList: FileList) => {
-                if (!fileList || fileList.length === 0) return 'Not uploaded';
-                return fileList[0].name;
-            };
+        // ✅ Booking Estimate Component
+        const BookingEstimate = () => {
+            const formatNumber = (num: number) => num.toLocaleString('en-KE');
 
             return (
-                <div style={styles.summaryGrid}>
-                    <div style={styles.summarySection}>
-                        <h4 style={styles.summaryTitle}>📋 Booking Details</h4>
-                        <div style={styles.summaryRow}><span>Vehicle:</span><span>{v.vehicle || '—'}</span></div>
-                        <div style={styles.summaryRow}><span>Pickup Location:</span><span>{v.pickupLocation || '—'}</span></div>
-                        <div style={styles.summaryRow}><span>Pickup Date:</span><span>{formatDate(v.pickupDate)}</span></div>
-                        <div style={styles.summaryRow}><span>Return Date:</span><span>{formatDate(v.returnDate)}</span></div>
-                        <div style={styles.summaryRow}><span>Pickup Time:</span><span>{v.pickupTime || 'Not specified'}</span></div>
-                        <div style={styles.summaryRow}><span>Return Location:</span><span>{v.returnLocation || 'Same as pickup'}</span></div>
-                        {v.notes && <div style={styles.summaryRow}><span>Notes:</span><span>{v.notes}</span></div>}
+                <div style={styles.estimateCard}>
+                    <h4 style={styles.estimateTitle}>📊 Booking Estimate</h4>
+                    <div style={styles.estimateRow}>
+                        <span style={styles.estimateLabel}>Vehicle</span>
+                        <strong style={styles.estimateValue}>{vehicle || '—'}</strong>
                     </div>
-
-                    <div style={styles.summarySection}>
-                        <h4 style={styles.summaryTitle}>👤 Client Details</h4>
-                        <div style={styles.summaryRow}><span>Full Name:</span><span>{v.fullName || '—'}</span></div>
-                        <div style={styles.summaryRow}><span>Email:</span><span>{v.email || '—'}</span></div>
-                        <div style={styles.summaryRow}><span>Phone:</span><span>{phoneValue || '—'}</span></div>
-                        <div style={styles.summaryRow}><span>Address:</span><span>{v.address || 'Not provided'}</span></div>
+                    <div style={styles.estimateRow}>
+                        <span style={styles.estimateLabel}>Rental period</span>
+                        <strong style={styles.estimateValue}>
+                            {estimate.error
+                                ? estimate.error
+                                : estimate.days
+                                    ? `${estimate.days} day${estimate.days === 1 ? '' : 's'}`
+                                    : '—'}
+                        </strong>
                     </div>
-
-                    <div style={styles.summarySection}>
-                        <h4 style={styles.summaryTitle}>📎 Documents & Declarations</h4>
-                        <div style={styles.summaryRow}><span>Driving Licence:</span><span>{getFileName(v.drivingLicense)}</span></div>
-                        <div style={styles.summaryRow}><span>ID / Passport:</span><span>{getFileName(v.idDocument)}</span></div>
-                        <div style={styles.summaryRow}><span>Consent:</span><span>{v.consent ? '✅ Accepted' : '❌ Not accepted'}</span></div>
-                        <div style={styles.summaryRow}><span>Accuracy:</span><span>{v.accuracy ? '✅ Confirmed' : '❌ Not confirmed'}</span></div>
+                    <div style={styles.estimateRow}>
+                        <span style={styles.estimateLabel}>Daily rate</span>
+                        <strong style={styles.estimateValue}>
+                            {estimate.rate ? `KES ${formatNumber(estimate.rate)}/day` : '—'}
+                        </strong>
+                    </div>
+                    <div style={{ ...styles.estimateRow, ...styles.estimateTotal }}>
+                        <span style={styles.estimateLabel}>Estimated total</span>
+                        <strong style={styles.estimateValueHighlight}>
+                            {estimate.total ? `KES ${formatNumber(estimate.total)}` : '—'}
+                        </strong>
                     </div>
                 </div>
             );
@@ -431,49 +509,395 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             </div>
         );
 
+        // ✅ Review Summary (used in Step 4)
+        const BookingSummary = () => {
+            const v = watchedValues;
+            const formatDate = (dateStr: string) => {
+                if (!dateStr) return 'Not provided';
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+            };
+
+            const getFileName = (fileList: FileList) => {
+                if (!fileList || fileList.length === 0) return null;
+                return fileList[0].name;
+            };
+
+            const drivingLicenseName = getFileName(v.drivingLicense);
+            const idDocumentName = getFileName(v.idDocument);
+            const formatNumber = (num: number) => num.toLocaleString('en-KE');
+
+            return (
+                <div style={styles.reviewContainer}>
+                    {/* Success Banner */}
+                    <div style={styles.reviewBanner}>
+                        <div style={styles.reviewBannerIcon}>✓</div>
+                        <div>
+                            <h3 style={styles.reviewBannerTitle}>Almost There!</h3>
+                            <p style={styles.reviewBannerText}>Review your details below before submitting your booking.</p>
+                        </div>
+                    </div>
+
+                    {/* Client Details Card */}
+                    <div style={styles.reviewCard}>
+                        <div style={styles.reviewCardHeader}>
+                            <span style={styles.reviewCardIcon}>👤</span>
+                            <h4 style={styles.reviewCardTitle}>Your Details</h4>
+                        </div>
+                        <div style={styles.reviewCardBody}>
+                            <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>Full Name</span>
+                                <span style={styles.reviewValue}>{v.fullName || '—'}</span>
+                            </div>
+                            <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>Email</span>
+                                <span style={styles.reviewValue}>{v.email || '—'}</span>
+                            </div>
+                            <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>Phone</span>
+                                <span style={styles.reviewValue}>{phoneValue || '—'}</span>
+                            </div>
+                            {v.nationality && (
+                                <div style={styles.reviewRow}>
+                                    <span style={styles.reviewLabel}>Nationality</span>
+                                    <span style={styles.reviewValue}>{v.nationality}</span>
+                                </div>
+                            )}
+                            <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>ID Type</span>
+                                <span style={styles.reviewValue}>
+                                    {v.idType === 'passport' ? 'Passport' : 'National ID'}
+                                </span>
+                            </div>
+                            <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>ID Number</span>
+                                <span style={styles.reviewValue}>{v.idNumber || '—'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Rental Details Card */}
+                    <div style={styles.reviewCard}>
+                        <div style={styles.reviewCardHeader}>
+                            <span style={styles.reviewCardIcon}>🚗</span>
+                            <h4 style={styles.reviewCardTitle}>Rental Details</h4>
+                        </div>
+                        <div style={styles.reviewCardBody}>
+                            <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>Vehicle</span>
+                                <span style={styles.reviewValue}>{v.vehicle || '—'}</span>
+                            </div>
+                            <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>Pickup Location</span>
+                                <span style={styles.reviewValue}>{v.pickupLocation || '—'}</span>
+                            </div>
+                            {v.deliveryAddress && (
+                                <div style={styles.reviewRow}>
+                                    <span style={styles.reviewLabel}>Delivery Address</span>
+                                    <span style={styles.reviewValue}>{v.deliveryAddress}</span>
+                                </div>
+                            )}
+                            <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>Pickup Date</span>
+                                <span style={styles.reviewValueHighlight}>{formatDate(v.pickupDate)}</span>
+                            </div>
+                            <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>Return Date</span>
+                                <span style={styles.reviewValueHighlight}>{formatDate(v.returnDate)}</span>
+                            </div>
+                            {v.notes && (
+                                <div style={styles.reviewRow}>
+                                    <span style={styles.reviewLabel}>Special Requests</span>
+                                    <span style={styles.reviewValue}>{v.notes}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Estimate Card */}
+                    <div style={styles.reviewCard}>
+                        <div style={styles.reviewCardHeader}>
+                            <span style={styles.reviewCardIcon}>💰</span>
+                            <h4 style={styles.reviewCardTitle}>Booking Estimate</h4>
+                        </div>
+                        <div style={styles.reviewCardBody}>
+                            <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>Rental Period</span>
+                                <span style={styles.reviewValue}>
+                                    {estimate.days ? `${estimate.days} day${estimate.days === 1 ? '' : 's'}` : '—'}
+                                </span>
+                            </div>
+                            <div style={styles.reviewRow}>
+                                <span style={styles.reviewLabel}>Daily Rate</span>
+                                <span style={styles.reviewValue}>
+                                    {estimate.rate ? `KES ${formatNumber(estimate.rate)}/day` : '—'}
+                                </span>
+                            </div>
+                            <div style={{ ...styles.reviewRow, ...styles.reviewTotalRow }}>
+                                <span style={styles.reviewLabel}>Estimated Total</span>
+                                <span style={styles.reviewTotalValue}>
+                                    {estimate.total ? `KES ${formatNumber(estimate.total)}` : '—'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Document Previews Card */}
+                    <div style={styles.reviewCard}>
+                        <div style={styles.reviewCardHeader}>
+                            <span style={styles.reviewCardIcon}>📎</span>
+                            <h4 style={styles.reviewCardTitle}>Uploaded Documents</h4>
+                        </div>
+                        <div style={styles.reviewCardBody}>
+                            <div style={styles.docPreviewGrid}>
+                                <div style={styles.docPreviewItem}>
+                                    <div style={styles.docPreviewLabel}>
+                                        <span>🪪 Driving Licence</span>
+                                        {drivingLicenseName ? (
+                                            <span style={styles.docStatusOk}>✓ Uploaded</span>
+                                        ) : (
+                                            <span style={styles.docStatusMissing}>✗ Missing</span>
+                                        )}
+                                    </div>
+                                    {previewUrls.drivingLicense ? (
+                                        <img
+                                            src={previewUrls.drivingLicense}
+                                            alt="Driving Licence Preview"
+                                            style={styles.docPreviewImage}
+                                        />
+                                    ) : drivingLicenseName ? (
+                                        <div style={styles.docPreviewFile}>
+                                            <span style={styles.docPreviewFileIcon}>📄</span>
+                                            <span style={styles.docPreviewFileName}>{drivingLicenseName}</span>
+                                        </div>
+                                    ) : (
+                                        <div style={styles.docPreviewEmpty}>
+                                            <span>No file uploaded</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div style={styles.docPreviewItem}>
+                                    <div style={styles.docPreviewLabel}>
+                                        <span>🆔 ID / Passport</span>
+                                        {idDocumentName ? (
+                                            <span style={styles.docStatusOk}>✓ Uploaded</span>
+                                        ) : (
+                                            <span style={styles.docStatusMissing}>✗ Missing</span>
+                                        )}
+                                    </div>
+                                    {previewUrls.idDocument ? (
+                                        <img
+                                            src={previewUrls.idDocument}
+                                            alt="ID Document Preview"
+                                            style={styles.docPreviewImage}
+                                        />
+                                    ) : idDocumentName ? (
+                                        <div style={styles.docPreviewFile}>
+                                            <span style={styles.docPreviewFileIcon}>📄</span>
+                                            <span style={styles.docPreviewFileName}>{idDocumentName}</span>
+                                        </div>
+                                    ) : (
+                                        <div style={styles.docPreviewEmpty}>
+                                            <span>No file uploaded</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Consent Card */}
+                    <div style={styles.reviewCard}>
+                        <div style={styles.reviewCardHeader}>
+                            <span style={styles.reviewCardIcon}>✅</span>
+                            <h4 style={styles.reviewCardTitle}>Declaration</h4>
+                        </div>
+                        <div style={styles.reviewCardBody}>
+                            <div style={styles.consentBox}>
+                                <input
+                                    id="consent"
+                                    type="checkbox"
+                                    {...register('consent', { required: 'You must confirm accuracy' })}
+                                    style={styles.consentCheckbox}
+                                />
+                                <label htmlFor="consent" style={styles.consentLabel}>
+                                    I confirm that the information and documents provided are accurate, and I consent to their use for booking verification. <span style={styles.required}>*</span>
+                                </label>
+                            </div>
+                            {errors.consent && <p style={styles.errorText}>{errors.consent.message}</p>}
+                        </div>
+                    </div>
+
+                    {/* Info Note */}
+                    <div style={styles.reviewNote}>
+                        <span style={styles.reviewNoteIcon}>ℹ️</span>
+                        <p style={styles.reviewNoteText}>
+                            By clicking <strong>Submit Booking Request</strong>, you agree to our{' '}
+                            <a href="/terms" style={styles.reviewNoteLink}>Terms & Conditions</a> and{' '}
+                            <a href="/privacy" style={styles.reviewNoteLink}>Privacy Policy</a>.
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
         // Render content based on activeStep
         const renderStepContent = () => {
             switch (activeStep) {
+                // STEP 1: Your Details (matches HTML form step 1)
                 case 1:
                     return (
                         <>
                             <section className="card" style={styles.card}>
-                                <h2 style={styles.cardTitle}>Booking details</h2>
+                                <h2 style={styles.cardTitle}>Your details</h2>
+                                <p style={styles.cardSubtitle}>Enter the primary driver's contact and identification information.</p>
                                 <div style={styles.grid2}>
                                     <div>
-                                        <label style={styles.label} htmlFor="vehicle">
-                                            Vehicle <span style={styles.required}>*</span>
-                                        </label>
-                                        <select
-                                            id="vehicle"
-                                            {...register('vehicle', { required: 'Please select a vehicle' })}
-                                            style={styles.select}
-                                        >
-                                            <option value="">Select a vehicle</option>
-                                            {vehicleOptions.map((v) => (
-                                                <option key={v.value} value={v.value}>
-                                                    {v.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.vehicle && <p style={styles.errorText}>{errors.vehicle.message}</p>}
-                                    </div>
-                                    <div>
-                                        <label style={styles.label} htmlFor="pickupLocation">
-                                            Pickup location <span style={styles.required}>*</span>
+                                        <label style={styles.label} htmlFor="fullName">
+                                            Full name <span style={styles.required}>*</span>
                                         </label>
                                         <input
-                                            id="pickupLocation"
+                                            id="fullName"
                                             type="text"
-                                            placeholder="e.g. Nairobi, JKIA, Mombasa Road"
-                                            {...register('pickupLocation', { required: 'Pickup location is required' })}
+                                            placeholder="Enter your full name"
+                                            {...register('fullName', { required: 'Full name is required' })}
                                             style={styles.input}
+                                            autoComplete="name"
                                         />
-                                        {errors.pickupLocation && <p style={styles.errorText}>{errors.pickupLocation.message}</p>}
+                                        {errors.fullName && <p style={styles.errorText}>{errors.fullName.message}</p>}
                                     </div>
                                     <div>
+                                        <label style={styles.label} htmlFor="phone">
+                                            Phone / WhatsApp <span style={styles.required}>*</span>
+                                        </label>
+                                        <PhoneInput
+                                            country={DEFAULT_COUNTRY}
+                                            value={phoneValue}
+                                            onChange={(value: string) => {
+                                                setPhoneValue(value);
+                                                setValue('phone', value, { shouldValidate: true });
+                                            }}
+                                            inputStyle={{
+                                                width: '100%',
+                                                height: '54px',
+                                                fontSize: '14px',
+                                                borderRadius: '10px',
+                                                border: '1px solid #d9dee7',
+                                                paddingLeft: '80px',
+                                                background: '#fff',
+                                            }}
+                                            buttonStyle={{
+                                                borderRadius: '10px 0 0 10px',
+                                                border: '1px solid #d9dee7',
+                                                background: '#f8f9fa',
+                                                height: '54px',
+                                            }}
+                                            dropdownStyle={{
+                                                borderRadius: '10px',
+                                                border: '1px solid #d9dee7',
+                                                maxHeight: '300px',
+                                                overflowY: 'auto',
+                                            }}
+                                            searchPlaceholder="Search country..."
+                                            placeholder="+254 700 000 000"
+                                            enableSearch={true}
+                                            searchNotFound="No country found"
+                                            countryCodeEditable={false}
+                                        />
+                                        <div style={styles.helpText}>
+                                            Enter your phone number with country code.
+                                        </div>
+                                        {errors.phone && <p style={styles.errorText}>{errors.phone.message}</p>}
+                                    </div>
+                                    <div>
+                                        <label style={styles.label} htmlFor="email">
+                                            Email address <span style={styles.required}>*</span>
+                                        </label>
+                                        <input
+                                            id="email"
+                                            type="email"
+                                            placeholder="Enter your email address"
+                                            {...register('email', {
+                                                required: 'Email is required',
+                                                pattern: {
+                                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                                    message: 'Invalid email address',
+                                                },
+                                            })}
+                                            style={styles.input}
+                                            autoComplete="off"
+                                            data-form-type="other"
+                                        />
+                                        {errors.email && <p style={styles.errorText}>{errors.email.message}</p>}
+                                    </div>
+                                    <div>
+                                        <label style={styles.label} htmlFor="nationality">
+                                            Nationality
+                                        </label>
+                                        <input
+                                            id="nationality"
+                                            type="text"
+                                            placeholder="e.g. Kenyan"
+                                            {...register('nationality')}
+                                            style={styles.input}
+                                            autoComplete="country-name"
+                                        />
+                                    </div>
+                                    {/* ✅ NEW: ID Type */}
+                                    <div>
+                                        <label style={styles.label} htmlFor="idType">
+                                            ID Type <span style={styles.required}>*</span>
+                                        </label>
+                                        <select
+                                            id="idType"
+                                            {...register('idType', { required: 'Please select ID type' })}
+                                            style={styles.select}
+                                        >
+                                            <option value="id">National ID</option>
+                                            <option value="passport">Passport</option>
+                                        </select>
+                                        {errors.idType && <p style={styles.errorText}>{errors.idType.message}</p>}
+                                    </div>
+                                    {/* ✅ NEW: ID Number */}
+                                    <div>
+                                        <label style={styles.label} htmlFor="idNumber">
+                                            ID / Passport Number <span style={styles.required}>*</span>
+                                        </label>
+                                        <input
+                                            id="idNumber"
+                                            type="text"
+                                            placeholder="Enter your ID or Passport number"
+                                            {...register('idNumber', {
+                                                required: 'ID/Passport number is required',
+                                                minLength: {
+                                                    value: 4,
+                                                    message: 'Must be at least 4 characters'
+                                                }
+                                            })}
+                                            style={styles.input}
+                                            autoComplete="off"
+                                            data-form-type="other"
+                                        />
+                                        {errors.idNumber && <p style={styles.errorText}>{errors.idNumber.message}</p>}
+                                    </div>
+                                </div>
+                            </section>
+                            <NavigationButtons />
+                        </>
+                    );
+
+                // STEP 2: Rental Details (matches HTML form step 2)
+                case 2:
+                    return (
+                        <>
+                            <section className="card" style={styles.card}>
+                                <h2 style={styles.cardTitle}>Rental details</h2>
+                                <p style={styles.cardSubtitle}>Select dates and the vehicle you would like to book.</p>
+                                <div style={styles.grid3}>
+                                    <div>
                                         <label style={styles.label} htmlFor="pickupDate">
-                                            Pickup date <span style={styles.required}>*</span>
+                                            Pick-up date <span style={styles.required}>*</span>
                                         </label>
                                         <input
                                             id="pickupDate"
@@ -507,195 +931,105 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                         {errors.returnDate && <p style={styles.errorText}>{errors.returnDate.message}</p>}
                                     </div>
                                     <div>
-                                        <label style={styles.label} htmlFor="pickupTime">
-                                            Preferred pickup time
+                                        <label style={styles.label} htmlFor="pickupLocation">
+                                            Pick-up location <span style={styles.required}>*</span>
+                                        </label>
+                                        <select
+                                            id="pickupLocation"
+                                            {...register('pickupLocation', { required: 'Pickup location is required' })}
+                                            style={styles.select}
+                                        >
+                                            <option value="">Select location</option>
+                                            {pickupLocations.map((location) => (
+                                                <option key={location} value={location}>
+                                                    {location}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {errors.pickupLocation && <p style={styles.errorText}>{errors.pickupLocation.message}</p>}
+                                    </div>
+                                </div>
+
+                                <div style={{ marginTop: '18px' }}>
+                                    <label style={styles.label}>
+                                        Vehicle <span style={styles.required}>*</span>
+                                    </label>
+                                    <VehicleSelector />
+                                    {errors.vehicle && <p style={styles.errorText}>{errors.vehicle.message}</p>}
+                                </div>
+
+                                <div style={{ ...styles.grid2, marginTop: '18px' }}>
+                                    <div>
+                                        <label style={styles.label} htmlFor="deliveryAddress">
+                                            Delivery / exact pick-up address
                                         </label>
                                         <input
-                                            id="pickupTime"
-                                            type="time"
-                                            {...register('pickupTime')}
+                                            id="deliveryAddress"
+                                            type="text"
+                                            placeholder="Optional"
+                                            {...register('deliveryAddress')}
                                             style={styles.input}
-                                            placeholder="Select time"
                                         />
                                     </div>
                                     <div>
-                                        <label style={styles.label} htmlFor="returnLocation">
-                                            Return location
-                                        </label>
-                                        <input
-                                            id="returnLocation"
-                                            type="text"
-                                            placeholder="e.g. Same as pickup"
-                                            {...register('returnLocation')}
-                                            style={styles.input}
-                                        />
-                                    </div>
-                                    <div style={styles.fullWidth}>
                                         <label style={styles.label} htmlFor="notes">
-                                            Additional requests / notes
+                                            Special requests
                                         </label>
-                                        <textarea
+                                        <input
                                             id="notes"
-                                            placeholder="Any special requests or additional information..."
+                                            type="text"
+                                            placeholder="Child seat, airport pickup, etc."
                                             {...register('notes')}
-                                            style={styles.textarea}
-                                            rows={3}
-                                        />
-                                    </div>
-                                </div>
-                            </section>
-                            <RatesSection />
-                            <NavigationButtons />
-                        </>
-                    );
-                case 2:
-                    return (
-                        <>
-                            <section className="card" style={styles.card}>
-                                <h2 style={styles.cardTitle}>Client details</h2>
-                                <div style={styles.grid2}>
-                                    <div>
-                                        <label style={styles.label} htmlFor="fullName">
-                                            Full name <span style={styles.required}>*</span>
-                                        </label>
-                                        <input
-                                            id="fullName"
-                                            type="text"
-                                            placeholder="Enter your full name"
-                                            {...register('fullName', { required: 'Full name is required' })}
                                             style={styles.input}
-                                            autoComplete="off"
-                                            data-form-type="other"
-                                        />
-                                        {errors.fullName && <p style={styles.errorText}>{errors.fullName.message}</p>}
-                                    </div>
-                                    <div>
-                                        <label style={styles.label} htmlFor="email">
-                                            Email address <span style={styles.required}>*</span>
-                                        </label>
-                                        <input
-                                            id="email"
-                                            type="email"
-                                            placeholder="Enter your email address"
-                                            {...register('email', {
-                                                required: 'Email is required',
-                                                pattern: {
-                                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                                    message: 'Invalid email address',
-                                                },
-                                            })}
-                                            style={styles.input}
-                                            autoComplete="off"
-                                            data-form-type="other"
-                                        />
-                                        {errors.email && <p style={styles.errorText}>{errors.email.message}</p>}
-                                    </div>
-                                    <div style={styles.fullWidth}>
-                                        <label style={styles.label} htmlFor="phone">
-                                            Phone / WhatsApp <span style={styles.required}>*</span>
-                                        </label>
-                                        <PhoneInput
-                                            country={DEFAULT_COUNTRY}
-                                            value={phoneValue}
-                                            onChange={(value: string) => {
-                                                setPhoneValue(value);
-                                                setValue('phone', value, { shouldValidate: true });
-                                            }}
-                                            inputStyle={{
-                                                width: '100%',
-                                                height: '54px',
-                                                fontSize: '14px',
-                                                borderRadius: '10px',
-                                                border: '1px solid #d9dee7',
-                                                paddingLeft: '80px',
-                                                background: '#fff',
-                                            }}
-                                            buttonStyle={{
-                                                borderRadius: '10px 0 0 10px',
-                                                border: '1px solid #d9dee7',
-                                                background: '#f8f9fa',
-                                                height: '54px',
-                                            }}
-                                            dropdownStyle={{
-                                                borderRadius: '10px',
-                                                border: '1px solid #d9dee7',
-                                                maxHeight: '300px',
-                                                overflowY: 'auto',
-                                            }}
-                                            searchPlaceholder="Search country..."
-                                            placeholder="Enter phone number"
-                                            enableSearch={true}
-                                            searchNotFound="No country found"
-                                            countryCodeEditable={false}
-                                        />
-                                        <div style={styles.helpText}>
-                                            Enter your phone number with country code. We'll contact you via WhatsApp if available.
-                                        </div>
-                                        {errors.phone && <p style={styles.errorText}>{errors.phone.message}</p>}
-                                    </div>
-                                    <div style={styles.fullWidth}>
-                                        <label style={styles.label} htmlFor="address">
-                                            Residential address
-                                        </label>
-                                        <input
-                                            id="address"
-                                            type="text"
-                                            placeholder="Enter your residential address (optional)"
-                                            {...register('address')}
-                                            style={styles.input}
-                                            autoComplete="off"
-                                            data-form-type="other"
-                                            value={watchedValues.address || ''}
                                         />
                                     </div>
                                 </div>
 
-                                {/* Declarations (Checkboxes) */}
-                                <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
-                                    <h3 style={{ fontSize: '16px', margin: '0 0 12px', color: '#a80f0f' }}>
-                                        Declarations & Consent
-                                    </h3>
-                                    <div style={styles.checkboxRow}>
-                                        <input
-                                            id="consent"
-                                            type="checkbox"
-                                            {...register('consent', { required: 'You must consent to processing' })}
-                                            style={styles.checkbox}
-                                        />
-                                        <label htmlFor="consent" style={styles.checkboxLabel}>
-                                            I consent to Vision One Services receiving and using the information and identification documents
-                                            submitted here for the purpose of processing this vehicle booking request. <span style={styles.required}>*</span>
-                                        </label>
-                                    </div>
-                                    {errors.consent && <p style={styles.errorText}>{errors.consent.message}</p>}
-
-                                    <div style={{ ...styles.checkboxRow, marginTop: '12px' }}>
-                                        <input
-                                            id="accuracy"
-                                            type="checkbox"
-                                            {...register('accuracy', { required: 'You must confirm accuracy' })}
-                                            style={styles.checkbox}
-                                        />
-                                        <label htmlFor="accuracy" style={styles.checkboxLabel}>
-                                            I confirm that the information provided is accurate and that I am authorised to provide these documents. <span style={styles.required}>*</span>
-                                        </label>
-                                    </div>
-                                    {errors.accuracy && <p style={styles.errorText}>{errors.accuracy.message}</p>}
+                                {/* Live Estimate */}
+                                <div style={{ marginTop: '20px' }}>
+                                    <BookingEstimate />
                                 </div>
                             </section>
                             <NavigationButtons />
                         </>
                     );
+
+                // STEP 3: Upload Documents (matches HTML form step 3)
                 case 3:
                     return (
                         <>
                             <section className="card" style={styles.card}>
-                                <h2 style={styles.cardTitle}>Mandatory identity documents</h2>
+                                <h2 style={styles.cardTitle}>Upload documents</h2>
+                                <p style={styles.cardSubtitle}>
+                                    Upload a clear copy or photo of the primary driver's ID/passport and valid driving licence.
+                                </p>
                                 <div style={styles.noteBox}>
                                     Both documents are required. On most phones, tap <strong>Choose File</strong> and select the camera
                                     to photograph the document. Make sure the whole document is visible and readable.
                                 </div>
                                 <div style={{ ...styles.grid2, marginTop: '16px' }}>
+                                    <div>
+                                        <label style={styles.label} htmlFor="idDocument">
+                                            National ID / Passport <span style={styles.required}>*</span>
+                                        </label>
+                                        <input
+                                            id="idDocument"
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                                            {...register('idDocument', {
+                                                required: 'ID or passport is required',
+                                                validate: {
+                                                    filePresent: (value) => {
+                                                        if (!value || value.length === 0) return 'ID or passport is required';
+                                                        return true;
+                                                    },
+                                                },
+                                            })}
+                                            style={styles.fileInput}
+                                        />
+                                        <div style={styles.helpText}>JPG, PNG or PDF. Max 10 MB.</div>
+                                        {errors.idDocument && <p style={styles.errorText}>{errors.idDocument.message}</p>}
+                                    </div>
                                     <div>
                                         <label style={styles.label} htmlFor="drivingLicense">
                                             Driving licence <span style={styles.required}>*</span>
@@ -715,42 +1049,24 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                             })}
                                             style={styles.fileInput}
                                         />
-                                        <div style={styles.helpText}>Required: clear photo or PDF.</div>
+                                        <div style={styles.helpText}>JPG, PNG or PDF. Max 10 MB.</div>
                                         {errors.drivingLicense && <p style={styles.errorText}>{errors.drivingLicense.message}</p>}
-                                    </div>
-                                    <div>
-                                        <label style={styles.label} htmlFor="idDocument">
-                                            National ID or passport <span style={styles.required}>*</span>
-                                        </label>
-                                        <input
-                                            id="idDocument"
-                                            type="file"
-                                            accept="image/jpeg,image/png,image/webp,application/pdf"
-                                            {...register('idDocument', {
-                                                required: 'ID or passport is required',
-                                                validate: {
-                                                    filePresent: (value) => {
-                                                        if (!value || value.length === 0) return 'ID or passport is required';
-                                                        return true;
-                                                    },
-                                                },
-                                            })}
-                                            style={styles.fileInput}
-                                        />
-                                        <div style={styles.helpText}>Required: clear photo or PDF.</div>
-                                        {errors.idDocument && <p style={styles.errorText}>{errors.idDocument.message}</p>}
                                     </div>
                                 </div>
                             </section>
                             <NavigationButtons />
                         </>
                     );
+
+                // STEP 4: Review & Submit (matches HTML form step 4)
                 case 4:
                     return (
                         <>
                             <section className="card" style={styles.card}>
-                                <h2 style={styles.cardTitle}>Review & Confirm</h2>
-                                <p style={{ marginBottom: '16px' }}>Please review your details below. If everything is correct, click the submit button to finalize your booking.</p>
+                                <h2 style={styles.cardTitle}>Review & Submit</h2>
+                                <p style={styles.cardSubtitle}>
+                                    The estimate below is based on your selected dates and vehicle. Review everything before submitting.
+                                </p>
                                 <BookingSummary />
                             </section>
                             <NavigationButtons showSubmit={true} />
@@ -767,7 +1083,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         return (
             <div style={styles.container}>
                 <HeroSection />
-
                 <form
                     ref={formRef}
                     onSubmit={handleSubmit(onSubmit)}
@@ -781,29 +1096,35 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
     }
 );
 
-// Styles
+// ============================================================
+// STYLES
+// ============================================================
 const styles: { [key: string]: React.CSSProperties } = {
     container: {
         maxWidth: '980px',
         margin: '0 auto',
         padding: '18px',
-        fontFamily: 'Arial, Helvetica, sans-serif',
+        fontFamily: 'Inter, Arial, Helvetica, sans-serif',
         color: '#1f2328',
-        background: 'linear-gradient(180deg, #ffe1d1 0%, #fff 25%, #fff7f1 100%)',
+        background: 'linear-gradient(180deg, #eaf9ff 0%, #ffffff 48%, #f6fbff 100%)',
     },
     hero: {
-        background: '#fff',
+        background: 'linear-gradient(135deg, #d90000 0%, #ff1b0a 45%, #ff9a1f 100%)',
         borderRadius: '20px',
-        padding: '22px',
+        padding: '28px 24px',
         display: 'flex',
         alignItems: 'center',
         gap: '20px',
-        boxShadow: '0 8px 30px rgba(0,0,0,0.09)',
-        borderTop: '6px solid #f26722',
+        color: '#fff',
+        boxShadow: '0 12px 40px rgba(217, 0, 0, 0.25)',
         flexWrap: 'wrap',
     },
     heroLogo: {
         flexShrink: 0,
+        background: '#fff',
+        borderRadius: '50%',
+        padding: '6px',
+        border: '4px solid rgba(255,255,255,0.75)',
     },
     heroContent: {
         flex: 1,
@@ -811,22 +1132,23 @@ const styles: { [key: string]: React.CSSProperties } = {
     heroTitle: {
         margin: '0 0 8px',
         fontSize: 'clamp(26px, 5vw, 42px)',
-        color: '#1f2328',
+        color: '#fff',
     },
     heroSubtitle: {
         margin: '0',
-        color: '#667085',
+        color: 'rgba(255,255,255,0.95)',
         lineHeight: '1.5',
     },
     heroPill: {
         display: 'inline-block',
         marginTop: '10px',
-        background: '#c51414',
+        background: '#e6007e',
         color: 'white',
         fontWeight: 'bold',
-        padding: '7px 12px',
+        padding: '7px 14px',
         borderRadius: '999px',
         fontSize: '14px',
+        boxShadow: '0 6px 16px rgba(230, 0, 126, 0.35)',
     },
     form: {
         marginTop: '18px',
@@ -839,14 +1161,24 @@ const styles: { [key: string]: React.CSSProperties } = {
         boxShadow: '0 7px 24px rgba(0,0,0,0.07)',
     },
     cardTitle: {
-        margin: '0 0 16px',
+        margin: '0 0 6px',
         color: '#a80f0f',
-        fontSize: '21px',
+        fontSize: '22px',
         fontWeight: 'bold',
+    },
+    cardSubtitle: {
+        margin: '0 0 18px',
+        color: '#6b7280',
+        fontSize: '14px',
     },
     grid2: {
         display: 'grid',
         gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '16px',
+    },
+    grid3: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
         gap: '16px',
     },
     fullWidth: {
@@ -865,27 +1197,30 @@ const styles: { [key: string]: React.CSSProperties } = {
         width: '100%',
         padding: '13px',
         border: '1px solid #d9dee7',
-        borderRadius: '10px',
+        borderRadius: '12px',
         font: 'inherit',
         background: '#fff',
         fontSize: '14px',
         boxSizing: 'border-box',
+        outline: 'none',
+        transition: 'border-color 0.2s, box-shadow 0.2s',
     },
     select: {
         width: '100%',
         padding: '13px',
         border: '1px solid #d9dee7',
-        borderRadius: '10px',
+        borderRadius: '12px',
         font: 'inherit',
         background: '#fff',
         fontSize: '14px',
         boxSizing: 'border-box',
+        outline: 'none',
     },
     textarea: {
         width: '100%',
         padding: '13px',
         border: '1px solid #d9dee7',
-        borderRadius: '10px',
+        borderRadius: '12px',
         font: 'inherit',
         background: '#fff',
         fontSize: '14px',
@@ -918,67 +1253,88 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontSize: '14px',
         lineHeight: '1.5',
     },
-    checkboxRow: {
-        display: 'flex',
-        gap: '12px',
-        alignItems: 'flex-start',
-        marginBottom: '8px',
-    },
-    checkbox: {
-        width: '20px',
-        height: '20px',
-        minWidth: '20px',
-        minHeight: '20px',
-        marginTop: '2px',
-        cursor: 'pointer',
-        accentColor: '#FF6B35',
-        border: '2px solid #d9dee7',
-        borderRadius: '4px',
-        appearance: 'auto',
-        WebkitAppearance: 'checkbox',
-        MozAppearance: 'checkbox',
-        flexShrink: 0,
-    },
-    checkboxLabel: {
-        fontWeight: '500',
-        fontSize: '14px',
-        lineHeight: '1.5',
-        cursor: 'pointer',
-        color: '#1f2328',
-    },
-    ratesGrid: {
+
+    // ✅ Vehicle selector cards
+    vehicleGrid: {
         display: 'grid',
         gridTemplateColumns: 'repeat(5, 1fr)',
         gap: '10px',
     },
-    rateCard: {
-        border: '1px solid #ffd0ae',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        background: '#fffaf6',
-    },
-    rateHeader: {
+    vehicleCard: {
+        position: 'relative',
+        border: '1px solid #e5e7eb',
+        borderRadius: '14px',
+        padding: '12px',
+        cursor: 'pointer',
+        background: '#fff',
+        transition: 'all 0.2s',
+        minHeight: '106px',
         display: 'block',
-        background: 'linear-gradient(90deg, #b50909, #f23d20)',
-        color: '#fff',
-        padding: '10px',
-        fontWeight: 'bold',
-        textAlign: 'center',
-        fontSize: '14px',
     },
-    rateBody: {
-        padding: '10px',
-        fontSize: '13px',
-        lineHeight: '1.55',
+    vehicleCardSelected: {
+        border: '2px solid #e10b0b',
+        background: '#fff7f7',
+        boxShadow: '0 8px 18px rgba(225, 11, 11, 0.15)',
     },
-    rateRow: {
+    vehicleRadio: {
+        position: 'absolute',
+        opacity: 0,
+        pointerEvents: 'none',
+    },
+    vehicleName: {
+        fontWeight: '800',
+        fontSize: '15px',
+        marginBottom: '5px',
+        color: '#1f2937',
+    },
+    vehicleRates: {
+        fontSize: '12px',
+        color: '#4b5563',
+        lineHeight: '1.45',
+    },
+
+    // ✅ Estimate card
+    estimateCard: {
+        background: 'linear-gradient(135deg, #fff7ed, #fff1f2)',
+        border: '1px solid #fed7aa',
+        borderRadius: '16px',
+        padding: '18px',
+    },
+    estimateTitle: {
+        margin: '0 0 12px',
+        fontSize: '16px',
+        color: '#9f1239',
+        fontWeight: '700',
+    },
+    estimateRow: {
         display: 'flex',
         justifyContent: 'space-between',
-        padding: '2px 0',
+        gap: '20px',
+        padding: '8px 0',
+        fontSize: '14px',
     },
-    ratePrice: {
-        fontWeight: 'bold',
+    estimateLabel: {
+        color: '#6b7280',
+        fontWeight: '500',
     },
+    estimateValue: {
+        color: '#1f2937',
+        fontWeight: '700',
+        textAlign: 'right',
+    },
+    estimateTotal: {
+        borderTop: '1px solid #fed7aa',
+        marginTop: '6px',
+        paddingTop: '12px',
+    },
+    estimateValueHighlight: {
+        color: '#e10b0b',
+        fontWeight: '800',
+        fontSize: '16px',
+        textAlign: 'right',
+    },
+
+    // Navigation
     navigation: {
         display: 'flex',
         justifyContent: 'space-between',
@@ -989,8 +1345,8 @@ const styles: { [key: string]: React.CSSProperties } = {
         padding: '12px 24px',
         background: '#e5e7eb',
         border: 'none',
-        borderRadius: '10px',
-        fontWeight: '600',
+        borderRadius: '12px',
+        fontWeight: '700',
         fontSize: '16px',
         cursor: 'pointer',
         transition: 'background 0.2s',
@@ -998,31 +1354,34 @@ const styles: { [key: string]: React.CSSProperties } = {
     },
     nextBtn: {
         padding: '12px 24px',
-        background: 'linear-gradient(135deg, #FF6B35, #FF8B35)',
+        background: 'linear-gradient(135deg, #b70000, #e10b0b, #ff5a1f)',
         border: 'none',
-        borderRadius: '10px',
-        fontWeight: '600',
+        borderRadius: '12px',
+        fontWeight: '700',
         fontSize: '16px',
         cursor: 'pointer',
         color: '#fff',
         transition: 'opacity 0.2s',
         marginLeft: 'auto',
+        boxShadow: '0 4px 14px rgba(225, 11, 11, 0.3)',
     },
     submitBtn: {
-        padding: '12px 24px',
-        background: 'linear-gradient(135deg, #FF6B35, #FF8B35)',
+        padding: '14px 32px',
+        background: 'linear-gradient(135deg, #b70000, #e10b0b, #ff5a1f)',
         border: 'none',
-        borderRadius: '10px',
-        fontWeight: '600',
+        borderRadius: '12px',
+        fontWeight: '800',
         fontSize: '16px',
         cursor: 'pointer',
         color: '#fff',
         transition: 'opacity 0.2s',
         marginLeft: 'auto',
+        boxShadow: '0 4px 14px rgba(225, 11, 11, 0.35)',
     },
     submitBtnDisabled: {
         opacity: '0.5',
         cursor: 'not-allowed',
+        boxShadow: 'none',
     },
     contactInfo: {
         textAlign: 'center',
@@ -1031,31 +1390,234 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontSize: '14px',
         color: '#667085',
     },
-    summaryGrid: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '20px',
-        margin: '16px 0',
+
+    // Review styles
+    reviewContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        marginTop: '8px',
     },
-    summarySection: {
+    reviewBanner: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        background: 'linear-gradient(135deg, #e10b0b, #ff5a1f, #ff9a1f)',
+        color: '#fff',
+        padding: '20px 24px',
+        borderRadius: '14px',
+        boxShadow: '0 6px 20px rgba(225, 11, 11, 0.3)',
+    },
+    reviewBannerIcon: {
+        width: '48px',
+        height: '48px',
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.25)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '24px',
+        fontWeight: 'bold',
+        flexShrink: 0,
+    },
+    reviewBannerTitle: {
+        margin: '0 0 4px',
+        fontSize: '18px',
+        fontWeight: '700',
+    },
+    reviewBannerText: {
+        margin: '0',
+        fontSize: '14px',
+        opacity: 0.95,
+        lineHeight: '1.4',
+    },
+    reviewCard: {
+        background: '#fff',
+        borderRadius: '14px',
+        border: '1px solid #e9ecef',
+        overflow: 'hidden',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+    },
+    reviewCardHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '14px 18px',
+        background: 'linear-gradient(90deg, #fff8f3 0%, #fff 100%)',
+        borderBottom: '2px solid #e10b0b',
+    },
+    reviewCardIcon: {
+        fontSize: '20px',
+    },
+    reviewCardTitle: {
+        margin: 0,
+        fontSize: '16px',
+        fontWeight: '700',
+        color: '#a80f0f',
+    },
+    reviewCardBody: {
+        padding: '16px 18px',
+    },
+    reviewRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        padding: '10px 0',
+        borderBottom: '1px dashed #f1f3f5',
+        fontSize: '14px',
+        gap: '16px',
+    },
+    reviewLabel: {
+        color: '#667085',
+        fontWeight: '600',
+        flexShrink: 0,
+    },
+    reviewValue: {
+        color: '#1f2328',
+        fontWeight: '500',
+        textAlign: 'right',
+        wordBreak: 'break-word',
+    },
+    reviewValueHighlight: {
+        color: '#e10b0b',
+        fontWeight: '700',
+        textAlign: 'right',
+    },
+    reviewTotalRow: {
+        borderTop: '2px solid #fed7aa',
+        borderBottom: 'none',
+        marginTop: '6px',
+        paddingTop: '12px',
+    },
+    reviewTotalValue: {
+        color: '#e10b0b',
+        fontWeight: '800',
+        fontSize: '16px',
+        textAlign: 'right',
+    },
+    docPreviewGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '16px',
+    },
+    docPreviewItem: {
         background: '#f8f9fa',
+        borderRadius: '10px',
+        padding: '12px',
+        border: '1px solid #e9ecef',
+    },
+    docPreviewLabel: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '10px',
+        fontSize: '13px',
+        fontWeight: '600',
+        color: '#1f2328',
+        gap: '8px',
+        flexWrap: 'wrap',
+    },
+    docStatusOk: {
+        color: '#10b981',
+        fontSize: '12px',
+        fontWeight: '700',
+    },
+    docStatusMissing: {
+        color: '#ef4444',
+        fontSize: '12px',
+        fontWeight: '700',
+    },
+    docPreviewImage: {
+        width: '100%',
+        height: '160px',
+        objectFit: 'cover',
+        borderRadius: '8px',
+        border: '1px solid #e9ecef',
+        background: '#fff',
+    },
+    docPreviewFile: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '160px',
+        background: '#fff',
+        borderRadius: '8px',
+        border: '2px dashed #d9dee7',
         padding: '16px',
+        textAlign: 'center',
+    },
+    docPreviewFileIcon: {
+        fontSize: '40px',
+        marginBottom: '8px',
+    },
+    docPreviewFileName: {
+        fontSize: '12px',
+        color: '#667085',
+        wordBreak: 'break-all',
+        lineHeight: '1.4',
+    },
+    docPreviewEmpty: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '160px',
+        background: '#fff',
+        borderRadius: '8px',
+        border: '2px dashed #e9ecef',
+        color: '#adb5bd',
+        fontSize: '13px',
+    },
+    consentBox: {
+        display: 'flex',
+        gap: '12px',
+        alignItems: 'flex-start',
+        background: '#f8f9fa',
+        padding: '14px',
         borderRadius: '10px',
         border: '1px solid #e9ecef',
     },
-    summaryTitle: {
-        margin: '0 0 12px',
-        fontSize: '16px',
-        color: '#a80f0f',
-        borderBottom: '2px solid #FF6B35',
-        paddingBottom: '6px',
+    consentCheckbox: {
+        width: '20px',
+        height: '20px',
+        minWidth: '20px',
+        minHeight: '20px',
+        marginTop: '2px',
+        cursor: 'pointer',
+        accentColor: '#e10b0b',
+        flexShrink: 0,
     },
-    summaryRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '4px 0',
+    consentLabel: {
+        fontWeight: '500',
         fontSize: '14px',
-        borderBottom: '1px solid #f1f3f5',
+        lineHeight: '1.5',
+        cursor: 'pointer',
+        color: '#1f2328',
+    },
+    reviewNote: {
+        display: 'flex',
+        gap: '12px',
+        alignItems: 'flex-start',
+        background: '#f0f9ff',
+        border: '1px solid #bae6fd',
+        borderRadius: '10px',
+        padding: '14px 16px',
+    },
+    reviewNoteIcon: {
+        fontSize: '18px',
+        flexShrink: 0,
+        lineHeight: 1.4,
+    },
+    reviewNoteText: {
+        margin: 0,
+        fontSize: '13px',
+        color: '#0c4a6e',
+        lineHeight: '1.5',
+    },
+    reviewNoteLink: {
+        color: '#e10b0b',
+        fontWeight: '600',
+        textDecoration: 'underline',
     },
 };
 

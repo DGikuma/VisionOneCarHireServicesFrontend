@@ -484,7 +484,7 @@ const HomePage: React.FC = () => {
                             </div>
                             <h3 className="text-xl font-bold text-gray-900 mb-2">Global Headquarters</h3>
                             <p className="text-gray-600 mb-2">Premium service centers nationwide</p>
-                            <p className="text-gray-900 font-medium">123 Executive Boulevard, Suite 1000<br />New York, NY 10001</p>
+                            <p className="text-gray-900 font-medium">Location: Kilimani, <br />Equity building 1st floor, <br />opposite Yaya Centre, <br />Nairobi, Kenya <br />Arwings Kodhek Road</p>
                         </div>
 
                         <div className="text-center md:text-left">
