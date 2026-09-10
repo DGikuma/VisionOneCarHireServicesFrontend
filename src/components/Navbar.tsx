@@ -100,7 +100,11 @@ const Navbar: React.FC = () => {
 
     return (
         <>
-            <nav className={`fixed top-0 w-full z-50 transition-all duration-300 bg-white ${isScrolled
+            {/* ============================================================
+                NAVBAR — Very high z-index (100) so the toggle button
+                ALWAYS stays above the mobile overlay.
+                ============================================================ */}
+            <nav className={`fixed top-0 w-full z-[100] transition-all duration-300 bg-white ${isScrolled
                 ? 'shadow-2xl shadow-gray-900/5'
                 : ''
                 }`}>
@@ -265,15 +269,18 @@ const Navbar: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsOpen((prev) => !prev)}
-                                className="p-2 rounded-lg text-gray-700 hover:text-[#FF6B35] hover:bg-gray-100 transition-colors duration-300 relative z-[60]"
+                                className="p-2 rounded-lg text-gray-700 hover:text-[#FF6B35] hover:bg-gray-100 transition-colors duration-300 relative z-[110] pointer-events-auto cursor-pointer"
                                 aria-label="Toggle menu"
                                 aria-expanded={isOpen}
-                                style={{ WebkitTapHighlightColor: 'transparent' }}
+                                style={{
+                                    WebkitTapHighlightColor: 'transparent',
+                                    touchAction: 'manipulation'
+                                }}
                             >
                                 {isOpen ? (
-                                    <XMarkIcon className="h-6 w-6" />
+                                    <XMarkIcon className="h-6 w-6 pointer-events-none" />
                                 ) : (
-                                    <Bars3Icon className="h-6 w-6" />
+                                    <Bars3Icon className="h-6 w-6 pointer-events-none" />
                                 )}
                             </button>
                         </div>
@@ -281,31 +288,46 @@ const Navbar: React.FC = () => {
                 </div>
             </nav>
 
-            {/* Mobile/Tablet Navigation Overlay */}
+            {/* ============================================================
+                MOBILE/TABLET OVERLAY
+                Backdrop z-[90] and Menu Panel z-[95] — both BELOW the
+                nav (z-100) so the toggle button always stays clickable.
+                ============================================================ */}
             {isOpen && (
                 <>
-                    {/* Backdrop - only closes when tapped directly */}
+                    {/* Backdrop */}
                     <div
-                        className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+                        className="lg:hidden fixed inset-0 bg-black/40 z-[90]"
                         onClick={() => setIsOpen(false)}
                         aria-hidden="true"
+                        style={{ touchAction: 'manipulation' }}
                     />
 
-                    {/* Menu Panel */}
+                    {/* Menu Panel — positioned BELOW the 64px-tall navbar */}
                     <div
-                        className="lg:hidden fixed top-16 left-0 right-0 bottom-0 z-50 bg-white shadow-2xl overflow-y-auto"
+                        className="lg:hidden fixed left-0 right-0 bottom-0 z-[95] bg-white shadow-2xl overflow-y-auto"
+                        style={{
+                            top: '64px', // exactly the height of h-16 navbar
+                            WebkitOverflowScrolling: 'touch',
+                            touchAction: 'pan-y',
+                        }}
                     >
                         <div className="p-4 space-y-1 pb-24">
                             {navigation.map((item) => (
                                 <Link
                                     key={item.name}
                                     to={item.href}
-                                    className={`block px-4 py-3 rounded-lg font-medium transition-colors duration-300 ${activePath === item.href
+                                    className={`block px-4 py-3 rounded-lg font-medium transition-colors duration-200 relative z-[96] ${activePath === item.href
                                         ? 'bg-[#FF6B35]/10 text-[#FF6B35]'
-                                        : 'text-gray-700 hover:bg-gray-50 hover:text-[#FF6B35]'
+                                        : 'text-gray-700 active:bg-gray-100 active:text-[#FF6B35]'
                                         }`}
                                     onClick={() => setIsOpen(false)}
-                                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                                    style={{
+                                        WebkitTapHighlightColor: 'transparent',
+                                        touchAction: 'manipulation',
+                                        pointerEvents: 'auto',
+                                        cursor: 'pointer',
+                                    }}
                                 >
                                     <div className="flex items-center">
                                         <span>{item.name}</span>
@@ -320,9 +342,14 @@ const Navbar: React.FC = () => {
                             <div className="pt-4">
                                 <Link
                                     to="/booking"
-                                    className="block w-full bg-[#FF6B35] text-white font-semibold py-3 rounded-lg text-center shadow-md hover:shadow-lg transition-all duration-300 hover:bg-[#FF5A20]"
+                                    className="block w-full bg-[#FF6B35] text-white font-semibold py-3 rounded-lg text-center shadow-md hover:shadow-lg transition-all duration-200 hover:bg-[#FF5A20] active:bg-[#E85A25] relative z-[96]"
                                     onClick={() => setIsOpen(false)}
-                                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                                    style={{
+                                        WebkitTapHighlightColor: 'transparent',
+                                        touchAction: 'manipulation',
+                                        pointerEvents: 'auto',
+                                        cursor: 'pointer',
+                                    }}
                                 >
                                     <span className="flex items-center justify-center">
                                         <span>Book Now</span>
@@ -347,24 +374,36 @@ const Navbar: React.FC = () => {
                             <div className="pt-4 border-t border-gray-100 space-y-2">
                                 <a
                                     href="tel:+254705336311"
-                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-[#FF6B35] transition-colors"
-                                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 active:text-[#FF6B35] transition-colors relative z-[96]"
+                                    style={{
+                                        WebkitTapHighlightColor: 'transparent',
+                                        touchAction: 'manipulation',
+                                        pointerEvents: 'auto',
+                                    }}
                                 >
                                     <PhoneIcon className="h-5 w-5" />
                                     <span className="text-sm">+254 (705) 336 311</span>
                                 </a>
                                 <a
                                     href="tel:+447397549590"
-                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-[#FF6B35] transition-colors"
-                                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 active:text-[#FF6B35] transition-colors relative z-[96]"
+                                    style={{
+                                        WebkitTapHighlightColor: 'transparent',
+                                        touchAction: 'manipulation',
+                                        pointerEvents: 'auto',
+                                    }}
                                 >
                                     <PhoneIcon className="h-5 w-5" />
                                     <span className="text-sm">+44 (7397) 549 590</span>
                                 </a>
                                 <a
                                     href="mailto:visionwanservices@gmail.com"
-                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-[#FF6B35] transition-colors"
-                                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 active:text-[#FF6B35] transition-colors relative z-[96]"
+                                    style={{
+                                        WebkitTapHighlightColor: 'transparent',
+                                        touchAction: 'manipulation',
+                                        pointerEvents: 'auto',
+                                    }}
                                 >
                                     <EnvelopeIcon className="h-5 w-5 flex-shrink-0" />
                                     <span className="text-sm break-all">visionwanservices@gmail.com</span>
