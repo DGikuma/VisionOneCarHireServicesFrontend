@@ -10,7 +10,6 @@ const Navbar: React.FC = () => {
     const [activePath, setActivePath] = useState('/');
     const location = useLocation();
     const bookButtonRef = useRef<HTMLDivElement>(null);
-    const menuPanelRef = useRef<HTMLDivElement>(null);
 
     // Close mobile menu on route change
     useEffect(() => {
@@ -27,27 +26,21 @@ const Navbar: React.FC = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // ✅ FIX 1: Close menu ONLY on crossing the lg breakpoint.
-    // We track the previous width so that rotation (portrait ↔ landscape)
-    // does NOT close the menu, and we don't thrash state on every resize event.
+    // Close menu only when crossing the lg breakpoint
     useEffect(() => {
         let lastIsDesktop = window.innerWidth >= 1024;
 
         const handleResize = () => {
             const isDesktopNow = window.innerWidth >= 1024;
-
-            // Only react when we actually cross the desktop/mobile boundary
             if (isDesktopNow !== lastIsDesktop) {
                 lastIsDesktop = isDesktopNow;
                 if (isDesktopNow) {
-                    // Entered desktop: force-close mobile menu
                     setIsOpen(false);
                 }
             }
         };
 
         window.addEventListener('resize', handleResize);
-        // Some tablets fire orientationchange separately — listen too
         window.addEventListener('orientationchange', handleResize);
 
         return () => {
@@ -56,8 +49,7 @@ const Navbar: React.FC = () => {
         };
     }, []);
 
-    // ✅ FIX 2: Prevent body scroll lock, but ensure it's always cleaned up.
-    // Also add a scrollbar-gutter compensation to avoid layout shift on mobile.
+    // Body scroll lock
     useEffect(() => {
         if (isOpen) {
             const scrollY = window.scrollY;
@@ -84,7 +76,7 @@ const Navbar: React.FC = () => {
         };
     }, [isOpen]);
 
-    // ✅ FIX 3: Close menu when user taps the ESC key (desktop UX)
+    // ESC to close
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && isOpen) {
@@ -106,25 +98,16 @@ const Navbar: React.FC = () => {
         { name: 'FAQ', href: '/faq' },
     ];
 
-    const handleMenuToggle = () => {
-        setIsOpen((prev) => !prev);
-    };
-
-    const handleCloseMenu = () => {
-        setIsOpen(false);
-    };
-
     return (
         <>
             <nav className={`fixed top-0 w-full z-50 transition-all duration-300 bg-white ${isScrolled
                 ? 'shadow-2xl shadow-gray-900/5'
                 : ''
                 }`}>
-                {/* Executive Top Bar - Hidden below lg (1024px) */}
+                {/* Executive Top Bar - Hidden below lg */}
                 <div className="w-full bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 hidden lg:block">
                     <div className="max-w-8xl mx-auto px-3 sm:px-4 md:px-5 lg:px-8">
                         <div className="flex justify-between items-center h-8 text-xs font-medium">
-                            {/* Left: Corporate Badges */}
                             <div className="flex items-center space-x-6">
                                 <div className="flex items-center space-x-2">
                                     <CheckBadgeIcon className="h-3.5 w-3.5 text-emerald-400" />
@@ -142,7 +125,6 @@ const Navbar: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Right: Contact & Trust Signals */}
                             <div className="flex items-center space-x-6">
                                 <a
                                     href="tel:+254705336311"
@@ -211,7 +193,7 @@ const Navbar: React.FC = () => {
                             <Link
                                 to="/"
                                 className="flex-shrink-0 flex items-center group"
-                                onClick={handleCloseMenu}
+                                onClick={() => setIsOpen(false)}
                             >
                                 <div className="relative">
                                     <img
@@ -231,7 +213,7 @@ const Navbar: React.FC = () => {
                             </Link>
                         </div>
 
-                        {/* Desktop Navigation - Only shows on lg+ (1024px) */}
+                        {/* Desktop Navigation */}
                         <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
                             {navigation.map((item) => (
                                 <Link
@@ -252,7 +234,6 @@ const Navbar: React.FC = () => {
                                 </Link>
                             ))}
 
-                            {/* Book Now Button */}
                             <div className="relative ml-2 flex-shrink-0" ref={bookButtonRef}>
                                 <Link
                                     to="/booking"
@@ -279,26 +260,20 @@ const Navbar: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Mobile/Tablet menu button - Shows below lg (1024px) */}
+                        {/* Mobile/Tablet menu button */}
                         <div className="lg:hidden flex items-center">
                             <button
-                                onClick={handleMenuToggle}
-                                onTouchEnd={(e) => {
-                                    // ✅ FIX 4: Some tablets on iOS Safari don't
-                                    // reliably fire click after a tap. Handle touch.
-                                    e.preventDefault();
-                                    handleMenuToggle();
-                                }}
-                                className="p-2 rounded-lg text-gray-700 hover:text-[#FF6B35] hover:bg-gray-100 transition-colors duration-300 relative z-[60] touch-manipulation"
+                                type="button"
+                                onClick={() => setIsOpen((prev) => !prev)}
+                                className="p-2 rounded-lg text-gray-700 hover:text-[#FF6B35] hover:bg-gray-100 transition-colors duration-300 relative z-[60]"
                                 aria-label="Toggle menu"
                                 aria-expanded={isOpen}
-                                type="button"
                                 style={{ WebkitTapHighlightColor: 'transparent' }}
                             >
                                 {isOpen ? (
-                                    <XMarkIcon className="h-6 w-6 pointer-events-none" />
+                                    <XMarkIcon className="h-6 w-6" />
                                 ) : (
-                                    <Bars3Icon className="h-6 w-6 pointer-events-none" />
+                                    <Bars3Icon className="h-6 w-6" />
                                 )}
                             </button>
                         </div>
@@ -306,45 +281,30 @@ const Navbar: React.FC = () => {
                 </div>
             </nav>
 
-            {/* Mobile/Tablet Navigation Overlay - FIXED POSITION */}
+            {/* Mobile/Tablet Navigation Overlay */}
             {isOpen && (
                 <>
-                    {/* ✅ FIX 5: Backdrop with `touch-manipulation` and `cursor-pointer`
-                        to make sure taps are captured properly on tablets. */}
+                    {/* Backdrop - only closes when tapped directly */}
                     <div
-                        className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40 cursor-pointer touch-manipulation"
-                        onClick={handleCloseMenu}
-                        onTouchEnd={(e) => {
-                            e.preventDefault();
-                            handleCloseMenu();
-                        }}
+                        className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+                        onClick={() => setIsOpen(false)}
                         aria-hidden="true"
                     />
 
-                    {/* ✅ FIX 6: Menu panel with `touch-manipulation` and high z-index.
-                        Also explicitly prevent touch events from bubbling to backdrop. */}
+                    {/* Menu Panel */}
                     <div
-                        ref={menuPanelRef}
-                        className="lg:hidden fixed top-16 left-0 right-0 bottom-0 z-50 bg-white shadow-2xl overflow-y-auto overscroll-contain touch-manipulation"
-                        onClick={(e) => e.stopPropagation()}
-                        onTouchEnd={(e) => e.stopPropagation()}
+                        className="lg:hidden fixed top-16 left-0 right-0 bottom-0 z-50 bg-white shadow-2xl overflow-y-auto"
                     >
                         <div className="p-4 space-y-1 pb-24">
                             {navigation.map((item) => (
                                 <Link
                                     key={item.name}
                                     to={item.href}
-                                    className={`block px-4 py-3 rounded-lg font-medium transition-colors duration-300 touch-manipulation ${activePath === item.href
+                                    className={`block px-4 py-3 rounded-lg font-medium transition-colors duration-300 ${activePath === item.href
                                         ? 'bg-[#FF6B35]/10 text-[#FF6B35]'
                                         : 'text-gray-700 hover:bg-gray-50 hover:text-[#FF6B35]'
                                         }`}
-                                    onClick={handleCloseMenu}
-                                    onTouchEnd={(e) => {
-                                        // ✅ Ensure navigation happens on tablets
-                                        // Some tablets swallow the click after touch.
-                                        e.stopPropagation();
-                                        handleCloseMenu();
-                                    }}
+                                    onClick={() => setIsOpen(false)}
                                     style={{ WebkitTapHighlightColor: 'transparent' }}
                                 >
                                     <div className="flex items-center">
@@ -356,16 +316,12 @@ const Navbar: React.FC = () => {
                                 </Link>
                             ))}
 
-                            {/* Mobile Book Now Button */}
+                            {/* Book Now Button */}
                             <div className="pt-4">
                                 <Link
                                     to="/booking"
-                                    className="block w-full bg-[#FF6B35] text-white font-semibold py-3 rounded-lg text-center shadow-md hover:shadow-lg transition-all duration-300 hover:bg-[#FF5A20] touch-manipulation"
-                                    onClick={handleCloseMenu}
-                                    onTouchEnd={(e) => {
-                                        e.stopPropagation();
-                                        handleCloseMenu();
-                                    }}
+                                    className="block w-full bg-[#FF6B35] text-white font-semibold py-3 rounded-lg text-center shadow-md hover:shadow-lg transition-all duration-300 hover:bg-[#FF5A20]"
+                                    onClick={() => setIsOpen(false)}
                                     style={{ WebkitTapHighlightColor: 'transparent' }}
                                 >
                                     <span className="flex items-center justify-center">
@@ -387,11 +343,11 @@ const Navbar: React.FC = () => {
                                 </Link>
                             </div>
 
-                            {/* Mobile Contact Info */}
+                            {/* Contact Info */}
                             <div className="pt-4 border-t border-gray-100 space-y-2">
                                 <a
                                     href="tel:+254705336311"
-                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-[#FF6B35] transition-colors touch-manipulation"
+                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-[#FF6B35] transition-colors"
                                     style={{ WebkitTapHighlightColor: 'transparent' }}
                                 >
                                     <PhoneIcon className="h-5 w-5" />
@@ -399,7 +355,7 @@ const Navbar: React.FC = () => {
                                 </a>
                                 <a
                                     href="tel:+447397549590"
-                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-[#FF6B35] transition-colors touch-manipulation"
+                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-[#FF6B35] transition-colors"
                                     style={{ WebkitTapHighlightColor: 'transparent' }}
                                 >
                                     <PhoneIcon className="h-5 w-5" />
@@ -407,7 +363,7 @@ const Navbar: React.FC = () => {
                                 </a>
                                 <a
                                     href="mailto:visionwanservices@gmail.com"
-                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-[#FF6B35] transition-colors touch-manipulation"
+                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-[#FF6B35] transition-colors"
                                     style={{ WebkitTapHighlightColor: 'transparent' }}
                                 >
                                     <EnvelopeIcon className="h-5 w-5 flex-shrink-0" />
