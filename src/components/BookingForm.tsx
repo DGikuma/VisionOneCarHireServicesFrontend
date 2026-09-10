@@ -835,17 +835,18 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                             <h4 style={styles.reviewCardTitle}>Declaration</h4>
                         </div>
                         <div className="bf-review-body" style={styles.reviewCardBody}>
-                            <div className="bf-consent-box" style={styles.consentBox}>
-                                <input
-                                    id="consent"
-                                    type="checkbox"
-                                    {...register('consent', { required: 'You must confirm accuracy' })}
-                                    style={styles.consentCheckbox}
-                                />
-                                <label htmlFor="consent" style={styles.consentLabel}>
-                                    I confirm that the information and documents provided are accurate, and I consent to their use for booking verification. <span style={styles.required}>*</span>
-                                </label>
-                            </div>
+                        <div className="bf-consent-box" style={styles.consentBox}>
+                            <input
+                                id="consent"
+                                type="checkbox"
+                                className="bf-consent-checkbox"
+                                {...register('consent', { required: 'You must confirm accuracy' })}
+                                style={styles.consentCheckbox}
+                            />
+                            <label htmlFor="consent" style={styles.consentLabel}>
+                                I confirm that the information and documents provided are accurate, and I consent to their use for booking verification. <span style={styles.required}>*</span>
+                            </label>
+                        </div>
                             {errors.consent && <p style={styles.errorText}>{errors.consent.message}</p>}
                         </div>
                     </div>
@@ -1302,15 +1303,74 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                     .bf-container input, .bf-container select, .bf-container textarea {
                         width: 100% !important; max-width: 100% !important;
                     }
+                    /* ===== Declaration checkbox — desktop + mobile ===== */
                     .bf-consent-box {
-                        display: flex; gap: 12px; align-items: flex-start;
-                        width: 100%; max-width: 100%; box-sizing: border-box;
+                        display: flex;
+                        gap: 12px;
+                        align-items: flex-start;
+                        width: 100%;
+                        max-width: 100%;
+                        box-sizing: border-box;
                     }
-                    .bf-consent-box input[type="checkbox"] { flex-shrink: 0; margin-top: 2px; }
+                    /* Explicit checkbox appearance (fixes the "text input" look on desktop) */
+                    .bf-consent-box input[type="checkbox"].bf-consent-checkbox {
+                        appearance: auto;
+                        -webkit-appearance: checkbox;
+                        -moz-appearance: checkbox;
+                        width: 20px;
+                        height: 20px;
+                        min-width: 20px;
+                        min-height: 20px;
+                        max-width: 20px;
+                        max-height: 20px;
+                        margin: 2px 0 0 0;
+                        padding: 0;
+                        border: 2px solid #d9dee7;
+                        border-radius: 4px;
+                        background: #fff;
+                        cursor: pointer;
+                        accent-color: #e10b0b;
+                        flex: 0 0 20px;
+                        box-shadow: none;
+                        outline: none;
+                        transform: none;
+                    }
+                    .bf-consent-box input[type="checkbox"].bf-consent-checkbox:focus {
+                        outline: 2px solid rgba(225, 11, 11, 0.3);
+                        outline-offset: 2px;
+                    }
                     .bf-consent-box label {
-                        flex: 1 1 auto; min-width: 0;
-                        word-break: break-word; overflow-wrap: anywhere;
-                        line-height: 1.5; text-align: left;
+                        flex: 1 1 auto;
+                        min-width: 0;
+                        word-break: break-word;
+                        overflow-wrap: anywhere;
+                        line-height: 1.5;
+                        text-align: left;
+                        font-weight: 500;
+                        font-size: 14px;
+                        cursor: pointer;
+                        color: #1f2328;
+                    }
+                    @media (max-width: 640px) {
+                        .bf-consent-box {
+                            padding: 12px !important;
+                            gap: 10px !important;
+                            align-items: flex-start !important;
+                        }
+                        .bf-consent-box label {
+                            font-size: 13px !important;
+                            line-height: 1.5 !important;
+                            text-align: left !important;
+                        }
+                        .bf-consent-box input[type="checkbox"].bf-consent-checkbox {
+                            width: 22px !important;
+                            height: 22px !important;
+                            min-width: 22px !important;
+                            min-height: 22px !important;
+                            max-width: 22px !important;
+                            max-height: 22px !important;
+                            flex-basis: 22px !important;
+                        }
                     }
                     @media (max-width: 640px) {
                         .bf-consent-box { padding: 12px !important; gap: 10px !important; align-items: flex-start !important; }
@@ -1576,8 +1636,27 @@ const styles: { [key: string]: React.CSSProperties } = {
         width: '100%', boxSizing: 'border-box',
     },
     consentCheckbox: {
-        width: '20px', height: '20px', minWidth: '20px', minHeight: '20px',
-        marginTop: '2px', cursor: 'pointer', accentColor: '#e10b0b', flexShrink: 0,
+        width: '20px',
+        height: '20px',
+        minWidth: '20px',
+        minHeight: '20px',
+        maxWidth: '20px',
+        maxHeight: '20px',
+        marginTop: '2px',
+        marginRight: 0,
+        marginBottom: 0,
+        marginLeft: 0,
+        padding: 0,
+        cursor: 'pointer',
+        accentColor: '#e10b0b',
+        flexShrink: 0,
+        appearance: 'auto' as any,
+        WebkitAppearance: 'checkbox' as any,
+        MozAppearance: 'checkbox' as any,
+        border: '2px solid #d9dee7',
+        borderRadius: '4px',
+        background: '#fff',
+        boxSizing: 'border-box',
     },
     consentLabel: {
         fontWeight: '500', fontSize: '14px', lineHeight: '1.5',
