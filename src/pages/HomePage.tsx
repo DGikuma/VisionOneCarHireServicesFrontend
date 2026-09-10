@@ -473,6 +473,7 @@ const HomePage: React.FC = () => {
                             <a href="tel:+254 (705) 336 311" className="text-2xl font-bold text-gray-900 hover:text-[#FF6B35] transition-colors duration-300">
                                 +254 (705) 336 311
                             </a>
+                            <br />
                             <a href="tel:+44 (7397) 549 590" className="text-2xl font-bold text-gray-900 hover:text-[#FF6B35] transition-colors duration-300">
                                 +44 (7397) 549 590
                             </a>
