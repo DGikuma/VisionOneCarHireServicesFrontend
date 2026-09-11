@@ -50,6 +50,7 @@ export interface BookingFormProps {
 }
 
 const API_URL = `${API_BASE_URL}/api/bookings`;
+const AMEND_API_URL = `${API_BASE_URL}/api/bookings/amend`;
 
 const vehicleOptions = [
     { value: 'Fielder', label: 'Fielder', rates: { short: 4000, medium: 3500, long: 3000 } },
@@ -85,7 +86,6 @@ const allRequiredFields: (keyof BookingFormData)[] = [
     'drivingLicense', 'idDocument', 'depositProof', 'consent'
 ];
 
-// ✅ List of all FileList fields (used to detect complete uploads)
 const fileFields: (keyof BookingFormData)[] = ['drivingLicense', 'idDocument', 'depositProof'];
 
 const getPeriodFromDays = (days: number): PeriodCategory => {
@@ -119,6 +119,12 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             error: string | null;
             autoPeriod: PeriodCategory | null;
         }>({ days: null, rate: null, total: null, error: null, autoPeriod: null });
+
+        // ✅ Detect amend mode from URL query params
+        const urlParams = new URLSearchParams(window.location.search);
+        const amendBookingId = urlParams.get('amend');
+        const amendEmail = urlParams.get('email');
+        const isAmendMode = !!(amendBookingId || amendEmail);
 
         const {
             register,
@@ -157,7 +163,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
 
         const watchedValues = watch();
 
-        // ✅ FIX: Use `fileFields` array to reliably detect FileList fields
+        // ✅ Prefill email when in amend mode
+        useEffect(() => {
+            if (isAmendMode && amendEmail && !watchedValues.email) {
+                setValue('email', amendEmail, { shouldValidate: false });
+            }
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [isAmendMode, amendEmail]);
+
         const isFormComplete = allRequiredFields.every(field => {
             const value = watchedValues[field];
             if (fileFields.includes(field)) {
@@ -228,7 +241,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             });
         }, [pickupDate, returnDate, vehicle]);
 
-        // ✅ FIX: `urls` type now includes `depositProof`
         useEffect(() => {
             const urls: {
                 drivingLicense: string | null;
@@ -370,17 +382,33 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                     mappedData.append('rentalDays', String(estimate.days || 0));
                 }
 
-                const response = await axios.post(API_URL, mappedData, {
+                // ✅ Amend mode: attach original identifiers
+                let endpoint = API_URL;
+                if (isAmendMode) {
+                    if (amendBookingId) {
+                        mappedData.append('originalBookingId', amendBookingId);
+                    }
+                    if (amendEmail) {
+                        mappedData.append('originalEmail', amendEmail);
+                    }
+                    endpoint = AMEND_API_URL;
+                }
+
+                const response = await axios.post(endpoint, mappedData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                     },
                     timeout: 30000,
                 });
 
-                if (response.status === 201) {
+                if (response.status === 201 || response.status === 200) {
                     setBookingData(response.data.booking);
                     setConfirmed(true);
-                    toast.success('✅ Booking confirmed! Check your email for the confirmation.');
+                    toast.success(
+                        isAmendMode
+                            ? '✅ Booking amended! A new confirmation email has been sent.'
+                            : '✅ Booking confirmed! Check your email for the confirmation.'
+                    );
                     if (onComplete) {
                         setTimeout(onComplete, 3000);
                     }
@@ -408,11 +436,17 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                     />
                 </div>
                 <div style={styles.heroContent}>
-                    <h1 className="bf-hero-title" style={styles.heroTitle}>Vehicle Booking Form</h1>
+                    <h1 className="bf-hero-title" style={styles.heroTitle}>
+                        {isAmendMode ? 'Amend Your Booking' : 'Vehicle Booking Form'}
+                    </h1>
                     <p className="bf-hero-subtitle" style={styles.heroSubtitle}>
-                        Complete the details below and attach the required identification documents.
+                        {isAmendMode
+                            ? 'Update your reservation details below. Submitting will replace your previous booking.'
+                            : 'Complete the details below and attach the required identification documents.'}
                     </p>
-                    <span style={styles.heroPill}>Special Offer Rates</span>
+                    <span style={styles.heroPill}>
+                        {isAmendMode ? 'Amend Mode' : 'Special Offer Rates'}
+                    </span>
                 </div>
             </div>
         );
@@ -588,7 +622,11 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                             ...((isSubmitting || confirmed || !isFormComplete) ? styles.submitBtnDisabled : {}),
                         }}
                     >
-                        {isSubmitting ? 'Submitting…' : confirmed ? '✓ Booking Confirmed' : 'Submit Booking Request'}
+                        {isSubmitting
+                            ? 'Submitting…'
+                            : confirmed
+                                ? (isAmendMode ? '✓ Booking Amended' : '✓ Booking Confirmed')
+                                : (isAmendMode ? 'Submit Amendment' : 'Submit Booking Request')}
                     </button>
                 )}
             </div>
@@ -621,7 +659,11 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         <div style={styles.reviewBannerIcon}>✓</div>
                         <div>
                             <h3 style={styles.reviewBannerTitle}>Almost There!</h3>
-                            <p style={styles.reviewBannerText}>Review your details below before submitting your booking.</p>
+                            <p style={styles.reviewBannerText}>
+                                {isAmendMode
+                                    ? 'Review your updated details below. Submitting will replace your previous booking.'
+                                    : 'Review your details below before submitting your booking.'}
+                            </p>
                         </div>
                     </div>
 
@@ -734,7 +776,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </div>
                     </div>
 
-                    {/* ✅ FIXED: single grid wrapper with all three document previews */}
                     <div style={styles.reviewCard}>
                         <div style={styles.reviewCardHeader}>
                             <span style={styles.reviewCardIcon}>📎</span>
@@ -742,7 +783,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </div>
                         <div className="bf-review-body" style={styles.reviewCardBody}>
                             <div className="bf-doc-preview-grid" style={styles.docPreviewGrid}>
-                                {/* Driving Licence */}
                                 <div style={styles.docPreviewItem}>
                                     <div style={styles.docPreviewLabel}>
                                         <span>🪪 Driving Licence</span>
@@ -770,7 +810,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                     )}
                                 </div>
 
-                                {/* ID / Passport */}
                                 <div style={styles.docPreviewItem}>
                                     <div style={styles.docPreviewLabel}>
                                         <span>🆔 ID / Passport</span>
@@ -798,7 +837,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                     )}
                                 </div>
 
-                                {/* Proof of Payment */}
                                 <div style={{ ...styles.docPreviewItem, gridColumn: '1 / -1' }}>
                                     <div style={styles.docPreviewLabel}>
                                         <span>💳 Proof of Payment</span>
@@ -835,18 +873,18 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                             <h4 style={styles.reviewCardTitle}>Declaration</h4>
                         </div>
                         <div className="bf-review-body" style={styles.reviewCardBody}>
-                        <div className="bf-consent-box" style={styles.consentBox}>
-                            <input
-                                id="consent"
-                                type="checkbox"
-                                className="bf-consent-checkbox"
-                                {...register('consent', { required: 'You must confirm accuracy' })}
-                                style={styles.consentCheckbox}
-                            />
-                            <label htmlFor="consent" style={styles.consentLabel}>
-                                I confirm that the information and documents provided are accurate, and I consent to their use for booking verification. <span style={styles.required}>*</span>
-                            </label>
-                        </div>
+                            <div className="bf-consent-box" style={styles.consentBox}>
+                                <input
+                                    id="consent"
+                                    type="checkbox"
+                                    className="bf-consent-checkbox"
+                                    {...register('consent', { required: 'You must confirm accuracy' })}
+                                    style={styles.consentCheckbox}
+                                />
+                                <label htmlFor="consent" style={styles.consentLabel}>
+                                    I confirm that the information and documents provided are accurate, and I consent to their use for booking verification. <span style={styles.required}>*</span>
+                                </label>
+                            </div>
                             {errors.consent && <p style={styles.errorText}>{errors.consent.message}</p>}
                         </div>
                     </div>
@@ -854,7 +892,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                     <div style={styles.reviewNote}>
                         <span style={styles.reviewNoteIcon}>ℹ️</span>
                         <p style={styles.reviewNoteText}>
-                            By clicking <strong>Submit Booking Request</strong>, you agree to our{' '}
+                            By clicking <strong>{isAmendMode ? 'Submit Amendment' : 'Submit Booking Request'}</strong>, you agree to our{' '}
                             <a href="/terms" style={styles.reviewNoteLink}>Terms & Conditions</a> and{' '}
                             <a href="/privacy" style={styles.reviewNoteLink}>Privacy Policy</a>.
                         </p>
@@ -868,6 +906,24 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 case 1:
                     return (
                         <>
+                            {isAmendMode && (
+                                <div
+                                    style={{
+                                        background: '#ecfdf5',
+                                        border: '1px solid #10b981',
+                                        borderRadius: '12px',
+                                        padding: '14px 18px',
+                                        marginBottom: '16px',
+                                        color: '#065f46',
+                                        fontSize: '14px',
+                                        lineHeight: '1.5',
+                                    }}
+                                >
+                                    <strong>🔄 Amend Mode:</strong> You are updating booking{' '}
+                                    <strong>{amendBookingId || 'linked to your email'}</strong>. Submitting
+                                    this form will replace your previous booking with the new details.
+                                </div>
+                            )}
                             <section className="bf-card" style={styles.card}>
                                 <h2 className="bf-card-title" style={styles.cardTitle}>Your details</h2>
                                 <p className="bf-card-subtitle" style={styles.cardSubtitle}>Enter the primary driver's contact and identification information.</p>
@@ -1189,7 +1245,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                         {errors.drivingLicense && <p style={styles.errorText}>{errors.drivingLicense.message}</p>}
                                     </div>
 
-                                    {/* ✅ Proof of Payment */}
                                     <div style={{ gridColumn: '1 / -1' }}>
                                         <label style={styles.label} htmlFor="depositProof">
                                             Proof of Payment <span style={styles.required}>*</span>
@@ -1224,7 +1279,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                     return (
                         <>
                             <section className="bf-card" style={styles.card}>
-                                <h2 className="bf-card-title" style={styles.cardTitle}>Review & Submit</h2>
+                                <h2 className="bf-card-title" style={styles.cardTitle}>
+                                    {isAmendMode ? 'Review Amendment' : 'Review & Submit'}
+                                </h2>
                                 <p className="bf-card-subtitle" style={styles.cardSubtitle}>
                                     The estimate below uses the daily rate automatically matched to your rental duration.
                                 </p>
@@ -1312,7 +1369,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         max-width: 100%;
                         box-sizing: border-box;
                     }
-                    /* Explicit checkbox appearance (fixes the "text input" look on desktop) */
                     .bf-consent-box input[type="checkbox"].bf-consent-checkbox {
                         appearance: auto;
                         -webkit-appearance: checkbox;
@@ -1370,14 +1426,6 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                             max-width: 22px !important;
                             max-height: 22px !important;
                             flex-basis: 22px !important;
-                        }
-                    }
-                    @media (max-width: 640px) {
-                        .bf-consent-box { padding: 12px !important; gap: 10px !important; align-items: flex-start !important; }
-                        .bf-consent-box label { font-size: 13px !important; line-height: 1.5 !important; text-align: left !important; }
-                        .bf-consent-box input[type="checkbox"] {
-                            width: 22px !important; height: 22px !important;
-                            min-width: 22px !important; min-height: 22px !important;
                         }
                     }
                     @media (max-width: 640px) {
