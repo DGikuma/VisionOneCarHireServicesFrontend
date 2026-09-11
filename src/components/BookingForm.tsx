@@ -120,11 +120,21 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             autoPeriod: PeriodCategory | null;
         }>({ days: null, rate: null, total: null, error: null, autoPeriod: null });
 
-        // ✅ Detect amend mode from URL query params
+        // ✅ Amend mode — seeded from URL params, toggleable via UI
         const urlParams = new URLSearchParams(window.location.search);
-        const amendBookingId = urlParams.get('amend');
-        const amendEmail = urlParams.get('email');
-        const isAmendMode = !!(amendBookingId || amendEmail);
+        const [amendRequested, setAmendRequested] = useState<boolean>(
+            !!(urlParams.get('amend') || urlParams.get('email'))
+        );
+        const [amendBookingId, setAmendBookingId] = useState<string>(
+            urlParams.get('amend') || ''
+        );
+        const [amendEmail, setAmendEmail] = useState<string>(
+            urlParams.get('email') || ''
+        );
+
+        // Amend mode is active only when requested AND at least one identifier is present
+        const isAmendMode =
+            amendRequested && (!!amendBookingId.trim() || !!amendEmail.trim());
 
         const {
             register,
@@ -296,6 +306,16 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
 
         useImperativeHandle(ref, () => ({
             validateStep: async () => {
+                // ✅ Amend mode requires a booking ID or email on Step 1
+                if (activeStep === 1 && amendRequested) {
+                    if (!amendBookingId.trim() && !amendEmail.trim()) {
+                        toast.error(
+                            'Please enter your Booking ID or the email used for the original booking.'
+                        );
+                        return false;
+                    }
+                }
+
                 const fieldsToValidate = stepFields[activeStep] || [];
                 if (fieldsToValidate.length === 0) {
                     return true;
@@ -311,6 +331,10 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 setIsSubmitting(false);
                 setPreviewUrls({ drivingLicense: null, idDocument: null, depositProof: null });
                 setEstimate({ days: null, rate: null, total: null, error: null, autoPeriod: null });
+                // ✅ Reset amend state too
+                setAmendRequested(false);
+                setAmendBookingId('');
+                setAmendEmail('');
                 toast.info('Form has been reset.');
             },
         }));
@@ -385,11 +409,11 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 // ✅ Amend mode: attach original identifiers
                 let endpoint = API_URL;
                 if (isAmendMode) {
-                    if (amendBookingId) {
-                        mappedData.append('originalBookingId', amendBookingId);
+                    if (amendBookingId.trim()) {
+                        mappedData.append('originalBookingId', amendBookingId.trim());
                     }
-                    if (amendEmail) {
-                        mappedData.append('originalEmail', amendEmail);
+                    if (amendEmail.trim()) {
+                        mappedData.append('originalEmail', amendEmail.trim().toLowerCase());
                     }
                     endpoint = AMEND_API_URL;
                 }
@@ -667,6 +691,29 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         </div>
                     </div>
 
+                    {isAmendMode && (
+                        <div style={styles.reviewCard}>
+                            <div style={styles.reviewCardHeader}>
+                                <span style={styles.reviewCardIcon}>🔄</span>
+                                <h4 style={styles.reviewCardTitle}>Amending Existing Booking</h4>
+                            </div>
+                            <div className="bf-review-body" style={styles.reviewCardBody}>
+                                {amendBookingId.trim() && (
+                                    <div style={styles.reviewRow}>
+                                        <span style={styles.reviewLabel}>Original Booking ID</span>
+                                        <span style={styles.reviewValue}>{amendBookingId.trim()}</span>
+                                    </div>
+                                )}
+                                {amendEmail.trim() && (
+                                    <div style={styles.reviewRow}>
+                                        <span style={styles.reviewLabel}>Original Email</span>
+                                        <span style={styles.reviewValue}>{amendEmail.trim()}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     <div style={styles.reviewCard}>
                         <div style={styles.reviewCardHeader}>
                             <span style={styles.reviewCardIcon}>👤</span>
@@ -906,24 +953,132 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 case 1:
                     return (
                         <>
-                            {isAmendMode && (
-                                <div
+                            {/* ✅ Amend mode toggle + identifier inputs */}
+                            <div
+                                style={{
+                                    background: amendRequested ? '#ecfdf5' : '#f8f9fa',
+                                    border: `1px solid ${amendRequested ? '#10b981' : '#e5e7eb'}`,
+                                    borderRadius: '12px',
+                                    padding: '14px 18px',
+                                    marginBottom: '16px',
+                                    transition: 'all 0.2s',
+                                }}
+                            >
+                                <label
+                                    htmlFor="amendToggle"
                                     style={{
-                                        background: '#ecfdf5',
-                                        border: '1px solid #10b981',
-                                        borderRadius: '12px',
-                                        padding: '14px 18px',
-                                        marginBottom: '16px',
-                                        color: '#065f46',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '10px',
+                                        cursor: 'pointer',
+                                        fontWeight: 600,
                                         fontSize: '14px',
-                                        lineHeight: '1.5',
+                                        color: amendRequested ? '#065f46' : '#1f2328',
                                     }}
                                 >
-                                    <strong>🔄 Amend Mode:</strong> You are updating booking{' '}
-                                    <strong>{amendBookingId || 'linked to your email'}</strong>. Submitting
-                                    this form will replace your previous booking with the new details.
-                                </div>
-                            )}
+                                    <input
+                                        id="amendToggle"
+                                        type="checkbox"
+                                        checked={amendRequested}
+                                        onChange={(e) => {
+                                            const checked = e.target.checked;
+                                            setAmendRequested(checked);
+                                            if (!checked) {
+                                                setAmendBookingId('');
+                                                setAmendEmail('');
+                                            }
+                                        }}
+                                        style={{
+                                            width: '18px',
+                                            height: '18px',
+                                            accentColor: '#10b981',
+                                            cursor: 'pointer',
+                                        }}
+                                    />
+                                    <span>🔄 I'm amending an existing booking</span>
+                                </label>
+
+                                {amendRequested && (
+                                    <>
+                                        <p
+                                            style={{
+                                                margin: '10px 0 12px',
+                                                fontSize: '13px',
+                                                color: '#065f46',
+                                                lineHeight: 1.5,
+                                            }}
+                                        >
+                                            Enter either your <strong>Booking ID</strong> or the{' '}
+                                            <strong>email address</strong> used when you first booked.
+                                            We'll use it to locate and replace your original booking.
+                                        </p>
+
+                                        <div
+                                            className="bf-grid-2"
+                                            style={{ ...styles.grid2, gap: '12px' }}
+                                        >
+                                            <div>
+                                                <label
+                                                    style={styles.label}
+                                                    htmlFor="amendBookingId"
+                                                >
+                                                    Booking ID
+                                                </label>
+                                                <input
+                                                    id="amendBookingId"
+                                                    type="text"
+                                                    placeholder="e.g. V1-12345678"
+                                                    value={amendBookingId}
+                                                    onChange={(e) =>
+                                                        setAmendBookingId(e.target.value)
+                                                    }
+                                                    style={styles.input}
+                                                    autoComplete="off"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label
+                                                    style={styles.label}
+                                                    htmlFor="amendEmail"
+                                                >
+                                                    OR — Booking email
+                                                </label>
+                                                <input
+                                                    id="amendEmail"
+                                                    type="email"
+                                                    placeholder="you@example.com"
+                                                    value={amendEmail}
+                                                    onChange={(e) =>
+                                                        setAmendEmail(e.target.value)
+                                                    }
+                                                    style={styles.input}
+                                                    autoComplete="off"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {isAmendMode && (
+                                            <div
+                                                style={{
+                                                    marginTop: '12px',
+                                                    fontSize: '12.5px',
+                                                    color: '#065f46',
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                ✓ Amend mode active — submitting will replace
+                                                booking{' '}
+                                                <strong>
+                                                    {amendBookingId.trim() ||
+                                                        amendEmail.trim()}
+                                                </strong>
+                                                .
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+
                             <section className="bf-card" style={styles.card}>
                                 <h2 className="bf-card-title" style={styles.cardTitle}>Your details</h2>
                                 <p className="bf-card-subtitle" style={styles.cardSubtitle}>Enter the primary driver's contact and identification information.</p>
