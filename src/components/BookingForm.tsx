@@ -51,6 +51,7 @@ export interface BookingFormProps {
 
 const API_URL = `${API_BASE_URL}/api/bookings`;
 const AMEND_API_URL = `${API_BASE_URL}/api/bookings/amend`;
+const LOOKUP_API_URL = `${API_BASE_URL}/api/bookings/lookup`;
 
 const vehicleOptions = [
     { value: 'Fielder', label: 'Fielder', rates: { short: 4000, medium: 3500, long: 3000 } },
@@ -132,6 +133,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             urlParams.get('email') || ''
         );
 
+        // ✅ Lookup state
+        const [lookupStatus, setLookupStatus] = useState<
+            'idle' | 'loading' | 'found' | 'not_found' | 'error'
+        >('idle');
+        const [lookupMessage, setLookupMessage] = useState<string>('');
+        const lookupAbortRef = useRef<AbortController | null>(null);
+        const lastLookupKeyRef = useRef<string>('');
+
         // Amend mode is active only when requested AND at least one identifier is present
         const isAmendMode =
             amendRequested && (!!amendBookingId.trim() || !!amendEmail.trim());
@@ -180,6 +189,117 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
             }
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [isAmendMode, amendEmail]);
+
+        // ✅ Look up booking and prefill fields
+        useEffect(() => {
+            if (!amendRequested) {
+                setLookupStatus('idle');
+                setLookupMessage('');
+                lastLookupKeyRef.current = '';
+                return;
+            }
+
+            const idTrim = amendBookingId.trim();
+            const emailTrim = amendEmail.trim().toLowerCase();
+
+            const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim);
+            const idLooksValid = idTrim.length >= 6;
+
+            if (!idLooksValid && !emailLooksValid) {
+                setLookupStatus('idle');
+                setLookupMessage('');
+                return;
+            }
+
+            const lookupKey = `${idTrim}|${emailTrim}`;
+            if (lookupKey === lastLookupKeyRef.current) return;
+
+            const timer = setTimeout(async () => {
+                if (lookupAbortRef.current) {
+                    lookupAbortRef.current.abort();
+                }
+                const controller = new AbortController();
+                lookupAbortRef.current = controller;
+
+                setLookupStatus('loading');
+                setLookupMessage('Looking up your booking…');
+
+                try {
+                    const { data } = await axios.post(
+                        LOOKUP_API_URL,
+                        {
+                            bookingId: idLooksValid ? idTrim : undefined,
+                            email: emailLooksValid ? emailTrim : undefined,
+                        },
+                        { signal: controller.signal, timeout: 15000 }
+                    );
+
+                    if (!data?.success || !data?.booking) {
+                        setLookupStatus('not_found');
+                        setLookupMessage(
+                            'No booking found for that ID or email. You can still continue as a new booking.'
+                        );
+                        lastLookupKeyRef.current = lookupKey;
+                        return;
+                    }
+
+                    const b = data.booking;
+
+                    if (b.customerName) setValue('fullName', b.customerName);
+                    if (b.email) setValue('email', b.email);
+                    if (b.phone) {
+                        setPhoneValue(String(b.phone).replace(/[^\d]/g, ''));
+                        setValue('phone', b.phone);
+                    }
+                    if (b.nationality) setValue('nationality', b.nationality);
+                    if (b.idNumber) setValue('idNumber', b.idNumber);
+                    if (b.idType === 'id' || b.idType === 'passport') {
+                        setValue('idType', b.idType);
+                    }
+
+                    if (b.carType) {
+                        const match = vehicleOptions.find(
+                            v =>
+                                v.value.toLowerCase() ===
+                                String(b.carType).toLowerCase()
+                        );
+                        if (match) setValue('vehicle', match.value);
+                    }
+                    if (b.pickupDate) {
+                        setValue('pickupDate', String(b.pickupDate).slice(0, 10));
+                    }
+                    if (b.returnDate) {
+                        setValue('returnDate', String(b.returnDate).slice(0, 10));
+                    }
+                    if (b.pickupLocation) setValue('pickupLocation', b.pickupLocation);
+                    if (b.dropoffLocation) setValue('deliveryAddress', b.dropoffLocation);
+                    if (b.additionalInfo) setValue('notes', b.additionalInfo);
+
+                    setLookupStatus('found');
+                    setLookupMessage(
+                        '✓ Booking found — details loaded. Please re-attach your documents.'
+                    );
+                    lastLookupKeyRef.current = lookupKey;
+
+                    toast.success('✓ Booking found — details loaded.');
+                } catch (err: any) {
+                    if (
+                        err?.name === 'CanceledError' ||
+                        err?.code === 'ERR_CANCELED'
+                    ) {
+                        return;
+                    }
+                    console.error('Lookup failed:', err);
+                    setLookupStatus('error');
+                    setLookupMessage(
+                        "Couldn't reach the server to load your booking. You can still continue."
+                    );
+                }
+            }, 600);
+
+            return () => clearTimeout(timer);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [amendRequested, amendBookingId, amendEmail]);
 
         const isFormComplete = allRequiredFields.every(field => {
             const value = watchedValues[field];
@@ -314,6 +434,12 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         );
                         return false;
                     }
+                    if (lookupStatus === 'loading') {
+                        toast.info(
+                            'Still looking up your booking — please wait a moment…'
+                        );
+                        return false;
+                    }
                 }
 
                 const fieldsToValidate = stepFields[activeStep] || [];
@@ -331,10 +457,17 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 setIsSubmitting(false);
                 setPreviewUrls({ drivingLicense: null, idDocument: null, depositProof: null });
                 setEstimate({ days: null, rate: null, total: null, error: null, autoPeriod: null });
-                // ✅ Reset amend state too
+                // ✅ Reset amend + lookup state
                 setAmendRequested(false);
                 setAmendBookingId('');
                 setAmendEmail('');
+                if (lookupAbortRef.current) {
+                    lookupAbortRef.current.abort();
+                    lookupAbortRef.current = null;
+                }
+                setLookupStatus('idle');
+                setLookupMessage('');
+                lastLookupKeyRef.current = '';
                 toast.info('Form has been reset.');
             },
         }));
@@ -979,6 +1112,7 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                     <input
                                         id="amendToggle"
                                         type="checkbox"
+                                        className="bf-consent-checkbox"
                                         checked={amendRequested}
                                         onChange={(e) => {
                                             const checked = e.target.checked;
@@ -1081,6 +1215,78 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                                         amendEmail.trim()}
                                                 </strong>
                                                 .
+                                            </div>
+                                        )}
+
+                                        {/* ✅ Lookup status feedback */}
+                                        {lookupStatus !== 'idle' && (
+                                            <div
+                                                role="status"
+                                                style={{
+                                                    marginTop: '10px',
+                                                    padding: '10px 12px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '13px',
+                                                    lineHeight: 1.5,
+                                                    display: 'flex',
+                                                    gap: '8px',
+                                                    alignItems: 'flex-start',
+                                                    background:
+                                                        lookupStatus === 'found'
+                                                            ? '#ecfdf5'
+                                                            : lookupStatus === 'loading'
+                                                            ? '#eff6ff'
+                                                            : lookupStatus === 'not_found'
+                                                            ? '#fef2f2'
+                                                            : '#fffbeb',
+                                                    border: `1px solid ${
+                                                        lookupStatus === 'found'
+                                                            ? '#10b981'
+                                                            : lookupStatus === 'loading'
+                                                            ? '#3b82f6'
+                                                            : lookupStatus === 'not_found'
+                                                            ? '#ef4444'
+                                                            : '#f59e0b'
+                                                    }`,
+                                                    color:
+                                                        lookupStatus === 'found'
+                                                            ? '#065f46'
+                                                            : lookupStatus === 'loading'
+                                                            ? '#1e3a8a'
+                                                            : lookupStatus === 'not_found'
+                                                            ? '#7f1d1d'
+                                                            : '#78350f',
+                                                }}
+                                            >
+                                                <span>
+                                                    {lookupStatus === 'loading'
+                                                        ? '⏳'
+                                                        : lookupStatus === 'found'
+                                                        ? '✅'
+                                                        : '⚠️'}
+                                                </span>
+                                                <span>{lookupMessage}</span>
+                                            </div>
+                                        )}
+
+                                        {/* Document re-upload reminder when a booking was found */}
+                                        {lookupStatus === 'found' && (
+                                            <div
+                                                style={{
+                                                    marginTop: '10px',
+                                                    padding: '10px 12px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '12.5px',
+                                                    lineHeight: 1.5,
+                                                    background: '#fffbeb',
+                                                    border: '1px solid #f59e0b',
+                                                    color: '#78350f',
+                                                }}
+                                            >
+                                                📎 <strong>Please re-upload your documents.</strong>{' '}
+                                                For security reasons, browsers cannot prefill
+                                                file inputs — you'll need to attach your ID,
+                                                driving licence, and proof of payment again.
                                             </div>
                                         )}
                                     </>
@@ -1362,6 +1568,27 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                     All three documents are required. On most phones, tap <strong>Choose File</strong> and select the camera
                                     to photograph the document. Make sure the whole document is visible and readable.
                                 </div>
+                                {isAmendMode && lookupStatus === 'found' && (
+                                    <div
+                                        style={{
+                                            marginTop: '14px',
+                                            padding: '10px 12px',
+                                            borderRadius: '8px',
+                                            fontSize: '13px',
+                                            lineHeight: 1.5,
+                                            background: '#fffbeb',
+                                            border: '1px solid #f59e0b',
+                                            color: '#78350f',
+                                        }}
+                                    >
+                                        📎 Since you're amending booking{' '}
+                                        <strong>
+                                            {amendBookingId.trim() || amendEmail.trim()}
+                                        </strong>
+                                        , please re-upload your documents. Browsers can't
+                                        prefill file inputs for security reasons.
+                                    </div>
+                                )}
                                 <div className="bf-grid-2" style={{ ...styles.grid2, marginTop: '16px' }}>
                                     <div>
                                         <label style={styles.label} htmlFor="idDocument">
