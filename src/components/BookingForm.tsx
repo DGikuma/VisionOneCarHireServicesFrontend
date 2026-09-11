@@ -989,10 +989,18 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                             }
                                         }}
                                         style={{
-                                            width: '18px',
-                                            height: '18px',
+                                            width: '20px',
+                                            height: '20px',
+                                            minWidth: '20px',
+                                            minHeight: '20px',
+                                            maxWidth: '20px',
+                                            maxHeight: '20px',
+                                            flex: '0 0 20px',
                                             accentColor: '#10b981',
                                             cursor: 'pointer',
+                                            appearance: 'auto',
+                                            WebkitAppearance: 'checkbox',
+                                            MozAppearance: 'checkbox',
                                         }}
                                     />
                                     <span>🔄 I'm amending an existing booking</span>
@@ -1512,8 +1520,58 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         .bf-phone-input .flag-dropdown { height: 50px !important; }
                     }
                     .bf-container * { max-width: 100%; box-sizing: border-box; }
-                    .bf-container input, .bf-container select, .bf-container textarea {
+                    .bf-container input:not([type="checkbox"]):not([type="radio"]),
+                    .bf-container select,
+                    .bf-container textarea {
                         width: 100% !important; max-width: 100% !important;
+                    }
+
+                    /* ===== Checkboxes & radios must keep native size everywhere ===== */
+                    .bf-container input[type="checkbox"],
+                    .bf-container input[type="radio"] {
+                        width: 20px !important;
+                        height: 20px !important;
+                        min-width: 20px !important;
+                        min-height: 20px !important;
+                        max-width: 20px !important;
+                        max-height: 20px !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        flex: 0 0 20px !important;
+                        appearance: auto !important;
+                        -webkit-appearance: checkbox !important;
+                        -moz-appearance: checkbox !important;
+                        border: 2px solid #d9dee7 !important;
+                        border-radius: 4px !important;
+                        background: #fff !important;
+                        box-shadow: none !important;
+                        outline: none !important;
+                        transform: none !important;
+                        cursor: pointer !important;
+                        vertical-align: middle;
+                        accent-color: #e10b0b;
+                    }
+                    .bf-container input[type="radio"] {
+                        border-radius: 50% !important;
+                        accent-color: #e10b0b;
+                    }
+                    .bf-container input[type="checkbox"]:focus,
+                    .bf-container input[type="radio"]:focus {
+                        outline: 2px solid rgba(225, 11, 11, 0.3) !important;
+                        outline-offset: 2px !important;
+                    }
+
+                    @media (max-width: 640px) {
+                        .bf-container input[type="checkbox"],
+                        .bf-container input[type="radio"] {
+                            width: 22px !important;
+                            height: 22px !important;
+                            min-width: 22px !important;
+                            min-height: 22px !important;
+                            max-width: 22px !important;
+                            max-height: 22px !important;
+                            flex-basis: 22px !important;
+                        }
                     }
                     /* ===== Declaration checkbox — desktop + mobile ===== */
                     .bf-consent-box {
