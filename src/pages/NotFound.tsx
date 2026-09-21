@@ -22,19 +22,15 @@ import {
 const NotFoundPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-blue-50">
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-gradient-to-r from-blue-500/5 to-cyan-400/5 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-primary-500/5 to-blue-600/5 rounded-full blur-3xl"></div>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="relative">
-                        <div className="absolute inset-0 animate-pulse">
-                            <div className="w-48 h-48 border-2 border-blue-400/20 rounded-full"></div>
-                            <div className="w-48 h-48 border-2 border-blue-400/20 rounded-full absolute top-0 left-0 animate-spin" style={{ animationDuration: '20s' }}></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        {/* Background with image */}
+        <div className="absolute inset-0">
+            <img
+                src="https://images.unsplash.com/photo-1516387938699-a93567ec168e?auto=format&fit=crop&w=2400&q=100"
+                alt="Abstract city night"
+                className="w-full h-full object-cover opacity-20"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-50/95 via-white/90 to-blue-50/95" />
+        </div>
 
             <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-20">
                 <div className="max-w-6xl w-full">

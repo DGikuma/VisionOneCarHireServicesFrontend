@@ -244,36 +244,31 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                     }
 
                     const b = data.booking;
+                    const opts = { shouldValidate: true, shouldDirty: true } as const;
 
-                    if (b.customerName) setValue('fullName', b.customerName);
-                    if (b.email) setValue('email', b.email);
+                    if (b.customerName) setValue('fullName', b.customerName, opts);
+                    if (b.email)        setValue('email', b.email, opts);
                     if (b.phone) {
                         setPhoneValue(String(b.phone).replace(/[^\d]/g, ''));
-                        setValue('phone', b.phone);
+                        setValue('phone', b.phone, opts);
                     }
-                    if (b.nationality) setValue('nationality', b.nationality);
-                    if (b.idNumber) setValue('idNumber', b.idNumber);
+                    if (b.nationality)  setValue('nationality', b.nationality, opts);
+                    if (b.idNumber)     setValue('idNumber', b.idNumber, opts);
                     if (b.idType === 'id' || b.idType === 'passport') {
-                        setValue('idType', b.idType);
+                        setValue('idType', b.idType, opts);
                     }
 
                     if (b.carType) {
                         const match = vehicleOptions.find(
-                            v =>
-                                v.value.toLowerCase() ===
-                                String(b.carType).toLowerCase()
+                            v => v.value.toLowerCase() === String(b.carType).toLowerCase()
                         );
-                        if (match) setValue('vehicle', match.value);
+                        if (match) setValue('vehicle', match.value, opts);
                     }
-                    if (b.pickupDate) {
-                        setValue('pickupDate', String(b.pickupDate).slice(0, 10));
-                    }
-                    if (b.returnDate) {
-                        setValue('returnDate', String(b.returnDate).slice(0, 10));
-                    }
-                    if (b.pickupLocation) setValue('pickupLocation', b.pickupLocation);
-                    if (b.dropoffLocation) setValue('deliveryAddress', b.dropoffLocation);
-                    if (b.additionalInfo) setValue('notes', b.additionalInfo);
+                    if (b.pickupDate)     setValue('pickupDate',     String(b.pickupDate).slice(0, 10), opts);
+                    if (b.returnDate)     setValue('returnDate',     String(b.returnDate).slice(0, 10), opts);
+                    if (b.pickupLocation) setValue('pickupLocation', b.pickupLocation, opts);
+                    if (b.dropoffLocation) setValue('deliveryAddress', b.dropoffLocation, opts);
+                    if (b.additionalInfo) setValue('notes', b.additionalInfo, opts);
 
                     setLookupStatus('found');
                     setLookupMessage(

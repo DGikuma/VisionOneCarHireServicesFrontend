@@ -4,18 +4,28 @@ import { ShieldCheckIcon, DocumentTextIcon, UserIcon, LockClosedIcon } from '@he
 const PrivacyPolicyPage: React.FC = () => {
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            {/* Header */}
-            <div className="text-center mb-12">
-                <div className="inline-flex p-4 bg-primary-100 rounded-2xl mb-6">
-                    <ShieldCheckIcon className="h-12 w-12 text-primary-600" />
+        {/* Header */}
+        <div className="relative overflow-hidden rounded-2xl mb-12">
+            <div className="absolute inset-0">
+                <img
+                    src="https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=2400&q=100"
+                    alt="Security and privacy"
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-900/95 to-gray-800/90" />
+            </div>
+            <div className="relative text-center py-16 px-4">
+                <div className="inline-flex p-4 bg-white/10 backdrop-blur-md rounded-2xl mb-6">
+                    <ShieldCheckIcon className="h-12 w-12 text-[#FF6B35]" />
                 </div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                <h1 className="text-4xl font-bold text-white mb-4">
                     Privacy Policy
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-gray-300">
                     Last updated: January 1, 2024
                 </p>
             </div>
+        </div>
 
             {/* Introduction */}
             <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">

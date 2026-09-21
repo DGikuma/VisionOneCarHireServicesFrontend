@@ -8,7 +8,8 @@ import {
     StarIcon,
     ShieldCheckIcon,
     BoltIcon,
-    HeartIcon
+    HeartIcon,
+    TruckIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
 
@@ -384,56 +385,66 @@ const FleetPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-            {/* Hero Section */}
-            <div className="relative overflow-hidden bg-gradient-to-r from-gray-900 to-gray-800 py-12 md:py-20">
-                {/* Animated background elements */}
-                <div className="absolute inset-0 overflow-hidden">
-                    {[...Array(20)].map((_, i) => (
-                        <div
-                            key={i}
-                            className="absolute w-px h-px bg-[#FF6B35] rounded-full animate-pulse"
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                top: `${Math.random() * 100}%`,
-                                animationDelay: `${i * 0.5}s`,
-                                boxShadow: '0 0 20px 2px rgba(255, 107, 53, 0.5)'
-                            }}
-                        />
+        {/* Hero Section */}
+        <div className="relative overflow-hidden min-h-[550px] flex items-center">
+            {/* Ultra-HD Background Image */}
+            <div className="absolute inset-0">
+                <img
+                    src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=2400&q=100"
+                    alt="Luxury car fleet"
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-900/95 via-gray-900/85 to-gray-800/70" />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
+            </div>
+
+            {/* Animated background elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                {[...Array(25)].map((_, i) => (
+                    <div
+                        key={i}
+                        className="absolute w-1 h-1 bg-[#FF6B35] rounded-full animate-pulse"
+                        style={{
+                            left: `${Math.random() * 100}%`,
+                            top: `${Math.random() * 100}%`,
+                            animationDelay: `${i * 0.3}s`,
+                            boxShadow: '0 0 20px 4px rgba(255, 107, 53, 0.6)'
+                        }}
+                    />
+                ))}
+            </div>
+
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center">
+                <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF6B35]/20 backdrop-blur-md rounded-full border border-[#FF6B35]/30 mb-8">
+                    <TruckIcon className="h-5 w-5 text-[#FF6B35]" />
+                    <span className="text-sm font-semibold text-[#FF6B35] tracking-wide">PREMIUM FLEET</span>
+                </div>
+
+                <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+                    <span className="bg-gradient-to-r from-white via-orange-100 to-[#FF6B35] bg-clip-text text-transparent">
+                        Executive Fleet
+                    </span>
+                </h1>
+
+                <p className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed px-4">
+                    Experience automotive excellence with our curated collection of premium vehicles,
+                    meticulously maintained and ready for your next journey.
+                </p>
+
+                <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+                    {[
+                        { value: `${cars.length}`, label: 'Premium Vehicles' },
+                        { value: '4.8★', label: 'Customer Rating' },
+                        { value: '24/7', label: 'Concierge Support' }
+                    ].map((stat, index) => (
+                        <div key={index} className="px-5 sm:px-6 py-3 sm:py-4 bg-white/5 backdrop-blur-md rounded-xl sm:rounded-2xl border border-white/10 min-w-[120px] hover:bg-white/10 transition-all duration-300">
+                            <span className="text-2xl sm:text-3xl font-bold text-white block">{stat.value}</span>
+                            <p className="text-xs sm:text-sm text-gray-400 mt-1">{stat.label}</p>
+                        </div>
                     ))}
                 </div>
-
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <div className="inline-flex items-center mb-4 px-4 py-2 bg-[#FF6B35]/10 backdrop-blur-sm rounded-full border border-[#FF6B35]/20">
-                        {/* Optional badge content */}
-                    </div>
-
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
-                        <span className="bg-gradient-to-r from-white via-gray-100 to-gray-200 bg-clip-text text-transparent">
-                            Executive Fleet
-                        </span>
-                    </h1>
-
-                    <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto mb-8 leading-relaxed px-4">
-                        Experience automotive excellence with our curated collection of premium vehicles,
-                        meticulously maintained and ready for your next journey.
-                    </p>
-
-                    <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-                        <div className="px-3 sm:px-4 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 min-w-[120px]">
-                            <span className="text-xl sm:text-2xl font-bold text-white">{cars.length}</span>
-                            <p className="text-xs sm:text-sm text-gray-400">Premium Vehicles</p>
-                        </div>
-                        <div className="px-3 sm:px-4 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 min-w-[120px]">
-                            <span className="text-xl sm:text-2xl font-bold text-white">4.8★</span>
-                            <p className="text-xs sm:text-sm text-gray-400">Customer Rating</p>
-                        </div>
-                        <div className="px-3 sm:px-4 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 min-w-[120px]">
-                            <span className="text-xl sm:text-2xl font-bold text-white">24/7</span>
-                            <p className="text-xs sm:text-sm text-gray-400">Concierge Support</p>
-                        </div>
-                    </div>
-                </div>
             </div>
+        </div>
 
             {/* Filters & Controls */}
             <div className="sticky top-20 z-40 bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-200">

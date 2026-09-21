@@ -139,14 +139,16 @@ const SingleBlogPage: React.FC = () => {
                 </div>
             </header >
 
-            {/* Featured Image */}
-            < div className="mb-12" >
+            {/* Featured Image with enhanced styling */}
+            <div className="mb-12 relative">
+                <div className="absolute -inset-4 bg-gradient-to-r from-[#FF6B35]/20 to-transparent rounded-3xl blur-2xl opacity-50" />
                 <img
                     src={blogPost.image}
                     alt={blogPost.title}
-                    className="w-full h-96 object-cover rounded-2xl shadow-lg"
+                    className="relative w-full h-[400px] md:h-[500px] object-cover rounded-2xl shadow-2xl"
                 />
-            </div >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-2xl" />
+            </div>
 
             {/* Article Content */}
             < article className="prose prose-lg max-w-none mb-12" >

@@ -112,31 +112,43 @@ const BookingPage: React.FC = () => {
             {/* ============================================
                 HERO SECTION — responsive from mobile to desktop
                 ============================================ */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-14 sm:py-20 lg:py-24">
+            <div className="relative overflow-hidden min-h-[500px] sm:min-h-[550px] lg:min-h-[600px] flex items-center">
+                {/* Ultra-HD Background Image */}
+                <div className="absolute inset-0">
+                    <img
+                        src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=2400&q=100"
+                        alt="Luxury car on road"
+                        className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-gray-900/95 via-gray-900/85 to-gray-800/75" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
+                </div>
+
                 {/* Animated Background Particles */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     {[...Array(15)].map((_, i) => (
                         <div
                             key={i}
-                            className="absolute w-px h-px bg-[#FF6B35] rounded-full animate-pulse"
+                            className="absolute w-1 h-1 bg-[#FF6B35] rounded-full animate-pulse"
                             style={{
                                 left: `${Math.random() * 100}%`,
                                 top: `${Math.random() * 100}%`,
                                 animationDelay: `${i * 0.3}s`,
-                                boxShadow: '0 0 20px 2px rgba(255, 107, 53, 0.5)'
+                                boxShadow: '0 0 20px 4px rgba(255, 107, 53, 0.6)'
                             }}
                         />
                     ))}
                 </div>
 
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 lg:py-24">
                     <div className="text-center">
-                        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FF6B35]/10 backdrop-blur-sm rounded-full border border-[#FF6B35]/20 mb-4 sm:mb-6">
-                            <span className="text-xs sm:text-sm font-semibold text-[#FF6B35]">PREMIUM BOOKING</span>
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35]/20 backdrop-blur-md rounded-full border border-[#FF6B35]/30 mb-6">
+                            <ShieldCheckIcon className="h-4 w-4 text-[#FF6B35]" />
+                            <span className="text-xs sm:text-sm font-semibold text-[#FF6B35] tracking-wide">PREMIUM BOOKING</span>
                         </div>
 
                         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6">
-                            <span className="bg-gradient-to-r from-white via-gray-100 to-gray-200 bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-white via-orange-100 to-[#FF6B35] bg-clip-text text-transparent">
                                 Executive Reservation
                             </span>
                         </h1>
@@ -146,20 +158,17 @@ const BookingPage: React.FC = () => {
                             with our four-step executive process and enjoy white-glove service.
                         </p>
 
-                        {/* Stats badges — compact on mobile */}
                         <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-                            <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 min-w-[100px]">
-                                <span className="text-xl sm:text-2xl font-bold text-white">4</span>
-                                <p className="text-xs sm:text-sm text-gray-400">Simple Steps</p>
-                            </div>
-                            <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 min-w-[100px]">
-                                <span className="text-xl sm:text-2xl font-bold text-white">0%</span>
-                                <p className="text-xs sm:text-sm text-gray-400">Booking Fee</p>
-                            </div>
-                            <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 min-w-[100px]">
-                                <span className="text-xl sm:text-2xl font-bold text-white">24/7</span>
-                                <p className="text-xs sm:text-sm text-gray-400">Support</p>
-                            </div>
+                            {[
+                                { value: '4', label: 'Simple Steps' },
+                                { value: '0%', label: 'Booking Fee' },
+                                { value: '24/7', label: 'Support' }
+                            ].map((stat, index) => (
+                                <div key={index} className="px-4 sm:px-6 py-2.5 sm:py-3 bg-white/5 backdrop-blur-md rounded-xl border border-white/20 min-w-[100px]">
+                                    <span className="text-xl sm:text-2xl font-bold text-white block">{stat.value}</span>
+                                    <p className="text-xs sm:text-sm text-gray-400">{stat.label}</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>

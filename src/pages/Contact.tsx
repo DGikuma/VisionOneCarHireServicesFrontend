@@ -511,56 +511,66 @@ const ContactPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-            {/* Hero Section */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-24">
-                {/* Animated Background Particles */}
-                <div className="absolute inset-0 overflow-hidden">
-                    {[...Array(20)].map((_, i) => (
-                        <div
-                            key={i}
-                            className="absolute w-px h-px bg-[#FF6B35] rounded-full animate-pulse"
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                top: `${Math.random() * 100}%`,
-                                animationDelay: `${i * 0.3}s`,
-                                boxShadow: '0 0 20px 2px rgba(255, 107, 53, 0.5)'
-                            }}
-                        />
+        {/* Hero Section */}
+        <div className="relative overflow-hidden min-h-[550px] flex items-center">
+            {/* Ultra-HD Background Image */}
+            <div className="absolute inset-0">
+                <img
+                    src="https://images.unsplash.com/photo-1423666639041-f56000c27a9a?auto=format&fit=crop&w=2400&q=100"
+                    alt="Modern office building"
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-900/95 via-gray-900/88 to-gray-800/80" />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
+            </div>
+
+            {/* Animated Background Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                {[...Array(20)].map((_, i) => (
+                    <div
+                        key={i}
+                        className="absolute w-1 h-1 bg-[#FF6B35] rounded-full animate-pulse"
+                        style={{
+                            left: `${Math.random() * 100}%`,
+                            top: `${Math.random() * 100}%`,
+                            animationDelay: `${i * 0.3}s`,
+                            boxShadow: '0 0 20px 4px rgba(255, 107, 53, 0.6)'
+                        }}
+                    />
+                ))}
+            </div>
+
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-24">
+                <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF6B35]/20 backdrop-blur-md rounded-full border border-[#FF6B35]/30 mb-8">
+                    <ChatBubbleLeftRightIcon className="h-5 w-5 text-[#FF6B35]" />
+                    <span className="text-sm font-semibold text-[#FF6B35] tracking-wide">EXECUTIVE CONNECTIONS</span>
+                </div>
+
+                <h1 className="text-5xl md:text-7xl font-bold text-white mb-8">
+                    <span className="bg-gradient-to-r from-white via-orange-100 to-[#FF6B35] bg-clip-text text-transparent">
+                        Premium Contact & Support
+                    </span>
+                </h1>
+
+                <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed">
+                    Connect with our executive team for unparalleled service, strategic partnerships,
+                    and premium support tailored to your unique mobility requirements.
+                </p>
+
+                <div className="flex flex-wrap justify-center gap-6">
+                    {[
+                        { value: '2', label: 'Hour Response' },
+                        { value: '24/7', label: 'Premium Support' },
+                        { value: '2', label: 'Global Locations' }
+                    ].map((stat, index) => (
+                        <div key={index} className="px-6 py-4 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-300">
+                            <span className="text-3xl font-bold text-white block">{stat.value}</span>
+                            <p className="text-sm text-gray-400 mt-1">{stat.label}</p>
+                        </div>
                     ))}
                 </div>
-
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35]/10 backdrop-blur-sm rounded-full border border-[#FF6B35]/20 mb-6">
-                        <span className="text-sm font-semibold text-[#FF6B35]">EXECUTIVE CONNECTIONS</span>
-                    </div>
-
-                    <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-                        <span className="bg-gradient-to-r from-white via-gray-100 to-gray-200 bg-clip-text text-transparent">
-                            Premium Contact & Support
-                        </span>
-                    </h1>
-
-                    <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed">
-                        Connect with our executive team for unparalleled service, strategic partnerships,
-                        and premium support tailored to your unique mobility requirements.
-                    </p>
-
-                    <div className="flex flex-wrap justify-center gap-4">
-                        <div className="px-4 py-2 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-                            <span className="text-2xl font-bold text-white">2</span>
-                            <p className="text-sm text-gray-400">Hour Response</p>
-                        </div>
-                        <div className="px-4 py-2 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-                            <span className="text-2xl font-bold text-white">24/7</span>
-                            <p className="text-sm text-gray-400">Premium Support</p>
-                        </div>
-                        <div className="px-4 py-2 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-                            <span className="text-2xl font-bold text-white">2</span>
-                            <p className="text-sm text-gray-400">Global Locations</p>
-                        </div>
-                    </div>
-                </div>
             </div>
+        </div>
 
             {/* Contact Channels */}
             <div className="relative -mt-16 z-10">

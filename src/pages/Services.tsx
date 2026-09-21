@@ -189,43 +189,54 @@ const ServicesPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-            {/* Hero Section */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-24">
-                {/* Animated Background */}
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#FF6B35] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#FF8B35] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
-                </div>
+        {/* Hero Section */}
+        <div className="relative overflow-hidden min-h-[600px] flex items-center">
+            {/* Ultra-HD Background Image */}
+            <div className="absolute inset-0">
+                <img
+                    src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?auto=format&fit=crop&w=2400&q=100"
+                    alt="Luxury car service"
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-900/95 via-gray-900/85 to-gray-800/75" />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
+            </div>
 
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35]/10 backdrop-blur-sm rounded-full border border-[#FF6B35]/20 mb-6">
-                            <ShieldCheckIcon className="h-4 w-4 text-[#FF6B35]" />
-                            <span className="text-sm font-semibold text-[#FF6B35]">EXECUTIVE SERVICES</span>
+            {/* Animated Background */}
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#FF6B35] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
+                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-[#FF8B35] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+            </div>
+
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+                <div className="text-center">
+                    <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF6B35]/20 backdrop-blur-md rounded-full border border-[#FF6B35]/30 mb-8">
+                        <ShieldCheckIcon className="h-5 w-5 text-[#FF6B35]" />
+                        <span className="text-sm font-semibold text-[#FF6B35] tracking-wide">EXECUTIVE SERVICES</span>
+                    </div>
+
+                    <h1 className="text-5xl md:text-7xl font-bold text-white mb-8">
+                        <span className="bg-gradient-to-r from-white via-orange-100 to-[#FF6B35] bg-clip-text text-transparent">
+                            Premium Mobility Solutions
+                        </span>
+                    </h1>
+
+                    <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed">
+                        Experience unparalleled service excellence with our curated range of premium mobility solutions,
+                        designed for discerning individuals and corporate clients who demand the extraordinary.
+                    </p>
+
+                    <div className="flex flex-wrap justify-center gap-4">
+                        <div className="px-8 py-4 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-[#FF6B35]/30 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 cursor-pointer">
+                            Explore Services
                         </div>
-
-                        <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-                            <span className="bg-gradient-to-r from-white via-gray-100 to-gray-200 bg-clip-text text-transparent">
-                                Premium Mobility Solutions
-                            </span>
-                        </h1>
-
-                        <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed">
-                            Experience unparalleled service excellence with our curated range of premium mobility solutions,
-                            designed for discerning individuals and corporate clients who demand the extraordinary.
-                        </p>
-
-                        <div className="flex flex-wrap justify-center gap-4">
-                            <div className="px-6 py-3 bg-[#FF6B35] text-white font-semibold rounded-xl hover:bg-[#FF5A20] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                                Explore Services
-                            </div>
-                            <div className="px-6 py-3 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300">
-                                Request Consultation
-                            </div>
+                        <div className="px-8 py-4 bg-white/10 backdrop-blur-md text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer">
+                            Request Consultation
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
             {/* Service Categories Tabs */}
             <div className="sticky top-20 z-40 bg-white/95 backdrop-blur-xl shadow-sm border-b border-gray-200">

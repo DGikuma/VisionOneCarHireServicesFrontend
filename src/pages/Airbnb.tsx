@@ -326,48 +326,57 @@ const AirbnbPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-            {/* Hero Section */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-[#FF385C] via-[#FF5A5F] to-[#FF5A5F] py-16 md:py-24">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.3)_1px,transparent_1px)] bg-[size:40px_40px]" />
-                </div>
+        {/* Hero Section */}
+        <div className="relative overflow-hidden min-h-[500px] md:min-h-[600px] flex items-center">
+            {/* Ultra-HD Background Image */}
+            <div className="absolute inset-0">
+                <img
+                    src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2400&q=100"
+                    alt="Luxury villa with pool"
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#FF385C]/90 via-[#FF385C]/70 to-[#FF5A5F]/50" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            </div>
 
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 mb-6">
-                            <HomeIcon className="h-4 w-4 text-white" />
-                            <span className="text-sm font-semibold text-white">PREMIUM PROPERTIES</span>
-                        </div>
+            {/* Decorative Elements */}
+            <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.4)_1px,transparent_1px)] bg-[size:50px_50px]" />
+            </div>
 
-                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">
-                            <span className="bg-gradient-to-r from-white via-gray-100 to-gray-200 bg-clip-text text-transparent">
-                                Exclusive Airbnb Properties
-                            </span>
-                        </h1>
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+                <div className="text-center">
+                    <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 backdrop-blur-md rounded-full border border-white/30 mb-8">
+                        <HomeIcon className="h-5 w-5 text-white" />
+                        <span className="text-sm font-semibold text-white tracking-wide">PREMIUM PROPERTIES</span>
+                    </div>
 
-                        <p className="text-lg sm:text-xl text-white/90 max-w-3xl mx-auto mb-10 leading-relaxed px-4">
-                            Discover handpicked luxury homes, villas, and unique stays managed by Vision Wan.
-                            Experience exceptional comfort and premium service at every property.
-                        </p>
+                    <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-8">
+                        <span className="bg-gradient-to-r from-white via-pink-100 to-white bg-clip-text text-transparent drop-shadow-lg">
+                            Exclusive Airbnb Properties
+                        </span>
+                    </h1>
 
-                        <div className="flex flex-wrap justify-center gap-4">
-                            <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-                                <span className="text-2xl font-bold text-white">8+</span>
-                                <p className="text-sm text-white/80">Premium Properties</p>
+                    <p className="text-lg sm:text-xl md:text-2xl text-white/95 max-w-3xl mx-auto mb-12 leading-relaxed px-4 drop-shadow-md">
+                        Discover handpicked luxury homes, villas, and unique stays managed by Vision Wan.
+                        Experience exceptional comfort and premium service at every property.
+                    </p>
+
+                    <div className="flex flex-wrap justify-center gap-6">
+                        {[
+                            { value: '8+', label: 'Premium Properties' },
+                            { value: '4.8★', label: 'Guest Rating' },
+                            { value: '24/7', label: 'Property Support' }
+                        ].map((stat, index) => (
+                            <div key={index} className="px-6 py-4 bg-white/15 backdrop-blur-md rounded-2xl border border-white/25 hover:bg-white/25 transition-all duration-300">
+                                <span className="text-3xl font-bold text-white block">{stat.value}</span>
+                                <p className="text-sm text-white/80 mt-1">{stat.label}</p>
                             </div>
-                            <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-                                <span className="text-2xl font-bold text-white">4.8★</span>
-                                <p className="text-sm text-white/80">Guest Rating</p>
-                            </div>
-                            <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-                                <span className="text-2xl font-bold text-white">24/7</span>
-                                <p className="text-sm text-white/80">Property Support</p>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </div>
+        </div>
 
             {/* Filters & Controls */}
             <div className="sticky top-20 z-40 bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-200">

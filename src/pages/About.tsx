@@ -141,59 +141,76 @@ const AboutPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-            {/* Hero Section */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-24">
-                <div className="absolute inset-0 overflow-hidden">
-                    {[...Array(15)].map((_, i) => (
-                        <div
-                            key={i}
-                            className="absolute w-px h-px bg-[#FF6B35] rounded-full animate-pulse"
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                top: `${Math.random() * 100}%`,
-                                animationDelay: `${i * 0.3}s`,
-                                boxShadow: '0 0 20px 2px rgba(255, 107, 53, 0.5)'
-                            }}
-                        />
+        {/* Hero Section */}
+        <div className="relative overflow-hidden min-h-[600px] lg:min-h-[700px] flex items-center">
+            {/* Ultra-HD Background Image */}
+            <div className="absolute inset-0">
+                <img
+                    src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=2400&q=100"
+                    alt="Luxury car showroom"
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-900/95 via-gray-900/85 to-gray-800/70" />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
+            </div>
+
+            {/* Animated Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                {[...Array(20)].map((_, i) => (
+                    <div
+                        key={i}
+                        className="absolute w-1 h-1 bg-[#FF6B35] rounded-full animate-pulse"
+                        style={{
+                            left: `${Math.random() * 100}%`,
+                            top: `${Math.random() * 100}%`,
+                            animationDelay: `${i * 0.3}s`,
+                            boxShadow: '0 0 20px 4px rgba(255, 107, 53, 0.6)'
+                        }}
+                    />
+                ))}
+            </div>
+
+            {/* Grid Pattern Overlay */}
+            <div className="absolute inset-0 opacity-5">
+                <div className="absolute inset-0" style={{
+                    backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                                    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+                    backgroundSize: '60px 60px'
+                }} />
+            </div>
+
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-24">
+                <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF6B35]/20 backdrop-blur-md rounded-full border border-[#FF6B35]/30 mb-8">
+                    <BuildingOfficeIcon className="h-4 w-4 text-[#FF6B35]" />
+                    <span className="text-sm font-semibold text-[#FF6B35] tracking-wide">ABOUT VISION WAN</span>
+                </div>
+
+                <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 leading-tight">
+                    <span className="bg-gradient-to-r from-white via-orange-100 to-[#FF6B35] bg-clip-text text-transparent">
+                        Redefining Premium Mobility
+                    </span>
+                </h1>
+
+                <p className="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto mb-12 leading-relaxed">
+                    For over a decade, Vision Wan has been at the forefront of luxury mobility,
+                    combining cutting-edge technology with unparalleled service excellence for discerning clients worldwide.
+                </p>
+
+                <div className="flex flex-wrap justify-center gap-6">
+                    {[
+                        { value: '14+', label: 'Years Excellence' },
+                        { value: '50+', label: 'Locations' },
+                        { value: '10K+', label: 'Premium Clients' },
+                        { value: '4.9★', label: 'Average Rating' }
+                    ].map((stat, index) => (
+                        <div key={index} className="px-6 py-4 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-300">
+                            <span className="text-4xl font-bold text-white block">{stat.value}</span>
+                            <p className="text-sm text-gray-400 mt-1">{stat.label}</p>
+                        </div>
                     ))}
                 </div>
-
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35]/10 backdrop-blur-sm rounded-full border border-[#FF6B35]/20 mb-6">                  
-                        <span className="text-sm font-semibold text-[#FF6B35]">ABOUT Vision Wan</span>
-                    </div>
-
-                    <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-                        <span className="bg-gradient-to-r from-white via-gray-100 to-gray-200 bg-clip-text text-transparent">
-                            Redefining Premium Mobility
-                        </span>
-                    </h1>
-
-                    <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed">
-                        For over a decade, Vision Wan has been at the forefront of luxury mobility,
-                        combining cutting-edge technology with unparalleled service excellence for discerning clients worldwide.
-                    </p>
-
-                    <div className="flex flex-wrap justify-center gap-6">
-                        <div className="px-4 py-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-                            <span className="text-3xl font-bold text-white">14+</span>
-                            <p className="text-sm text-gray-400">Years Excellence</p>
-                        </div>
-                        <div className="px-4 py-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-                            <span className="text-3xl font-bold text-white">50+</span>
-                            <p className="text-sm text-gray-400">Locations</p>
-                        </div>
-                        <div className="px-4 py-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-                            <span className="text-3xl font-bold text-white">10K+</span>
-                            <p className="text-sm text-gray-400">Premium Clients</p>
-                        </div>
-                        <div className="px-4 py-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-                            <span className="text-3xl font-bold text-white">4.9★</span>
-                            <p className="text-sm text-gray-400">Average Rating</p>
-                        </div>
-                    </div>
-                </div>
             </div>
+        </div>
 
             {/* Company Story */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">

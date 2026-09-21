@@ -192,53 +192,66 @@ const FAQPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-            {/* Premium Header */}
-            <div className="relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-gray-900 to-blue-900"></div>
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%239C92AC%22%20fill-opacity%3D%220.05%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-10"></div>
+        {/* Premium Header */}
+        <div className="relative overflow-hidden min-h-[500px] flex items-center">
+            {/* Ultra-HD Background Image */}
+            <div className="absolute inset-0">
+                <img
+                    src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=2400&q=100"
+                    alt="Business meeting discussion"
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-900/95 to-blue-900/90" />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
+            </div>
 
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-                    <div className="flex items-center mb-8">
-                        <div className="relative">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-lg blur opacity-30"></div>
-                            <div className="relative p-3 bg-white rounded-lg shadow-xl">
-                                <QuestionMarkCircleIcon className="h-8 w-8 text-blue-600" />
-                            </div>
+            {/* Pattern Overlay */}
+            <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0" style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                }} />
+            </div>
+
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+                <div className="flex items-center mb-8">
+                    <div className="relative">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-lg blur opacity-50"></div>
+                        <div className="relative p-4 bg-white rounded-xl shadow-xl">
+                            <QuestionMarkCircleIcon className="h-10 w-10 text-blue-600" />
                         </div>
-                        <span className="ml-4 px-4 py-1 bg-blue-100 text-blue-600 text-sm font-semibold rounded-full">
-                            Enterprise Support
-                        </span>
                     </div>
+                    <span className="ml-6 px-5 py-2 bg-blue-500/20 backdrop-blur-md text-blue-100 text-sm font-semibold rounded-full border border-blue-400/30">
+                        Enterprise Support
+                    </span>
+                </div>
 
-                    <h1 className="text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-                        Corporate
-                        <span className="block mt-2 bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
-                            Knowledge Center
-                        </span>
-                    </h1>
+                <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+                    Corporate
+                    <span className="block mt-2 bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
+                        Knowledge Center
+                    </span>
+                </h1>
 
-                    <p className="text-xl text-blue-100 max-w-3xl mb-12 leading-relaxed">
-                        Expert guidance for enterprise mobility solutions. Access comprehensive resources,
-                        procedural documentation, and strategic insights for optimized fleet management.
-                    </p>
+                <p className="text-xl text-blue-100 max-w-3xl mb-12 leading-relaxed">
+                    Expert guidance for enterprise mobility solutions. Access comprehensive resources,
+                    procedural documentation, and strategic insights for optimized fleet management.
+                </p>
 
-                    {/* Search Bar */}
-                    <div className="max-w-2xl">
-                        <div className="relative group">
-                            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Search enterprise solutions..."
-                                    className="w-full px-8 py-5 bg-white/95 backdrop-blur-sm border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg shadow-xl"
-                                />
-                                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                                </div>
-                            </div>
+                {/* Search Bar */}
+                <div className="max-w-2xl">
+                    <div className="relative group">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-xl blur opacity-40 group-hover:opacity-60 transition duration-300"></div>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Search enterprise solutions..."
+                                className="w-full px-8 py-5 bg-white/95 backdrop-blur-sm border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg shadow-xl"
+                            />
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-10">
