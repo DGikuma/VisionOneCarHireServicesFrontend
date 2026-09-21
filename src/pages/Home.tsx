@@ -328,9 +328,10 @@ const Home: React.FC = () => {
                         aria-label="Play Vision Wan experience video"
                     >
                         <img
-                            src="https://img.youtube.com/vi/c2sj7kjzmaY/maxresdefault.jpg"
+                            src="https://img.youtube.com/vi/m12A34xgAQg/maxresdefault.jpg"
                             onError={(e) => {
-                                (e.currentTarget as HTMLImageElement).src = 'https://img.youtube.com/vi/c2sj7kjzmaY/hqdefault.jpg';
+                                (e.currentTarget as HTMLImageElement).src =
+                                    'https://img.youtube.com/vi/m12A34xgAQg/hqdefault.jpg';
                             }}
                             alt="Vision Wan Experience — watch now"
                             className="w-full h-[420px] object-cover transition-transform duration-700 group-hover:scale-105"
@@ -861,7 +862,7 @@ const Home: React.FC = () => {
                     onClick={closeIntroVideo}
                 >
                     <div
-                        className="relative w-full max-w-md aspect-[9/16] max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl bg-black"
+                        className="relative w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
@@ -874,10 +875,11 @@ const Home: React.FC = () => {
                             </svg>
                         </button>
                         <iframe
-                            src="https://www.youtube.com/embed/c2sj7kjzmaY?autoplay=1&rel=0&modestbranding=1&playsinline=1"
+                            src="https://www.youtube.com/embed/m12A34xgAQg?autoplay=1&rel=0&modestbranding=1&playsinline=1"
                             title="Vision Wan Experience"
                             className="absolute inset-0 w-full h-full"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerPolicy="strict-origin-when-cross-origin"
                             allowFullScreen
                         />
                     </div>
