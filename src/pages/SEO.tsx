@@ -15,37 +15,31 @@ const SEOPage: React.FC = () => {
         "@context": "https://schema.org",
         "@type": "CarRental",
         "name": "Vision Wan Car Hire Services",
-        "description": "Premium car hire services offering luxury vehicles, SUVs, electric cars, and family vehicles for business, leisure, and special occasions.",
+        "description": "Premium car hire and short-stay accommodation in Nairobi, Kenya. Luxury SUVs, executive sedans, and furnished apartments.",
         "address": {
             "@type": "PostalAddress",
-            "streetAddress": "123 Main Street",
-            "addressLocality": "City",
-            "addressRegion": "State",
-            "postalCode": "12345",
-            "addressCountry": "US"
+            "streetAddress": "Kilimani, Equity Building 1st Floor, Opposite Yaya Centre",
+            "addressLocality": "Nairobi",
+            "addressRegion": "Nairobi County",
+            "addressCountry": "KE"
         },
-        "telephone": "+1-555-123-4567",
+        "telephone": "+254705336311",
         "openingHours": "Mo-Su 00:00-23:59",
-        "priceRange": "$$$",
+        "priceRange": "$$",
         "image": "https://visionwanservices.com/images/logo.png",
         "areaServed": [
-            "New York City", "Los Angeles", "Chicago", "Miami", "Las Vegas",
-            "San Francisco", "Boston", "Washington DC", "Dallas", "Houston",
-            "Atlanta", "Phoenix", "Philadelphia", "Seattle", "Denver"
+            "Nairobi", "Kilimani", "Westlands", "Karen", "Lavington",
+            "Parklands", "Upper Hill", "JKIA", "Wilson Airport"
         ],
         "hasOfferCatalog": {
             "@type": "OfferCatalog",
             "name": "Car Hire Services",
             "itemListElement": [
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Airport Car Rental" } },
-                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Business Car Rental" } },
-                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Luxury Car Hire" } },
-                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "SUV Rental" } },
-                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Electric Car Rental" } },
-                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Convertible Rental" } },
-                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Van Rental" } },
-                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Monthly Car Rental" } },
-                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Weekend Car Hire" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Luxury SUV Rental" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Corporate Car Hire" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Self-Drive Car Rental" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Chauffeur Services" } },
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Long-term Car Lease" } }
             ]
         }
