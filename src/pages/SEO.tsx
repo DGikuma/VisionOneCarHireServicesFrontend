@@ -27,75 +27,126 @@ const SEOPage: React.FC = () => {
         "telephone": "+1-555-123-4567",
         "openingHours": "Mo-Su 00:00-23:59",
         "priceRange": "$$$",
-        "image": "https://visionwanservices.com/images/logo.png"
+        "image": "https://visionwanservices.com/images/logo.png",
+        "areaServed": [
+            "New York City", "Los Angeles", "Chicago", "Miami", "Las Vegas",
+            "San Francisco", "Boston", "Washington DC", "Dallas", "Houston",
+            "Atlanta", "Phoenix", "Philadelphia", "Seattle", "Denver"
+        ],
+        "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Car Hire Services",
+            "itemListElement": [
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Airport Car Rental" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Business Car Rental" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Luxury Car Hire" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "SUV Rental" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Electric Car Rental" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Convertible Rental" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Van Rental" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Monthly Car Rental" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Weekend Car Hire" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Long-term Car Lease" } }
+            ]
+        }
+    };
+
+    const faqStructuredData = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What types of cars can I hire from Vision Wan?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "We offer luxury sedans, SUVs, electric vehicles, sports cars, convertibles, minivans, pickup trucks, luxury coupes, executive sedans, and premium wagons."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Do you offer airport car rental services?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, we provide airport car rental at major US airports with convenient pickup and drop-off options."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I rent a car for a month or longer?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Absolutely. We offer monthly car rental and long-term car lease options with flexible terms."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is roadside assistance included?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, all rentals include 24/7 roadside assistance and basic insurance."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Which cities do you serve?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "We serve New York City, Los Angeles, Chicago, Miami, Las Vegas, San Francisco, Boston, Washington DC, Dallas, Houston, Atlanta, Phoenix, Philadelphia, Seattle, and Denver."
+                }
+            }
+        ]
     };
 
     const serviceAreas = [
-        'New York City',
-        'Los Angeles',
-        'Chicago',
-        'Miami',
-        'Las Vegas',
-        'San Francisco',
-        'Boston',
-        'Washington DC',
-        'Dallas',
-        'Houston',
-        'Atlanta',
-        'Phoenix',
-        'Philadelphia',
-        'Seattle',
-        'Denver'
+        'New York City', 'Los Angeles', 'Chicago', 'Miami', 'Las Vegas',
+        'San Francisco', 'Boston', 'Washington DC', 'Dallas', 'Houston',
+        'Atlanta', 'Phoenix', 'Philadelphia', 'Seattle', 'Denver'
     ];
 
     const vehicleTypes = [
-        'Luxury Sedans',
-        'SUVs',
-        'Electric Vehicles',
-        'Sports Cars',
-        'Convertibles',
-        'Minivans',
-        'Pickup Trucks',
-        'Luxury Coupes',
-        'Executive Sedans',
-        'Premium Wagons'
+        'Luxury Sedans', 'SUVs', 'Electric Vehicles', 'Sports Cars',
+        'Convertibles', 'Minivans', 'Pickup Trucks', 'Luxury Coupes',
+        'Executive Sedans', 'Premium Wagons'
     ];
 
     const services = [
-        'Airport Car Rental',
-        'Business Car Rental',
-        'Luxury Car Hire',
-        'SUV Rental',
-        'Electric Car Rental',
-        'Convertible Rental',
-        'Van Rental',
-        'Monthly Car Rental',
-        'Weekend Car Hire',
+        'Airport Car Rental', 'Business Car Rental', 'Luxury Car Hire',
+        'SUV Rental', 'Electric Car Rental', 'Convertible Rental',
+        'Van Rental', 'Monthly Car Rental', 'Weekend Car Hire',
         'Long-term Car Lease'
     ];
 
     return (
         <>
             <Helmet>
-                <title>Car Hire Services | Premium Vehicle Rental | Vision Wan</title>
-                <meta name="description" content="Vision Wan Car Hire offers premium car rental services with luxury vehicles, SUVs, electric cars, and family vehicles. Best rates, 24/7 support, nationwide locations." />
-                <meta name="keywords" content="car hire, car rental, luxury car rental, SUV rental, electric car rental, premium vehicles, business car hire, family car rental" />
-                <meta property="og:title" content="Vision Wan Car Hire Services | Premium Vehicle Rental" />
-                <meta property="og:description" content="Experience premium car hire with our luxury fleet. Best rates, exceptional service, nationwide coverage." />
+                <title>Luxury Car Hire & SUV Rental | Airport Car Rental | Vision Wan</title>
+                <meta
+                    name="description"
+                    content="Looking for luxury car hire, SUV rental, or airport car rental? Vision Wan offers premium vehicle rental, electric car hire, monthly car rental, and 24/7 support across 50+ US cities."
+                />
+                <meta
+                    name="keywords"
+                    content="luxury car hire, SUV rental, airport car rental, electric car rental, business car hire, monthly car rental, convertible rental, premium vehicle rental, family car hire, long-term car lease"
+                />
+                <meta property="og:title" content="Luxury Car Hire & SUV Rental | Vision Wan Car Hire" />
+                <meta
+                    property="og:description"
+                    content="Premium car hire with luxury vehicles, SUVs, electric cars, and family vehicles. Best rates, 24/7 support, nationwide locations."
+                />
                 <meta property="og:type" content="website" />
-                <script type="application/ld+json">
-                    {JSON.stringify(structuredData)}
-                </script>
+                <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
+                <script type="application/ld+json">{JSON.stringify(faqStructuredData)}</script>
             </Helmet>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {/* Hero Section */}
                 <div className="text-center mb-16">
                     <h1 className="text-5xl font-bold text-gray-900 mb-6">
-                        Vision Wan Car Hire Services
+                        Luxury Car Hire, SUV Rental & Airport Car Rental Services
                     </h1>
                     <p className="text-gray-600 text-xl max-w-3xl mx-auto">
-                        Premium car rental services offering luxury vehicles, SUVs, electric cars, and family vehicles for business, leisure, and special occasions across the United States.
+                        Vision Wan Car Hire offers premium vehicle rental including luxury sedans, SUVs, electric cars, and family vehicles. Perfect for business car hire, weekend getaways, airport transfers, and long-term car lease across the United States.
                     </p>
                 </div>
 
@@ -104,23 +155,23 @@ const SEOPage: React.FC = () => {
                     <section className="mb-12">
                         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
                             <MagnifyingGlassIcon className="h-8 w-8 mr-3 text-primary-600" />
-                            Premium Car Hire Services
+                            Premium Car Hire & Luxury Vehicle Rental
                         </h2>
                         <p className="text-gray-700 mb-4">
-                            Welcome to <strong>Vision Wan Car Hire Services</strong>, your premier destination for luxury and premium vehicle rentals. With over a decade of experience in the car rental industry, we provide exceptional service, competitive rates, and a meticulously maintained fleet of vehicles.
+                            Welcome to <strong>Vision Wan Car Hire Services</strong>, your trusted partner for <strong>luxury car hire</strong>, <strong>SUV rental</strong>, and <strong>premium vehicle rental</strong>. With over a decade of experience in the car rental industry, we deliver exceptional service, competitive rates, and a meticulously maintained fleet of vehicles.
                         </p>
                         <p className="text-gray-700 mb-4">
-                            Our comprehensive car hire services cater to diverse needs including business travel, family vacations, special occasions, and long-term rentals. We pride ourselves on delivering unparalleled customer service and ensuring every rental experience exceeds expectations.
+                            Whether you need an <strong>airport car rental</strong> for a quick business trip, a <strong>family car hire</strong> for a vacation, or a <strong>convertible rental</strong> for a special occasion, we have the perfect vehicle for you. Our <strong>business car rental</strong> services are designed for professionals who value comfort, style, and reliability.
                         </p>
                     </section>
 
                     <section className="mb-12">
                         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
                             <ChartBarIcon className="h-8 w-8 mr-3 text-primary-600" />
-                            Our Vehicle Fleet
+                            Our Vehicle Fleet: SUVs, Electric Cars & More
                         </h2>
                         <p className="text-gray-700 mb-4">
-                            At Vision Wan Car Hire, we maintain an extensive fleet of premium vehicles including:
+                            At Vision Wan Car Hire, we maintain an extensive fleet of <strong>premium vehicles</strong> including:
                         </p>
                         <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                             {vehicleTypes.map((type, index) => (
@@ -131,17 +182,17 @@ const SEOPage: React.FC = () => {
                             ))}
                         </ul>
                         <p className="text-gray-700">
-                            Each vehicle undergoes regular maintenance and thorough cleaning to ensure optimal performance and comfort. Our fleet includes the latest models from top manufacturers, equipped with advanced safety features and luxury amenities.
+                            Each vehicle undergoes regular maintenance and thorough cleaning to ensure optimal performance and comfort. Our fleet includes the latest models from top manufacturers, equipped with advanced safety features and luxury amenities. Looking for an <strong>electric car rental</strong> or a <strong>luxury SUV rental</strong>? We have you covered.
                         </p>
                     </section>
 
                     <section className="mb-12">
                         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
                             <GlobeAltIcon className="h-8 w-8 mr-3 text-primary-600" />
-                            Service Areas
+                            Car Hire Service Areas Across the USA
                         </h2>
                         <p className="text-gray-700 mb-4">
-                            We provide car hire services in major cities across the United States:
+                            We provide <strong>car hire services in major cities</strong> across the United States:
                         </p>
                         <div className="bg-gray-50 rounded-xl p-6 mb-6">
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
@@ -153,18 +204,18 @@ const SEOPage: React.FC = () => {
                             </div>
                         </div>
                         <p className="text-gray-700">
-                            With <strong>50+ locations nationwide</strong>, we offer convenient pickup and drop-off options including major airports, city centers, and suburban locations. Our network continues to expand to serve more customers across the country.
+                            With <strong>50+ locations nationwide</strong>, we offer convenient pickup and drop-off options including major airports, city centers, and suburban locations. Our <strong>airport car rental</strong> service is available at all major US airports.
                         </p>
                     </section>
 
                     <section className="mb-12">
                         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
                             <DocumentTextIcon className="h-8 w-8 mr-3 text-primary-600" />
-                            Comprehensive Services
+                            Comprehensive Car Hire Services
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-4">Car Hire Services Include:</h3>
+                                <h3 className="text-xl font-bold text-gray-900 mb-4">Popular Car Hire Services:</h3>
                                 <ul className="space-y-3">
                                     {services.slice(0, 5).map((service, index) => (
                                         <li key={index} className="flex items-center text-gray-700">
@@ -175,7 +226,7 @@ const SEOPage: React.FC = () => {
                                 </ul>
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Features:</h3>
+                                <h3 className="text-xl font-bold text-gray-900 mb-4">Additional Rental Options:</h3>
                                 <ul className="space-y-3">
                                     {services.slice(5, 10).map((service, index) => (
                                         <li key={index} className="flex items-center text-gray-700">
@@ -187,14 +238,14 @@ const SEOPage: React.FC = () => {
                             </div>
                         </div>
                         <p className="text-gray-700">
-                            We offer flexible rental terms including daily, weekly, and monthly rates. All rentals include basic insurance, 24/7 roadside assistance, and unlimited mileage (unless otherwise specified).
+                            We offer flexible rental terms including daily, weekly, and <strong>monthly car rental</strong> rates. All rentals include basic insurance, 24/7 roadside assistance, and unlimited mileage (unless otherwise specified). Our <strong>long-term car lease</strong> options are ideal for corporate clients and extended stays.
                         </p>
                     </section>
 
                     <section className="mb-12">
                         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
                             <DevicePhoneMobileIcon className="h-8 w-8 mr-3 text-primary-600" />
-                            Why Choose Vision Wan Car Hire?
+                            Why Choose Vision Wan for Car Hire?
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
                             {[
@@ -253,7 +304,7 @@ const SEOPage: React.FC = () => {
                                 Get Started Today
                             </h3>
                             <p className="text-gray-700 mb-6">
-                                Experience the difference with Vision Wan Car Hire. Whether you need a luxury sedan for business, an SUV for family travel, or a convertible for a special occasion, we have the perfect vehicle for you.
+                                Experience the difference with Vision Wan Car Hire. Whether you need a <strong>luxury sedan for business</strong>, an <strong>SUV for family travel</strong>, or a <strong>convertible for a special occasion</strong>, we have the perfect vehicle for you.
                             </p>
                             <Link
                                 to="/booking"
@@ -263,6 +314,25 @@ const SEOPage: React.FC = () => {
                             </Link>
                         </div>
                     </section>
+                </div>
+
+                {/* FAQ Section */}
+                <div className="bg-white rounded-2xl p-8 mb-12 shadow-sm">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                        Frequently Asked Questions About Car Hire
+                    </h3>
+                    <div className="space-y-6">
+                        {faqStructuredData.mainEntity.map((faq, index) => (
+                            <div key={index}>
+                                <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                                    {faq.name}
+                                </h4>
+                                <p className="text-gray-700">
+                                    {faq.acceptedAnswer.text}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {/* SEO Keywords Section */}
