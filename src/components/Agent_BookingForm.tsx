@@ -15,7 +15,7 @@ const API_BASE_URL =
 
 const DEFAULT_COUNTRY = import.meta.env.VITE_DEFAULT_COUNTRY || 'ke';
 
-type PeriodCategory = 'short' | 'medium' | 'long';
+type PeriodCategory = 'short' | 'long';
 
 interface Agent_BookingFormData {
     fullName: string;
@@ -54,17 +54,17 @@ const AMEND_API_URL = `${API_BASE_URL}/api/agent_bookings/amend`;
 const LOOKUP_API_URL = `${API_BASE_URL}/api/agent_bookings/lookup`;
 
 const vehicleOptions = [
-    { value: 'Fielder', label: 'Fielder', rates: { short: 4000, medium: 3500, long: 3000 } },
-    { value: 'Mazda CX-5', label: 'Mazda CX-5', rates: { short: 7000, medium: 6500, long: 6000 } },
-    { value: 'Harrier', label: 'Harrier', rates: { short: 8000, medium: 7500, long: 7000 } },
-    { value: 'Lexus', label: 'Lexus', rates: { short: 9000, medium: 8500, long: 8000 } },
-    { value: 'Prado', label: 'Prado', rates: { short: 12000, medium: 11000, long: 10000 } },
+    { value: 'Latio',     label: 'Latio',     rates: { short: 3000, long: 3000 } },
+    { value: 'Fielder',   label: 'Fielder',   rates: { short: 3500, long: 3000 } },
+    { value: 'Mazda CX-5', label: 'Mazda CX-5', rates: { short: 7000, long: 6000 } },
+    { value: 'Harrier',   label: 'Harrier',   rates: { short: 8000, long: 7000 } },
+    { value: 'Lexus',     label: 'Lexus',     rates: { short: 9000, long: 8000 } },
+    { value: 'Prado',     label: 'Prado',     rates: { short: 12000, long: 10000 } },
 ];
 
 const periodCategories: { value: PeriodCategory; label: string; minDays: number; maxDays: number }[] = [
-    { value: 'short', label: '1–7 days', minDays: 1, maxDays: 7 },
-    { value: 'medium', label: '7–20 days', minDays: 8, maxDays: 20 },
-    { value: 'long', label: '20+ days', minDays: 21, maxDays: Infinity },
+    { value: 'short', label: '1 day', minDays: 1, maxDays: 1 },
+    { value: 'long', label: '2+ days', minDays: 2, maxDays: Infinity },
 ];
 
 const pickupLocations = [
@@ -90,8 +90,7 @@ const allRequiredFields: (keyof Agent_BookingFormData)[] = [
 const fileFields: (keyof Agent_BookingFormData)[] = ['drivingLicense', 'idDocument', 'depositProof'];
 
 const getPeriodFromDays = (days: number): PeriodCategory => {
-    if (days <= 7) return 'short';
-    if (days <= 20) return 'medium';
+    if (days <= 1) return 'short';
     return 'long';
 };
 
@@ -739,7 +738,7 @@ const Agent_BookingForm = forwardRef<Agent_BookingFormRef, Agent_BookingFormProp
                             lineHeight: '1.5',
                         }}>
                             ℹ️ The daily rate is automatically determined by your rental duration:
-                            1–7 days (short), 7–20 days (medium), 20+ days (long).
+                            1 day (short tier) or 2+ days (long tier).
                         </div>
                     )}
                 </div>
@@ -1715,7 +1714,7 @@ const Agent_BookingForm = forwardRef<Agent_BookingFormRef, Agent_BookingFormProp
                     @media (max-width: 640px) {
                         .bf-grid-2, .bf-grid-3 { grid-template-columns: 1fr !important; gap: 12px !important; }
                     }
-                    .bf-period-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+                    .bf-period-grid { display: grid; grid-template-columns: repeat(2, 1fr); }
                     @media (max-width: 640px) {
                         .bf-period-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
                     }
@@ -1967,7 +1966,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         background: '#fff4dc', borderLeft: '4px solid #ffb31a',
         padding: '12px 14px', borderRadius: '8px', fontSize: '14px', lineHeight: '1.5',
     },
-    periodGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' },
+    periodGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' },
     periodCard: {
         position: 'relative', border: '2px solid #e5e7eb', borderRadius: '14px',
         padding: '16px 12px', cursor: 'pointer', background: '#fff',
