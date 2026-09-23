@@ -26,6 +26,8 @@ import SingleBlog from './pages/SingleBlog';
 import Locations from './pages/Locations';
 import NotFound from './pages/NotFound';
 import CookiePopup from './components/CookiePopup';
+import FloatingWidgets from './components/FloatingWidgets';
+import Feedback from './pages/Feedback';
 
 function App() {
     const [showCookiePopup, setShowCookiePopup] = useState(false);
@@ -70,6 +72,7 @@ function App() {
                                 <Route path="/locations" element={<Locations />} />
                                 <Route path="/blog" element={<Blog />} />
                                 <Route path="/blog/:id" element={<SingleBlog />} />
+                                <Route path="/feedback" element={<Feedback />} />
                                 <Route path="/terms" element={<Terms />} />
                                 <Route path="/privacy" element={<PrivacyPolicy />} />
                                 <Route path="/faq" element={<FAQ />} />
@@ -79,6 +82,7 @@ function App() {
                         </Suspense>
                     </main>
                     <Footer />
+                    <FloatingWidgets />
                     <ToastContainer position="top-right" autoClose={5000} />
                 </div>
             </Router>
