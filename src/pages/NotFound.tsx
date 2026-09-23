@@ -1,334 +1,353 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     HomeIcon,
-    MagnifyingGlassIcon,
     PhoneIcon,
     ArrowRightIcon,
-    MapIcon,
-    ClockIcon,
-    ShieldCheckIcon,
+    MagnifyingGlassIcon,
     BuildingLibraryIcon,
-    ChartBarIcon,
-    DevicePhoneMobileIcon,
-    GlobeAltIcon
+    CalendarDaysIcon,
+    TruckIcon,
+    EnvelopeIcon,
+    ArrowPathIcon,
+    XMarkIcon,
 } from '@heroicons/react/24/outline';
 import {
-    SparklesIcon as SparklesSolid,
-    ArrowPathIcon as ArrowPathSolid,
-    ShieldCheckIcon as ShieldCheckSolid
+    ExclamationTriangleIcon as ExclamationSolid,
+    MapPinIcon as MapPinSolid,
+    ChatBubbleLeftRightIcon as ChatSolid,
 } from '@heroicons/react/24/solid';
 
 const NotFoundPage: React.FC = () => {
-    return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-blue-50">
-        {/* Background with image */}
-        <div className="absolute inset-0">
-            <img
-                src="https://images.unsplash.com/photo-1516387938699-a93567ec168e?auto=format&fit=crop&w=2400&q=100"
-                alt="Abstract city night"
-                className="w-full h-full object-cover opacity-20"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-gray-50/95 via-white/90 to-blue-50/95" />
-        </div>
+    const navigate = useNavigate();
+    const [searchQuery, setSearchQuery] = useState('');
 
-            <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-20">
-                <div className="max-w-6xl w-full">
-                    {/* Corporate Header */}
-                    <div className="text-center mb-16">
-                        <div className="inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg mb-8">
-                            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-3"></div>
-                            <span className="text-sm font-semibold text-gray-700">
-                                Navigation Error • Code 404 • Vision Wan Systems
+    // Searchable site index — each entry maps keywords to a route
+    const searchIndex = [
+        { keywords: ['home', 'main', 'landing', 'start'], path: '/', label: 'Home' },
+        { keywords: ['book', 'booking', 'reserve', 'reservation', 'schedule'], path: '/booking', label: 'Book Now' },
+        { keywords: ['fleet', 'car', 'vehicle', 'suv', 'sedan', 'luxury', 'tesla', 'mercedes', 'bmw', 'range rover'], path: '/fleet', label: 'Our Fleet' },
+        { keywords: ['service', 'services', 'offering', 'rental', 'hire'], path: '/services', label: 'Services' },
+        { keywords: ['airbnb', 'air bnb', 'accommodation', 'stay', 'apartment'], path: '/services/airbnb', label: 'Air BnB Services' },
+        { keywords: ['suv', 'suv rental'], path: '/services/suv-rental', label: 'SUV Rental' },
+        { keywords: ['electric', 'ev', 'tesla', 'polestar', 'green'], path: '/services/electric-vehicles', label: 'Electric Vehicles' },
+        { keywords: ['business', 'corporate', 'executive', 'travel'], path: '/services/business-travel', label: 'Business Travel' },
+        { keywords: ['airport', 'transfer', 'pickup', 'dropoff'], path: '/services/airport-transfers', label: 'Airport Transfers' },
+        { keywords: ['about', 'about us', 'who', 'company', 'story'], path: '/about', label: 'About Us' },
+        { keywords: ['contact', 'phone', 'call', 'email', 'reach', 'support', 'help'], path: '/contact', label: 'Contact Us' },
+        { keywords: ['faq', 'question', 'questions', 'help', 'answer'], path: '/faq', label: 'FAQ' },
+        { keywords: ['terms', 'conditions', 'legal'], path: '/terms', label: 'Terms & Conditions' },
+        { keywords: ['privacy', 'policy', 'data'], path: '/privacy', label: 'Privacy Policy' },
+        { keywords: ['location', 'locations', 'address', 'map', 'nairobi', 'kent', 'kenya', 'uk'], path: '/locations', label: 'Locations' },
+    ];
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return;
+
+        // Score each entry by keyword matches
+        const scored = searchIndex
+            .map((entry) => {
+                let score = 0;
+                entry.keywords.forEach((keyword) => {
+                    if (query === keyword) score += 10;
+                    else if (query.includes(keyword)) score += 5;
+                    else if (keyword.includes(query)) score += 3;
+                });
+                return { ...entry, score };
+            })
+            .filter((entry) => entry.score > 0)
+            .sort((a, b) => b.score - a.score);
+
+        if (scored.length > 0) {
+            navigate(scored[0].path);
+        } else {
+            // Fallback: go to contact page with query context
+            navigate(`/contact?q=${encodeURIComponent(query)}`);
+        }
+    };
+
+    const handleClear = () => setSearchQuery('');
+
+    const quickLinks = [
+        {
+            title: 'Return Home',
+            description: 'Back to the main page',
+            icon: HomeIcon,
+            path: '/',
+            gradient: 'from-blue-500 to-indigo-600',
+            shadow: 'shadow-blue-500/30',
+            ring: 'group-hover:ring-blue-200',
+        },
+        {
+            title: 'Book a Vehicle',
+            description: 'Reserve your next ride',
+            icon: CalendarDaysIcon,
+            path: '/booking',
+            gradient: 'from-emerald-500 to-teal-600',
+            shadow: 'shadow-emerald-500/30',
+            ring: 'group-hover:ring-emerald-200',
+        },
+        {
+            title: 'Browse Our Fleet',
+            description: 'Explore available vehicles',
+            icon: TruckIcon,
+            path: '/fleet',
+            gradient: 'from-amber-500 to-orange-600',
+            shadow: 'shadow-amber-500/30',
+            ring: 'group-hover:ring-amber-200',
+        },
+        {
+            title: 'Visit FAQ',
+            description: 'Answers to common questions',
+            icon: BuildingLibraryIcon,
+            path: '/faq',
+            gradient: 'from-purple-500 to-violet-600',
+            shadow: 'shadow-purple-500/30',
+            ring: 'group-hover:ring-purple-200',
+        },
+    ];
+
+    const contactOptions = [
+        {
+            label: 'Kenya Office',
+            value: '+254 (705) 336 311',
+            href: 'tel:+254705336311',
+            icon: PhoneIcon,
+            color: 'text-blue-600',
+            bg: 'bg-blue-50',
+            hover: 'hover:border-blue-300 hover:bg-blue-50',
+        },
+        {
+            label: 'UK Office',
+            value: '+44 (7397) 549 590',
+            href: 'tel:+447397549590',
+            icon: PhoneIcon,
+            color: 'text-cyan-600',
+            bg: 'bg-cyan-50',
+            hover: 'hover:border-cyan-300 hover:bg-cyan-50',
+        },
+        {
+            label: 'Email Support',
+            value: 'visionwanservices@gmail.com',
+            href: 'mailto:visionwanservices@gmail.com',
+            icon: EnvelopeIcon,
+            color: 'text-amber-600',
+            bg: 'bg-amber-50',
+            hover: 'hover:border-amber-300 hover:bg-amber-50',
+        },
+    ];
+
+    return (
+        <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30 overflow-hidden">
+            {/* Subtle grid pattern */}
+            <div
+                className="absolute inset-0 opacity-[0.4] pointer-events-none"
+                style={{
+                    backgroundImage: `linear-gradient(to right, rgb(226 232 240 / 0.5) 1px, transparent 1px), linear-gradient(to bottom, rgb(226 232 240 / 0.5) 1px, transparent 1px)`,
+                    backgroundSize: '64px 64px',
+                    maskImage: 'radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%)',
+                    WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%)',
+                }}
+            />
+
+            {/* Soft colored orbs */}
+            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-300/20 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-cyan-300/20 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-indigo-300/15 rounded-full blur-[120px] pointer-events-none" />
+
+            {/* Top accent line */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-indigo-500" />
+
+            {/* Main Content */}
+            <div className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-16">
+                <div className="max-w-5xl w-full">
+
+                    {/* Header Section */}
+                    <div className="text-center mb-12">
+                        {/* Status Badge */}
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-red-100 mb-8">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                            </span>
+                            <span className="text-xs font-bold text-red-600 tracking-widest uppercase">
+                                Error 404
                             </span>
                         </div>
 
-                        <div className="relative mb-12">
-                            {/* Large decorative 404 */}
-                            <div className="text-[280px] font-black text-gray-100 leading-none tracking-tighter">
+                        {/* 404 Hero */}
+                        <div className="relative mb-6">
+                            <h1 className="text-[120px] sm:text-[170px] lg:text-[220px] font-black leading-none tracking-tighter bg-gradient-to-br from-blue-600 via-indigo-500 to-cyan-500 bg-clip-text text-transparent select-none">
                                 404
-                            </div>
+                            </h1>
+                        </div>
 
-                            {/* Overlay text */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <div className="flex items-center mb-4">
-                                    <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-lg mr-4"></div>
-                                    <h1 className="text-5xl font-bold text-gray-900">
-                                        Resource Not Found
-                                    </h1>
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 leading-tight">
+                            This Page Took a Wrong Turn
+                        </h2>
+                        <p className="text-base sm:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
+                            The page you're looking for doesn't exist or has been moved. Let's get you back on the road.
+                        </p>
+                    </div>
+
+                    {/* Search Bar */}
+                    <form onSubmit={handleSearch} className="mb-14 max-w-2xl mx-auto">
+                        <div className="group relative">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-2xl blur opacity-20 group-focus-within:opacity-50 transition duration-500" />
+                            <div className="relative flex items-center bg-white rounded-2xl border border-slate-200 shadow-lg shadow-slate-200/50 focus-within:border-blue-300 transition-all duration-300 overflow-hidden">
+                                <MagnifyingGlassIcon className="h-5 w-5 text-slate-400 ml-5 flex-shrink-0" />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Search pages, services, or vehicles..."
+                                    className="flex-1 px-4 py-4 bg-transparent text-slate-800 placeholder-slate-400 focus:outline-none text-sm sm:text-base"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        type="button"
+                                        onClick={handleClear}
+                                        aria-label="Clear search"
+                                        className="p-1.5 mr-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors duration-200"
+                                    >
+                                        <XMarkIcon className="h-4 w-4" />
+                                    </button>
+                                )}
+                                <button
+                                    type="submit"
+                                    className="px-6 py-3 m-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/25"
+                                >
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    {/* Quick Links Grid */}
+                    <div className="mb-14">
+                        <div className="flex items-center justify-center gap-2.5 mb-8">
+                            <ArrowPathIcon className="h-4 w-4 text-blue-500" />
+                            <h3 className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-[0.2em]">
+                                Popular Destinations
+                            </h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {quickLinks.map((link, index) => {
+                                const Icon = link.icon;
+                                return (
+                                    <Link
+                                        key={index}
+                                        to={link.path}
+                                        className={`group relative bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-xl ${link.shadow} ring-1 ring-transparent ${link.ring} transition-all duration-500 hover:-translate-y-1.5 overflow-hidden`}
+                                    >
+                                        <div className="relative">
+                                            <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${link.gradient} mb-4 shadow-lg ${link.shadow} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500`}>
+                                                <Icon className="h-6 w-6 text-white" />
+                                            </div>
+                                            <h4 className="text-base font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors duration-300">
+                                                {link.title}
+                                            </h4>
+                                            <p className="text-sm text-slate-500 leading-relaxed">
+                                                {link.description}
+                                            </p>
+                                            <ArrowRightIcon className="absolute top-1 right-0 h-5 w-5 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300" />
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Contact Section */}
+                    <div className="relative bg-white rounded-3xl p-8 lg:p-10 shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+                        {/* Decorative corner accents */}
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-100 to-transparent rounded-full blur-2xl -translate-y-20 translate-x-20 pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-cyan-100 to-transparent rounded-full blur-2xl translate-y-20 -translate-x-20 pointer-events-none" />
+
+                        <div className="relative">
+                            <div className="text-center mb-8">
+                                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-50 rounded-full border border-blue-100 mb-4">
+                                    <ChatSolid className="h-3.5 w-3.5 text-blue-500" />
+                                    <span className="text-xs font-semibold text-blue-600 tracking-wide uppercase">
+                                        Need Assistance?
+                                    </span>
                                 </div>
-                                <p className="text-2xl font-medium text-gray-600 max-w-2xl">
-                                    The requested corporate resource is temporarily unavailable or has been relocated
+                                <h3 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-2">
+                                    We're Here to Help
+                                </h3>
+                                <p className="text-slate-500 max-w-lg mx-auto text-sm sm:text-base">
+                                    Reach out to our team anytime — we're available 24/7.
                                 </p>
                             </div>
-                        </div>
 
-                        {/* Strategic Message */}
-                        <div className="max-w-3xl mx-auto bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-200 mb-12">
-                            <div className="flex items-start">
-                                <ShieldCheckSolid className="h-8 w-8 text-blue-600 mr-4 flex-shrink-0 mt-1" />
-                                <div className="text-left">
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                                        Executive Navigation Advisory
-                                    </h3>
-                                    <p className="text-gray-700 text-lg leading-relaxed">
-                                        While this specific page cannot be located, our enterprise systems are fully operational.
-                                        This may be due to a recent strategic update, resource consolidation, or access restriction.
-                                        Our corporate navigation team has been alerted and will address any systemic routing issues.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Corporate Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
-                        {/* Left Column - Recovery Actions */}
-                        <div>
-                            <div className="flex items-center mb-8">
-                                <ArrowPathSolid className="h-8 w-8 text-blue-600 mr-4" />
-                                <h2 className="text-3xl font-bold text-gray-900">
-                                    Immediate Recovery Protocol
-                                </h2>
-                            </div>
-
-                            <div className="space-y-6">
-                                {[
-                                    {
-                                        title: 'Return to Command Center',
-                                        description: 'Navigate back to the main corporate dashboard',
-                                        icon: HomeIcon,
-                                        path: '/',
-                                        gradient: 'from-blue-600 to-blue-800'
-                                    },
-                                    {
-                                        title: 'Initiate Booking Sequence',
-                                        description: 'Access enterprise fleet management system',
-                                        icon: DevicePhoneMobileIcon,
-                                        path: '/booking',
-                                        gradient: 'from-emerald-600 to-teal-600'
-                                    },
-                                    {
-                                        title: 'Contact Strategic Support',
-                                        description: 'Connect with executive assistance team',
-                                        icon: PhoneIcon,
-                                        path: '/contact',
-                                        gradient: 'from-purple-600 to-indigo-600'
-                                    },
-                                    {
-                                        title: 'Access Knowledge Repository',
-                                        description: 'Browse corporate documentation and FAQs',
-                                        icon: BuildingLibraryIcon,
-                                        path: '/faq',
-                                        gradient: 'from-amber-600 to-orange-600'
-                                    }
-                                ].map((action, index) => (
-                                    <Link
-                                        key={index}
-                                        to={action.path}
-                                        className="group block bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200"
-                                    >
-                                        <div className="flex items-center">
-                                            <div className={`p-4 rounded-xl bg-gradient-to-r ${action.gradient} mr-6`}>
-                                                <action.icon className="h-6 w-6 text-white" />
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                                {contactOptions.map((option, index) => {
+                                    const Icon = option.icon;
+                                    return (
+                                        <a
+                                            key={index}
+                                            href={option.href}
+                                            className={`group/contact flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 ${option.hover} transition-all duration-300 hover:-translate-y-0.5`}
+                                        >
+                                            <div className={`p-2.5 rounded-lg ${option.bg} flex-shrink-0`}>
+                                                <Icon className={`h-5 w-5 ${option.color} group-hover/contact:scale-110 transition-transform duration-300`} />
                                             </div>
-                                            <div className="flex-grow">
-                                                <div className="flex items-center justify-between">
-                                                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600">
-                                                        {action.title}
-                                                    </h3>
-                                                    <ArrowRightIcon className="h-5 w-5 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-transform" />
-                                                </div>
-                                                <p className="text-gray-600 mt-2">
-                                                    {action.description}
+                                            <div className="min-w-0">
+                                                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                                                    {option.label}
+                                                </p>
+                                                <p className="text-sm font-bold text-slate-800 break-all">
+                                                    {option.value}
                                                 </p>
                                             </div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Right Column - Corporate Resources */}
-                        <div>
-                            <div className="flex items-center mb-8">
-                                <SparklesSolid className="h-8 w-8 text-blue-600 mr-4" />
-                                <h2 className="text-3xl font-bold text-gray-900">
-                                    Strategic Resource Access
-                                </h2>
+                                        </a>
+                                    );
+                                })}
                             </div>
 
-                            {/* Search with AI */}
-                            <div className="mb-8 bg-gradient-to-br from-gray-900 to-blue-900 rounded-2xl p-8 text-white relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500 to-transparent opacity-20 rounded-full -translate-y-16 translate-x-16"></div>
-
-                                <div className="relative">
-                                    <h3 className="text-2xl font-bold mb-4">Corporate Search Intelligence</h3>
-                                    <p className="text-blue-200 mb-6">
-                                        Use our AI-powered search to locate enterprise resources
+                            {/* Address */}
+                            <div className="flex items-start gap-3 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
+                                <div className="p-2.5 rounded-lg bg-white flex-shrink-0 shadow-sm">
+                                    <MapPinSolid className="h-5 w-5 text-emerald-600" />
+                                </div>
+                                <div>
+                                    <p className="text-[11px] font-semibold text-emerald-700/70 uppercase tracking-wider mb-0.5">
+                                        Head Office
                                     </p>
-                                    <div className="relative">
-                                        <MagnifyingGlassIcon className="absolute left-6 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-400" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search for enterprise solutions, fleet data, or corporate policies..."
-                                            className="w-full pl-16 pr-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                        />
-                                        <button className="absolute right-3 top-1/2 transform -translate-y-1/2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg font-medium hover:opacity-90 transition-opacity">
-                                            Search
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Quick Access Grid */}
-                            <div className="grid grid-cols-2 gap-4 mb-8">
-                                {[
-                                    { name: 'Global Fleet', icon: GlobeAltIcon, color: 'bg-blue-100 text-blue-700' },
-                                    { name: 'Analytics', icon: ChartBarIcon, color: 'bg-emerald-100 text-emerald-700' },
-                                    { name: 'Compliance', icon: ShieldCheckIcon, color: 'bg-purple-100 text-purple-700' },
-                                    { name: 'Schedule', icon: ClockIcon, color: 'bg-amber-100 text-amber-700' },
-                                    { name: 'Locations', icon: MapIcon, color: 'bg-cyan-100 text-cyan-700' },
-                                    { name: 'Systems', icon: DevicePhoneMobileIcon, color: 'bg-indigo-100 text-indigo-700' }
-                                ].map((item, index) => (
-                                    <Link
-                                        key={index}
-                                        to="/dashboard"
-                                        className="bg-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-shadow group border border-gray-200"
-                                    >
-                                        <div className={`inline-flex p-3 rounded-lg ${item.color} mb-3`}>
-                                            <item.icon className="h-5 w-5" />
-                                        </div>
-                                        <p className="font-semibold text-gray-900 text-sm">
-                                            {item.name}
-                                        </p>
-                                    </Link>
-                                ))}
-                            </div>
-
-                            {/* System Status */}
-                            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-300">
-                                <h3 className="font-bold text-gray-900 mb-4">System Status</h3>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center">
-                                            <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
-                                            <span className="text-gray-700">Core Platform</span>
-                                        </div>
-                                        <span className="font-bold text-emerald-600">Operational</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center">
-                                            <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
-                                            <span className="text-gray-700">Booking Systems</span>
-                                        </div>
-                                        <span className="font-bold text-emerald-600">Operational</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center">
-                                            <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                                            <span className="text-gray-700">Resource Access</span>
-                                        </div>
-                                        <span className="font-bold text-blue-600">Degraded</span>
-                                    </div>
+                                    <p className="text-sm font-bold text-slate-800">
+                                        Kilimani, Equity Building 1st Floor
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                        Opposite Yaya Centre, Nairobi, Kenya — Arwings Kodhek Road
+                                    </p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Emergency Protocol */}
-                    <div className="mb-16">
-                        <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-800 rounded-3xl p-10 text-white relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-20 translate-x-20"></div>
-                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-16 -translate-x-16"></div>
-
-                            <div className="relative">
-                                <div className="flex flex-col lg:flex-row items-center justify-between">
-                                    <div className="mb-8 lg:mb-0 lg:mr-12">
-                                        <div className="flex items-center mb-6">
-                                            <div className="p-3 rounded-xl bg-white/20 mr-4">
-                                                <ShieldCheckSolid className="h-8 w-8" />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-3xl font-bold">Emergency Access Protocol</h3>
-                                                <p className="text-red-100 mt-2">For critical business continuity issues</p>
-                                            </div>
-                                        </div>
-                                        <p className="text-red-100 max-w-2xl">
-                                            If you require immediate access to mission-critical resources or are experiencing systemic navigation failures, use our dedicated emergency channels.
-                                        </p>
-                                    </div>
-
-                                    <div className="text-center">
-                                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-4">
-                                            <p className="font-bold text-4xl tracking-widest mb-2">1-800-VISION-911</p>
-                                            <p className="text-red-200">Global Executive Hotline</p>
-                                        </div>
-                                        <div className="text-sm text-red-200">
-                                            24/7 Support • Priority Routing • Direct Escalation
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Corporate Footer */}
-                    <div className="bg-white rounded-3xl shadow-xl p-10 border border-gray-200">
-                        <div className="flex flex-col lg:flex-row items-center justify-between mb-8">
-                            <div className="mb-6 lg:mb-0">
-                                <div className="flex items-center">
-                                    <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl flex items-center justify-center mr-4">
-                                        <span className="text-white font-bold text-lg">V1</span>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-2xl font-bold text-gray-900">Vision Wan Systems</h3>
-                                        <p className="text-gray-600">Enterprise Mobility Solutions</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center space-x-6">
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-blue-600">99.95%</div>
-                                    <div className="text-sm text-gray-600">Platform Uptime</div>
-                                </div>
-                                <div className="h-12 w-px bg-gray-300"></div>
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-emerald-600">24/7</div>
-                                    <div className="text-sm text-gray-600">Support Coverage</div>
-                                </div>
-                                <div className="h-12 w-px bg-gray-300"></div>
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-purple-600">ISO</div>
-                                    <div className="text-sm text-gray-600">27001 Certified</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-gray-200 pt-8">
-                            <p className="text-center text-gray-500">
-                                © 2024 Vision Wan Corporate Solutions. This incident has been logged for system improvement.
-                                <span className="block mt-2 text-sm text-gray-400">
-                                    Incident ID: V1-404-{Date.now().toString().slice(-8)} • Timestamp: {new Date().toISOString()}
-                                </span>
-                            </p>
-                        </div>
+                    {/* Bottom CTA */}
+                    <div className="mt-10 text-center">
+                        <Link
+                            to="/"
+                            className="group inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.98] shadow-lg shadow-slate-900/20"
+                        >
+                            <HomeIcon className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
+                            Back to Home
+                            <ArrowRightIcon className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                        </Link>
                     </div>
                 </div>
             </div>
 
-            {/* Floating Help */}
-            <div className="fixed bottom-8 right-8 z-20">
-                <button className="group bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
-                    <div className="flex items-center">
-                        <PhoneIcon className="h-6 w-6 mr-3" />
-                        <span className="font-bold">Quick Help</span>
-                    </div>
-                    <div className="absolute -top-2 -right-2">
-                        <div className="w-4 h-4 bg-red-500 rounded-full animate-ping"></div>
-                    </div>
-                </button>
+            {/* Footer */}
+            <div className="relative z-10 border-t border-slate-200/80 bg-white/60 backdrop-blur-sm py-6">
+                <p className="text-center text-sm text-slate-500">
+                    © {new Date().getFullYear()} Vision Wan Services. All rights reserved.
+                </p>
             </div>
         </div>
     );
