@@ -45,7 +45,12 @@ function App() {
 
     return (
         <HelmetProvider>
-            <Router>
+            <Router
+                future={{
+                    v7_startTransition: true,
+                    v7_relativeSplatPath: true,
+                }}
+            >
                 <div className="min-h-screen bg-gray-50 flex flex-col relative overflow-x-hidden w-full max-w-full">
                     {/* Cookie Popup - Rendered conditionally */}
                     {showCookiePopup && <CookiePopup />}

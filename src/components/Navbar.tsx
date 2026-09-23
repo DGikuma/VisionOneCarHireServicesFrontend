@@ -353,17 +353,16 @@ const Navbar: React.FC = () => {
                 <>
                     {/* Backdrop */}
                     <div
-                        className="lg:hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[90] animate-[fadeIn_0.25s_ease-out]"
+                        className="lg:hidden fixed inset-0 bg-gray-900/50 z-[90] animate-[fadeIn_0.25s_ease-out]"
                         onClick={() => setIsOpen(false)}
                         aria-hidden="true"
                         style={{ touchAction: 'manipulation' }}
                     />
 
-                    {/* Menu Panel — responsive top offset (64px phone / 68px tablet) */}
+                    {/* Menu Panel — solid white, top offset matches navbar height */}
                     <div
-                        className="lg:hidden fixed left-0 right-0 bottom-0 z-[95] bg-white/98 backdrop-blur-xl shadow-2xl overflow-y-auto animate-[slideDown_0.3s_ease-out]"
+                        className="lg:hidden fixed left-0 right-0 bottom-0 z-[95] top-16 sm:top-[68px] bg-white shadow-2xl overflow-y-auto animate-[slideDown_0.3s_ease-out]"
                         style={{
-                            top: '64px',
                             WebkitOverflowScrolling: 'touch',
                             touchAction: 'pan-y',
                         }}
@@ -407,9 +406,9 @@ const Navbar: React.FC = () => {
                                     to="/booking"
                                     onClick={() => setIsOpen(false)}
                                     className="group relative block w-full overflow-hidden rounded-xl text-center
-                                               shadow-[0_8px_22px_-8px_rgba(255,107,53,0.65)]
-                                               active:scale-[0.985] transition-transform duration-200 ease-out
-                                               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50"
+                                            shadow-[0_8px_22px_-8px_rgba(255,107,53,0.65)]
+                                            active:scale-[0.985] transition-transform duration-200 ease-out
+                                            focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50"
                                     style={{
                                         WebkitTapHighlightColor: 'transparent',
                                         touchAction: 'manipulation',
@@ -435,7 +434,7 @@ const Navbar: React.FC = () => {
                                 </Link>
                             </div>
 
-                            {/* Contact Info — stacks neatly on tablet (2 cols) */}
+                            {/* Contact Info */}
                             <div className="pt-5 mt-4 border-t border-gray-100 space-y-1.5">
                                 <p className="px-4 pb-2 text-[11px] font-semibold tracking-[0.15em] uppercase text-gray-400">
                                     Get in touch
