@@ -5,8 +5,7 @@ import {
     Bars3Icon,
     XMarkIcon,
     PhoneIcon,
-    EnvelopeIcon,
-    ChevronDownIcon,
+    EnvelopeIcon
 } from '@heroicons/react/24/outline';
 
 const Navbar: React.FC = () => {
