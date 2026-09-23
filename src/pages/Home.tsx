@@ -8,7 +8,7 @@ import {
     MapPinIcon,
     PhoneIcon,
     ArrowRightIcon,
-    SparklesIcon,
+    HandRaisedIcon,
     CheckBadgeIcon,
     TrophyIcon,
     BuildingOfficeIcon,
@@ -72,7 +72,7 @@ const vehicles = [
 const features = [
     { title: 'Curated Premium Fleet', description: 'Prado, Range Rover, Harrier, Fielder & more — meticulously maintained', features: ['Executive SUVs', 'Luxury Sedans', 'Hybrid Vehicles', '7-Seater Options'], icon: KeyIcon },
     { title: 'Corporate Excellence', description: 'Tailored solutions for businesses with dedicated account management', features: ['Fleet Management', 'Custom Billing', 'Priority Service', 'Analytics'], icon: BuildingOfficeIcon },
-    { title: 'Service Excellence', description: 'White-glove service with attention to every detail and personalization', features: ['24/7 Concierge', 'Premium Support', 'Personal Assistant', 'Flexible Terms'], icon: SparklesIcon },
+    { title: 'Service Excellence', description: 'White-glove service with attention to every detail and personalization', features: ['24/7 Concierge', 'Premium Support', 'Personal Assistant', 'Flexible Terms'], icon: HandRaisedIcon },
     { title: 'Peace of Mind', description: 'Comprehensive coverage and support for complete journey assurance', features: ['Premium Insurance', 'Roadside Assistance', 'Secure Booking', 'Guaranteed Quality'], icon: ShieldCheckIcon },
 ];
 
@@ -202,7 +202,6 @@ const Home: React.FC = () => {
                                     }`}
                                 >
                                     <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-8">
-                                        <SparklesIcon className="h-4 w-4 text-[#FF6B35]" />
                                         <span className="text-sm font-bold tracking-[0.2em]">{slide.badge}</span>
                                     </div>
 

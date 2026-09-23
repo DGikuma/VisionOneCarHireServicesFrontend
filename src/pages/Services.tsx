@@ -208,7 +208,7 @@ const ServicesPage: React.FC = () => {
                 <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-[#FF8B35] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
             </div>
 
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-28 lg:pt-40 pb-24">
                 <div className="text-center">
                     <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF6B35]/20 backdrop-blur-md rounded-full border border-[#FF6B35]/30 mb-8">
                         <ShieldCheckIcon className="h-5 w-5 text-[#FF6B35]" />

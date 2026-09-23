@@ -212,7 +212,7 @@ const FAQPage: React.FC = () => {
                 }} />
             </div>
 
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-28 lg:pt-40 pb-24">
                 <div className="flex items-center mb-8">
                     <div className="relative">
                         <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-lg blur opacity-50"></div>
@@ -504,27 +504,61 @@ const FAQPage: React.FC = () => {
                         </div>
 
                         {/* Emergency Protocol */}
-                        <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-2xl p-8 text-white relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10"></div>
+                        <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-2xl p-8 sm:p-10 text-white relative overflow-hidden w-full max-w-2xl">
+                            {/* Decorative circle */}
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12" />
 
                             <div className="relative">
+                                {/* Header */}
                                 <div className="flex items-center mb-6">
                                     <div className="p-3 rounded-xl bg-white/20 mr-4">
                                         <ShieldCheckIcon className="h-8 w-8" />
                                     </div>
-                                    <h3 className="text-xl font-bold">Emergency Protocol</h3>
+                                    <h3 className="text-xl sm:text-2xl font-bold tracking-tight">Emergency Protocol</h3>
                                 </div>
 
-                                <p className="text-red-100 mb-6">
+                                <p className="text-red-100 mb-6 leading-relaxed">
                                     For urgent security or safety concerns requiring immediate escalation
                                 </p>
 
-                                <div className="bg-white/10 rounded-xl p-4 mb-6 backdrop-blur-sm">
-                                    <p className="font-bold text-2xl text-center tracking-widest">1-800-VISION-911</p>
-                                    <p className="text-red-200 text-sm text-center mt-2">Global Emergency Hotline</p>
+                                {/* Numbers card */}
+                                <div className="bg-white/10 rounded-xl p-4 sm:p-5 mb-6 backdrop-blur-sm space-y-3">
+                                    {/* UK number */}
+                                    <a
+                                        href="tel:+447397549590"
+                                        className="group flex items-center justify-center gap-3 sm:gap-4 w-full px-4 py-3 rounded-lg
+                                                transition-all duration-300 ease-out
+                                                hover:bg-white/15 hover:scale-[1.01] hover:shadow-lg hover:shadow-black/20
+                                                active:scale-[0.99]
+                                                focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                                    >
+                                        <PhoneIcon className="h-6 w-6 flex-shrink-0 text-white font-bold stroke-[2.4] transition-transform duration-300 group-hover:scale-110" />
+                                        <span className="font-bold text-xl sm:text-2xl tracking-wide text-white whitespace-nowrap group-hover:text-red-100 transition-colors duration-300">
+                                            +44 (7397) 549 590
+                                        </span>
+                                    </a>
+
+                                    {/* Kenya number */}
+                                    <a
+                                        href="tel:+254705336311"
+                                        className="group flex items-center justify-center gap-3 sm:gap-4 w-full px-4 py-3 rounded-lg
+                                                transition-all duration-300 ease-out
+                                                hover:bg-white/15 hover:scale-[1.01] hover:shadow-lg hover:shadow-black/20
+                                                active:scale-[0.99]
+                                                focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                                    >
+                                        <PhoneIcon className="h-6 w-6 flex-shrink-0 text-white font-bold stroke-[2.4] transition-transform duration-300 group-hover:scale-110" />
+                                        <span className="font-bold text-xl sm:text-2xl tracking-wide text-white whitespace-nowrap group-hover:text-red-100 transition-colors duration-300">
+                                            +254 (705) 336 311
+                                        </span>
+                                    </a>
+
+                                    <p className="text-red-200 text-xs sm:text-sm text-center pt-1 tracking-wide">
+                                        Global Emergency Hotline
+                                    </p>
                                 </div>
 
-                                <p className="text-sm text-red-200">
+                                <p className="text-sm text-red-200 leading-relaxed">
                                     Available in 150+ countries with local language support
                                 </p>
                             </div>

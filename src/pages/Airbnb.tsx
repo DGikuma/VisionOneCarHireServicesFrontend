@@ -344,7 +344,7 @@ const AirbnbPage: React.FC = () => {
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.4)_1px,transparent_1px)] bg-[size:50px_50px]" />
             </div>
 
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-28 lg:pt-40 pb-24">
                 <div className="text-center">
                     <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 backdrop-blur-md rounded-full border border-white/30 mb-8">
                         <HomeIcon className="h-5 w-5 text-white" />

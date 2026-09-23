@@ -540,7 +540,7 @@ const ContactPage: React.FC = () => {
                 ))}
             </div>
 
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-24">
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-28 lg:pt-40 pb-24">
                 <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF6B35]/20 backdrop-blur-md rounded-full border border-[#FF6B35]/30 mb-8">
                     <ChatBubbleLeftRightIcon className="h-5 w-5 text-[#FF6B35]" />
                     <span className="text-sm font-semibold text-[#FF6B35] tracking-wide">EXECUTIVE CONNECTIONS</span>
