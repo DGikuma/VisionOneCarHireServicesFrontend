@@ -40,7 +40,7 @@ const Maintenance: React.FC<MaintenanceProps> = ({ status = 'maintenance' }) => 
             badgeBorder: 'border-amber-200',
             dotColor: 'bg-amber-500',
             headline: 'We\'re Upgrading Your Experience',
-            subheadline: 'Our systems are undergoing scheduled maintenance to serve you better. We\'ll be back shortly.',
+            subheadline: 'Vision Wan is currently performing scheduled maintenance on our website to serve you better. We\'ll be back online shortly.',
             icon: WrenchScrewdriverIcon,
             iconGradient: 'from-amber-500 to-orange-600',
             iconShadow: 'shadow-amber-500/30',
@@ -50,6 +50,9 @@ const Maintenance: React.FC<MaintenanceProps> = ({ status = 'maintenance' }) => 
             orbOne: 'bg-amber-300/30',
             orbTwo: 'bg-orange-300/25',
             orbThree: 'bg-yellow-300/20',
+            assistTitle: 'Need Immediate Assistance?',
+            assistSubtitle: 'Our Vision Wan support team is available 24/7 for urgent matters.',
+            assistBadge: 'Stay Informed',
         },
         suspended: {
             badge: 'Service Temporarily Suspended',
@@ -58,7 +61,7 @@ const Maintenance: React.FC<MaintenanceProps> = ({ status = 'maintenance' }) => 
             badgeBorder: 'border-red-200',
             dotColor: 'bg-red-500',
             headline: 'Service Temporarily Unavailable',
-            subheadline: 'This account is currently suspended. Please contact our team to restore access immediately.',
+            subheadline: 'This website is currently suspended on Render. Please contact our team at Vision Wan to restore access immediately.',
             icon: LockSolid,
             iconGradient: 'from-red-500 to-rose-600',
             iconShadow: 'shadow-red-500/30',
@@ -68,6 +71,9 @@ const Maintenance: React.FC<MaintenanceProps> = ({ status = 'maintenance' }) => 
             orbOne: 'bg-red-300/30',
             orbTwo: 'bg-rose-300/25',
             orbThree: 'bg-pink-300/20',
+            assistTitle: 'Contact Us to Reactivate',
+            assistSubtitle: 'Reach out to Vision Wan and we\'ll restore the Render deployment within minutes.',
+            assistBadge: 'Restore Access',
         },
         expired: {
             badge: 'Subscription Expired',
@@ -76,7 +82,7 @@ const Maintenance: React.FC<MaintenanceProps> = ({ status = 'maintenance' }) => 
             badgeBorder: 'border-purple-200',
             dotColor: 'bg-purple-500',
             headline: 'Your Subscription Has Expired',
-            subheadline: 'Renew your plan to continue enjoying uninterrupted access to all our premium services.',
+            subheadline: 'The Render hosting plan for this website has expired. Contact Vision Wan to renew and restore uninterrupted access.',
             icon: ClockIcon,
             iconGradient: 'from-purple-500 to-violet-600',
             iconShadow: 'shadow-purple-500/30',
@@ -86,6 +92,9 @@ const Maintenance: React.FC<MaintenanceProps> = ({ status = 'maintenance' }) => 
             orbOne: 'bg-purple-300/30',
             orbTwo: 'bg-violet-300/25',
             orbThree: 'bg-indigo-300/20',
+            assistTitle: 'Renew to Restore Access',
+            assistSubtitle: 'Contact Vision Wan to renew the Render subscription and bring the site back online.',
+            assistBadge: 'Renew Now',
         },
     };
 
@@ -239,16 +248,14 @@ const Maintenance: React.FC<MaintenanceProps> = ({ status = 'maintenance' }) => 
                                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-50 rounded-full border border-blue-100 mb-4">
                                     <BoltSolid className="h-3.5 w-3.5 text-blue-500" />
                                     <span className="text-xs font-semibold text-blue-600 tracking-wide uppercase">
-                                        {status === 'maintenance' ? 'Stay Informed' : 'Restore Access'}
+                                        {config.assistBadge}
                                     </span>
                                 </div>
                                 <h3 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-2">
-                                    {status === 'maintenance' ? 'Need Immediate Assistance?' : 'Contact Us to Reactivate'}
+                                    {config.assistTitle}
                                 </h3>
                                 <p className="text-slate-500 max-w-lg mx-auto text-sm sm:text-base">
-                                    {status === 'maintenance'
-                                        ? 'Our support team is available 24/7 for urgent matters.'
-                                        : 'Our team will help you restore access in minutes.'}
+                                    {config.assistSubtitle}
                                 </p>
                             </div>
 
@@ -333,8 +340,8 @@ const Maintenance: React.FC<MaintenanceProps> = ({ status = 'maintenance' }) => 
                         <ExclamationTriangleIcon className="h-3.5 w-3.5" />
                         <span>
                             {status === 'maintenance' && 'Status updates posted every 15 minutes'}
-                            {status === 'suspended' && 'Account access requires administrator approval'}
-                            {status === 'expired' && 'Subscription renewal takes effect immediately'}
+                            {status === 'suspended' && 'Render deployment currently paused'}
+                            {status === 'expired' && 'Render hosting plan requires renewal'}
                         </span>
                     </div>
                 </div>
