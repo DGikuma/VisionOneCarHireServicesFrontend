@@ -1,8 +1,13 @@
 import * as React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Bars3Icon, XMarkIcon, PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
-import { CheckBadgeIcon, GlobeAltIcon } from '@heroicons/react/24/solid';
+import {
+    Bars3Icon,
+    XMarkIcon,
+    PhoneIcon,
+    EnvelopeIcon,
+    ChevronDownIcon,
+} from '@heroicons/react/24/outline';
 
 const Navbar: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -11,45 +16,38 @@ const Navbar: React.FC = () => {
     const location = useLocation();
     const bookButtonRef = useRef<HTMLDivElement>(null);
 
-    // Close mobile menu on route change
+    /* Close mobile menu on route change */
     useEffect(() => {
         setActivePath(location.pathname);
         setIsOpen(false);
     }, [location]);
 
-    // Scroll handler
+    /* Scroll handler */
     useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 20);
-        };
+        const handleScroll = () => setIsScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // Close menu only when crossing the lg breakpoint
+    /* Close menu only when crossing the lg breakpoint */
     useEffect(() => {
         let lastIsDesktop = window.innerWidth >= 1024;
-
         const handleResize = () => {
             const isDesktopNow = window.innerWidth >= 1024;
             if (isDesktopNow !== lastIsDesktop) {
                 lastIsDesktop = isDesktopNow;
-                if (isDesktopNow) {
-                    setIsOpen(false);
-                }
+                if (isDesktopNow) setIsOpen(false);
             }
         };
-
         window.addEventListener('resize', handleResize);
         window.addEventListener('orientationchange', handleResize);
-
         return () => {
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('orientationchange', handleResize);
         };
     }, []);
 
-    // Body scroll lock
+    /* Body scroll lock */
     useEffect(() => {
         if (isOpen) {
             const scrollY = window.scrollY;
@@ -63,11 +61,8 @@ const Navbar: React.FC = () => {
             document.body.style.top = '';
             document.body.style.width = '';
             document.body.style.overflow = '';
-            if (scrollY) {
-                window.scrollTo(0, parseInt(scrollY || '0') * -1);
-            }
+            if (scrollY) window.scrollTo(0, parseInt(scrollY || '0') * -1);
         }
-
         return () => {
             document.body.style.position = '';
             document.body.style.top = '';
@@ -76,12 +71,10 @@ const Navbar: React.FC = () => {
         };
     }, [isOpen]);
 
-    // ESC to close
+    /* ESC to close */
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && isOpen) {
-                setIsOpen(false);
-            }
+            if (e.key === 'Escape' && isOpen) setIsOpen(false);
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
@@ -92,7 +85,7 @@ const Navbar: React.FC = () => {
         { name: 'Booking', href: '/booking' },
         { name: 'Fleet', href: '/fleet' },
         { name: 'Services', href: '/services' },
-        { name: 'Accomodations', href: '/airbnb' },
+        { name: 'Accommodations', href: '/airbnb' },
         { name: 'About', href: '/about' },
         { name: 'Contact', href: '/contact' },
         { name: 'FAQ', href: '/faq' },
@@ -101,163 +94,179 @@ const Navbar: React.FC = () => {
     return (
         <>
             {/* ============================================================
-                NAVBAR — Very high z-index (100) so the toggle button
-                ALWAYS stays above the mobile overlay.
+                NAVBAR — z-[100] so toggle always stays above mobile overlay
                 ============================================================ */}
-            <nav className={`fixed top-0 w-full z-[100] transition-all duration-300 bg-white ${isScrolled
-                ? 'shadow-2xl shadow-gray-900/5'
-                : ''
-                }`}>
-                {/* Executive Top Bar - Hidden below lg */}
-                <div className="w-full bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 hidden lg:block">
-                    <div className="max-w-8xl mx-auto px-3 sm:px-4 md:px-5 lg:px-8">
-                        <div className="flex justify-between items-center h-8 text-xs font-medium">
-                            <div className="flex items-center space-x-6">
-                                <div className="flex items-center space-x-2">
-                                    <CheckBadgeIcon className="h-3.5 w-3.5 text-emerald-400" />
-                                    <span className="text-gray-300 font-light tracking-wider">
-                                        ISO 9001:2022
-                                    </span>
+            <nav
+                className={`fixed top-0 w-full z-[100] transition-all duration-500 ease-out ${
+                    isScrolled
+                        ? 'bg-white/95 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border-b border-gray-100'
+                        : 'bg-white/80 backdrop-blur-md border-b border-transparent'
+                }`}
+            >
+                {/* ───────────── Executive Top Bar (hidden below lg) ───────────── */}
+                <div
+                    className={`w-full hidden lg:block overflow-hidden transition-all duration-500 ease-out ${
+                        isScrolled ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100'
+                    }`}
+                >
+                    <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex justify-between items-center h-10 text-xs">
+                                {/* Left: contact cluster */}
+                                <div className="flex items-center gap-5">
+                                    <a
+                                        href="tel:+254705336311"
+                                        className="group flex items-center gap-2 text-gray-300 hover:text-white transition-colors duration-300"
+                                    >
+                                        <PhoneIcon className="h-3.5 w-3.5 text-gray-500 group-hover:text-[#FF6B35] transition-colors duration-300" />
+                                        <span className="font-light tracking-wide">
+                                            +254 (705) 336 311
+                                        </span>
+                                    </a>
+
+                                    <span className="h-3 w-px bg-gray-700" />
+
+                                    <a
+                                        href="mailto:visionwanservices@gmail.com"
+                                        className="group flex items-center gap-2 text-gray-300 hover:text-white transition-colors duration-300"
+                                    >
+                                        <EnvelopeIcon className="h-3.5 w-3.5 text-gray-500 group-hover:text-[#FF6B35] transition-colors duration-300" />
+                                        <span className="font-light tracking-wide">
+                                            visionwanservices@gmail.com
+                                        </span>
+                                    </a>
                                 </div>
 
-                                <div className="flex items-center space-x-2">
-                                    <div className="h-3 w-px bg-gray-700" />
-                                    <GlobeAltIcon className="h-3.5 w-3.5 text-cyan-400" />
-                                    <span className="text-gray-300 font-light tracking-wider">
-                                        GLOBAL MOBILITY
+                                {/* Right: WhatsApp + availability */}
+                                <div className="flex items-center gap-3">
+                                    <a
+                                        href="https://wa.me/254705336311"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label="Chat on WhatsApp Kenya"
+                                        className="group flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-700/70 hover:border-[#25D366]/60 hover:bg-[#25D366]/5 transition-all duration-300"
+                                    >
+                                        <svg
+                                            className="h-3.5 w-3.5 fill-[#25D366] group-hover:scale-110 transition-transform duration-300"
+                                            viewBox="0 0 32 32"
+                                        >
+                                            <path d="M16.003 3C9.383 3 4 8.383 4 15.003c0 2.64.86 5.083 2.317 7.058L5 29l7.155-1.88a11.95 11.95 0 0 0 3.848.636C22.623 27.756 28 22.373 28 15.753 28 9.134 22.623 3 16.003 3zm0 21.79a9.99 9.99 0 0 1-3.399-.594l-.244-.087-4.245 1.115 1.132-4.136-.159-.262a9.94 9.94 0 1 1 6.915 3.964zm5.523-7.59c-.3-.15-1.78-.88-2.055-.98-.275-.1-.476-.15-.676.15-.2.3-.776.98-.952 1.18-.176.2-.35.225-.65.075-.3-.15-1.27-.47-2.42-1.5-.894-.798-1.497-1.784-1.673-2.084-.175-.3-.02-.46.132-.61.137-.136.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.676-1.63-.926-2.235-.243-.585-.49-.505-.676-.515l-.575-.01c-.2 0-.525.075-.8.375-.275.3-1.05 1.025-1.05 2.5 0 1.475 1.075 2.9 1.225 3.1.15.2 2.115 3.225 5.125 4.52.717.31 1.277.495 1.714.634.72.23 1.376.198 1.893.12.578-.086 1.78-.726 2.03-1.426.25-.7.25-1.3.175-1.426-.075-.125-.275-.2-.575-.35z" />
+                                        </svg>
+                                        <span className="text-gray-300 font-light tracking-wide group-hover:text-white transition-colors duration-300">
+                                            WhatsApp
+                                        </span>
+                                    </a>
+
+                                    <span className="relative flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#FF6B35]/15 to-[#FF8B35]/15 border border-[#FF6B35]/30">
+                                        <span className="relative flex h-1.5 w-1.5">
+                                            <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
+                                        </span>
+                                        <span className="text-[11px] font-medium tracking-wide text-[#FF6B35]">
+                                            24/7 Support
+                                        </span>
                                     </span>
                                 </div>
-                            </div>
-
-                            <div className="flex items-center space-x-6">
-                                <a
-                                    href="tel:+254705336311"
-                                    className="group flex items-center space-x-2 hover:text-white transition-all duration-200"
-                                >
-                                    <PhoneIcon className="h-3.5 w-3.5 text-gray-400 group-hover:text-cyan-400 transition-colors" />
-                                    <span className="text-gray-300 font-light tracking-wide">
-                                        +254 (705) 336 311
-                                    </span>
-                                </a>
-
-                                <a
-                                    href="https://wa.me/447397549590"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="group flex items-center space-x-2 hover:text-white transition-all duration-200"
-                                    aria-label="Chat on WhatsApp UK"
-                                >
-                                    <svg className="h-3.5 w-3.5 fill-[#25D366]" viewBox="0 0 32 32">
-                                        <path d="M16.003 3C9.383 3 4 8.383 4 15.003c0 2.64.86 5.083 2.317 7.058L5 29l7.155-1.88a11.95 11.95 0 0 0 3.848.636C22.623 27.756 28 22.373 28 15.753 28 9.134 22.623 3 16.003 3zm0 21.79a9.99 9.99 0 0 1-3.399-.594l-.244-.087-4.245 1.115 1.132-4.136-.159-.262a9.94 9.94 0 1 1 6.915 3.964zm5.523-7.59c-.3-.15-1.78-.88-2.055-.98-.275-.1-.476-.15-.676.15-.2.3-.776.98-.952 1.18-.176.2-.35.225-.65.075-.3-.15-1.27-.47-2.42-1.5-.894-.798-1.497-1.784-1.673-2.084-.175-.3-.02-.46.132-.61.137-.136.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.676-1.63-.926-2.235-.243-.585-.49-.505-.676-.515l-.575-.01c-.2 0-.525.075-.8.375-.275.3-1.05 1.025-1.05 2.5 0 1.475 1.075 2.9 1.225 3.1.15.2 2.115 3.225 5.125 4.52.717.31 1.277.495 1.714.634.72.23 1.376.198 1.893.12.578-.086 1.78-.726 2.03-1.426.25-.7.25-1.3.175-1.426-.075-.125-.275-.2-.575-.35z" />
-                                    </svg>
-                                    <span className="text-gray-300 font-light tracking-wide">
-                                        UK WhatsApp
-                                    </span>
-                                </a>
-
-                                <a
-                                    href="https://wa.me/254705336311"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="group flex items-center space-x-2 hover:text-white transition-all duration-200"
-                                    aria-label="Chat on WhatsApp Kenya"
-                                >
-                                    <svg className="h-3.5 w-3.5 fill-[#25D366]" viewBox="0 0 32 32">
-                                        <path d="M16.003 3C9.383 3 4 8.383 4 15.003c0 2.64.86 5.083 2.317 7.058L5 29l7.155-1.88a11.95 11.95 0 0 0 3.848.636C22.623 27.756 28 22.373 28 15.753 28 9.134 22.623 3 16.003 3zm0 21.79a9.99 9.99 0 0 1-3.399-.594l-.244-.087-4.245 1.115 1.132-4.136-.159-.262a9.94 9.94 0 1 1 6.915 3.964zm5.523-7.59c-.3-.15-1.78-.88-2.055-.98-.275-.1-.476-.15-.676.15-.2.3-.776.98-.952 1.18-.176.2-.35.225-.65.075-.3-.15-1.27-.47-2.42-1.5-.894-.798-1.497-1.784-1.673-2.084-.175-.3-.02-.46.132-.61.137-.136.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.676-1.63-.926-2.235-.243-.585-.49-.505-.676-.515l-.575-.01c-.2 0-.525.075-.8.375-.275.3-1.05 1.025-1.05 2.5 0 1.475 1.075 2.9 1.225 3.1.15.2 2.115 3.225 5.125 4.52.717.31 1.277.495 1.714.634.72.23 1.376.198 1.893.12.578-.086 1.78-.726 2.03-1.426.25-.7.25-1.3.175-1.426-.075-.125-.275-.2-.575-.35z" />
-                                    </svg>
-                                    <span className="text-gray-300 font-light tracking-wide">
-                                        KE WhatsApp
-                                    </span>
-                                </a>
-
-                                <a
-                                    href="mailto:visionwanservices@gmail.com"
-                                    className="group flex items-center space-x-2 hover:text-white transition-all duration-200"
-                                >
-                                    <EnvelopeIcon className="h-3.5 w-3.5 text-gray-400 group-hover:text-cyan-400 transition-colors" />
-                                    <span className="text-gray-300 font-light tracking-wide">
-                                        visionwanservices@gmail.com
-                                    </span>
-                                </a>
-
-                                <span className="px-2.5 py-1 bg-gray-800/50 border border-gray-700 rounded-full text-xs text-gray-300 font-light tracking-wide">
-                                    24/7 GLOBAL SUPPORT
-                                </span>
                             </div>
                         </div>
+                        <div className="h-px bg-gradient-to-r from-transparent via-[#FF6B35]/30 to-transparent" />
                     </div>
-                    <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
                 </div>
 
-                {/* Main Navbar */}
+                {/* ───────────── Main Navbar ───────────── */}
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16 items-center">
+                    <div className="flex justify-between h-16 lg:h-[72px] items-center transition-all duration-500">
                         {/* Logo */}
-                        <div className="flex items-center flex-shrink-0">
-                            <Link
-                                to="/"
-                                className="flex-shrink-0 flex items-center group"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                <div className="relative">
-                                    <img
-                                        src="/assets/images/logo.png"
-                                        alt="Company Logo"
-                                        className="h-12 w-12 object-contain"
-                                    />
-                                </div>
-                                <div className="ml-2 sm:ml-3">
-                                    <h1 className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-[#FF6B35] transition-colors duration-300">
-                                        Vision Wan
-                                    </h1>
-                                    <p className="text-xs text-gray-600 font-medium tracking-wider">
-                                        Services
-                                    </p>
-                                </div>
-                            </Link>
-                        </div>
+                        <Link
+                            to="/"
+                            className="flex items-center gap-2.5 group flex-shrink-0"
+                            onClick={() => setIsOpen(false)}
+                        >
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B35]/20 to-transparent rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                <img
+                                    src="/assets/images/logo.png"
+                                    alt="Vision Wan Services logo"
+                                    className="relative h-11 w-11 object-contain rounded-xl transition-transform duration-500 group-hover:scale-105"
+                                />
+                            </div>
+                            <div className="leading-tight">
+                                <h1 className="text-lg font-bold text-gray-900 group-hover:text-[#FF6B35] transition-colors duration-300 tracking-tight">
+                                    Vision Wan
+                                </h1>
+                                <p className="text-[11px] text-gray-500 font-medium tracking-[0.15em] uppercase">
+                                    Services
+                                </p>
+                            </div>
+                        </Link>
 
                         {/* Desktop Navigation */}
-                        <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
-                            {navigation.map((item) => (
-                                <Link
-                                    key={item.name}
-                                    to={item.href}
-                                    className={`relative px-2 xl:px-3 py-2 font-medium transition-all duration-300 text-sm xl:text-base ${activePath === item.href
-                                        ? 'text-[#FF6B35]'
-                                        : 'text-gray-700 hover:text-[#FF6B35]'
+                        <div className="hidden lg:flex items-center gap-0.5 xl:gap-1">
+                            {navigation.map((item) => {
+                                const isActive = activePath === item.href;
+                                return (
+                                    <Link
+                                        key={item.name}
+                                        to={item.href}
+                                        className={`group relative px-3 xl:px-3.5 py-2 text-sm font-medium transition-colors duration-300 ${
+                                            isActive
+                                                ? 'text-[#FF6B35]'
+                                                : 'text-gray-600 hover:text-[#FF6B35]'
                                         }`}
-                                >
-                                    <span className="relative z-10">
-                                        {item.name}
-                                        {activePath === item.href && (
-                                            <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FF6B35] rounded-full" />
-                                        )}
-                                    </span>
-                                    <span className="absolute inset-0 bg-[#FF6B35]/5 rounded-lg opacity-0 hover:opacity-100 transition-opacity duration-300" />
-                                </Link>
-                            ))}
+                                    >
+                                        <span className="relative z-10">{item.name}</span>
 
-                            <div className="relative ml-2 flex-shrink-0" ref={bookButtonRef}>
+                                        {/* underline indicator */}
+                                        <span
+                                            className={`absolute left-3 right-3 -bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] origin-center transition-transform duration-300 ${
+                                                isActive
+                                                    ? 'scale-x-100'
+                                                    : 'scale-x-0 group-hover:scale-x-100'
+                                            }`}
+                                        />
+
+                                        {/* soft hover pill */}
+                                        <span className="absolute inset-0 rounded-lg bg-[#FF6B35]/[0.06] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                    </Link>
+                                );
+                            })}
+
+                            {/* Book Now — Desktop */}
+                            <div className="relative ml-3 flex-shrink-0" ref={bookButtonRef}>
                                 <Link
                                     to="/booking"
-                                    className="relative bg-[#FF6B35] text-white px-4 xl:px-6 py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-300 hover:bg-[#FF5A20] group overflow-hidden flex items-center text-sm xl:text-base"
+                                    className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white overflow-hidden
+                                               shadow-[0_6px_18px_-6px_rgba(255,107,53,0.55)]
+                                               hover:shadow-[0_14px_30px_-8px_rgba(255,107,53,0.75)]
+                                               transition-all duration-300 ease-out
+                                               hover:-translate-y-[2px] active:translate-y-0 active:scale-[0.985]
+                                               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50 focus-visible:ring-offset-2"
                                 >
-                                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                                    <span className="relative flex items-center">
+                                    {/* base gradient */}
+                                    <span className="absolute inset-0 bg-gradient-to-br from-[#FF7A3D] via-[#FF6B35] to-[#E85A25]" />
+
+                                    {/* subtle inner highlight for depth */}
+                                    <span className="absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/10 opacity-70" />
+
+                                    {/* animated sheen sweep */}
+                                    <span className="pointer-events-none absolute inset-0 -translate-x-[120%] group-hover:translate-x-[120%] transition-transform duration-[900ms] ease-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+
+                                    {/* soft glow ring on hover */}
+                                    <span className="pointer-events-none absolute -inset-[2px] rounded-xl bg-gradient-to-r from-[#FF6B35]/40 via-[#FF8B35]/30 to-[#FF6B35]/40 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                    {/* content */}
+                                    <span className="relative flex items-center gap-1.5 tracking-wide">
                                         <span>Book Now</span>
                                         <svg
-                                            className="ml-1 xl:ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform duration-300"
+                                            className="h-4 w-4 transform transition-transform duration-300 ease-out group-hover:translate-x-1"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             stroke="currentColor"
+                                            strokeWidth={2.2}
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
                                         >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M13 7l5 5m0 0l-5 5m5-5H6"
-                                            />
+                                            <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                         </svg>
                                     </span>
                                 </Link>
@@ -269,19 +278,30 @@ const Navbar: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsOpen((prev) => !prev)}
-                                className="p-2 rounded-lg text-gray-700 hover:text-[#FF6B35] hover:bg-gray-100 transition-colors duration-300 relative z-[110] pointer-events-auto cursor-pointer"
+                                className="relative p-2.5 rounded-xl text-gray-700 hover:text-[#FF6B35] hover:bg-[#FF6B35]/5 active:scale-95 transition-all duration-300 z-[110]"
                                 aria-label="Toggle menu"
                                 aria-expanded={isOpen}
                                 style={{
                                     WebkitTapHighlightColor: 'transparent',
-                                    touchAction: 'manipulation'
+                                    touchAction: 'manipulation',
                                 }}
                             >
-                                {isOpen ? (
-                                    <XMarkIcon className="h-6 w-6 pointer-events-none" />
-                                ) : (
-                                    <Bars3Icon className="h-6 w-6 pointer-events-none" />
-                                )}
+                                <span className="relative block h-6 w-6">
+                                    <Bars3Icon
+                                        className={`absolute inset-0 h-6 w-6 transition-all duration-300 ${
+                                            isOpen
+                                                ? 'opacity-0 rotate-90 scale-50'
+                                                : 'opacity-100 rotate-0 scale-100'
+                                        }`}
+                                    />
+                                    <XMarkIcon
+                                        className={`absolute inset-0 h-6 w-6 transition-all duration-300 ${
+                                            isOpen
+                                                ? 'opacity-100 rotate-0 scale-100'
+                                                : 'opacity-0 -rotate-90 scale-50'
+                                        }`}
+                                    />
+                                </span>
                             </button>
                         </div>
                     </div>
@@ -289,130 +309,169 @@ const Navbar: React.FC = () => {
             </nav>
 
             {/* ============================================================
-                MOBILE/TABLET OVERLAY
-                Backdrop z-[90] and Menu Panel z-[95] — both BELOW the
-                nav (z-100) so the toggle button always stays clickable.
+                MOBILE / TABLET OVERLAY
                 ============================================================ */}
             {isOpen && (
                 <>
                     {/* Backdrop */}
                     <div
-                        className="lg:hidden fixed inset-0 bg-black/40 z-[90]"
+                        className="lg:hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[90] animate-[fadeIn_0.25s_ease-out]"
                         onClick={() => setIsOpen(false)}
                         aria-hidden="true"
                         style={{ touchAction: 'manipulation' }}
                     />
 
-                    {/* Menu Panel — positioned BELOW the 64px-tall navbar */}
+                    {/* Menu Panel */}
                     <div
-                        className="lg:hidden fixed left-0 right-0 bottom-0 z-[95] bg-white shadow-2xl overflow-y-auto"
+                        className="lg:hidden fixed left-0 right-0 bottom-0 z-[95] bg-white/98 backdrop-blur-xl shadow-2xl overflow-y-auto animate-[slideDown_0.3s_ease-out]"
                         style={{
-                            top: '64px', // exactly the height of h-16 navbar
+                            top: '64px',
                             WebkitOverflowScrolling: 'touch',
                             touchAction: 'pan-y',
                         }}
                     >
-                        <div className="p-4 space-y-1 pb-24">
-                            {navigation.map((item) => (
-                                <Link
-                                    key={item.name}
-                                    to={item.href}
-                                    className={`block px-4 py-3 rounded-lg font-medium transition-colors duration-200 relative z-[96] ${activePath === item.href
-                                        ? 'bg-[#FF6B35]/10 text-[#FF6B35]'
-                                        : 'text-gray-700 active:bg-gray-100 active:text-[#FF6B35]'
+                        <div className="p-5 space-y-1 pb-28">
+                            {navigation.map((item, index) => {
+                                const isActive = activePath === item.href;
+                                return (
+                                    <Link
+                                        key={item.name}
+                                        to={item.href}
+                                        className={`group flex items-center justify-between px-4 py-3.5 rounded-xl font-medium transition-all duration-300 animate-[fadeUp_0.4s_ease-out_both] ${
+                                            isActive
+                                                ? 'bg-gradient-to-r from-[#FF6B35]/10 to-[#FF8B35]/5 text-[#FF6B35] shadow-sm'
+                                                : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
                                         }`}
-                                    onClick={() => setIsOpen(false)}
-                                    style={{
-                                        WebkitTapHighlightColor: 'transparent',
-                                        touchAction: 'manipulation',
-                                        pointerEvents: 'auto',
-                                        cursor: 'pointer',
-                                    }}
-                                >
-                                    <div className="flex items-center">
-                                        <span>{item.name}</span>
-                                        {activePath === item.href && (
-                                            <span className="ml-auto w-2 h-2 bg-[#FF6B35] rounded-full" />
-                                        )}
-                                    </div>
-                                </Link>
-                            ))}
+                                        onClick={() => setIsOpen(false)}
+                                        style={{
+                                            animationDelay: `${index * 40}ms`,
+                                            WebkitTapHighlightColor: 'transparent',
+                                            touchAction: 'manipulation',
+                                        }}
+                                    >
+                                        <span className="tracking-tight">{item.name}</span>
+                                        <span
+                                            className={`h-1.5 w-1.5 rounded-full bg-[#FF6B35] transition-all duration-300 ${
+                                                isActive
+                                                    ? 'opacity-100 scale-100'
+                                                    : 'opacity-0 scale-0 group-hover:opacity-40 group-hover:scale-100'
+                                            }`}
+                                        />
+                                    </Link>
+                                );
+                            })}
 
-                            {/* Book Now Button */}
+                            {/* Book Now — Mobile */}
                             <div className="pt-4">
                                 <Link
                                     to="/booking"
-                                    className="block w-full bg-[#FF6B35] text-white font-semibold py-3 rounded-lg text-center shadow-md hover:shadow-lg transition-all duration-200 hover:bg-[#FF5A20] active:bg-[#E85A25] relative z-[96]"
                                     onClick={() => setIsOpen(false)}
+                                    className="group relative block w-full overflow-hidden rounded-xl text-center
+                                               shadow-[0_8px_22px_-8px_rgba(255,107,53,0.65)]
+                                               active:scale-[0.985] transition-transform duration-200 ease-out
+                                               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50"
                                     style={{
                                         WebkitTapHighlightColor: 'transparent',
                                         touchAction: 'manipulation',
-                                        pointerEvents: 'auto',
-                                        cursor: 'pointer',
                                     }}
                                 >
-                                    <span className="flex items-center justify-center">
+                                    {/* base gradient */}
+                                    <span className="absolute inset-0 bg-gradient-to-br from-[#FF7A3D] via-[#FF6B35] to-[#E85A25]" />
+
+                                    {/* inner depth */}
+                                    <span className="absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/10 opacity-70" />
+
+                                    {/* animated sheen sweep */}
+                                    <span className="pointer-events-none absolute inset-0 -translate-x-[120%] group-active:translate-x-[120%] transition-transform duration-[900ms] ease-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+
+                                    {/* content */}
+                                    <span className="relative flex items-center justify-center gap-2 py-3.5 font-semibold text-white tracking-wide">
                                         <span>Book Now</span>
                                         <svg
-                                            className="ml-2 h-4 w-4"
+                                            className="h-4 w-4 transform transition-transform duration-300 ease-out group-hover:translate-x-1"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             stroke="currentColor"
+                                            strokeWidth={2.2}
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
                                         >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M13 7l5 5m0 0l-5 5m5-5H6"
-                                            />
+                                            <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                         </svg>
                                     </span>
                                 </Link>
                             </div>
 
                             {/* Contact Info */}
-                            <div className="pt-4 border-t border-gray-100 space-y-2">
+                            <div className="pt-5 mt-4 border-t border-gray-100 space-y-1.5">
+                                <p className="px-4 pb-2 text-[11px] font-semibold tracking-[0.15em] uppercase text-gray-400">
+                                    Get in touch
+                                </p>
+
                                 <a
                                     href="tel:+254705336311"
-                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 active:text-[#FF6B35] transition-colors relative z-[96]"
+                                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200"
                                     style={{
                                         WebkitTapHighlightColor: 'transparent',
                                         touchAction: 'manipulation',
-                                        pointerEvents: 'auto',
                                     }}
                                 >
-                                    <PhoneIcon className="h-5 w-5" />
-                                    <span className="text-sm">+254 (705) 336 311</span>
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FF6B35]/10 text-[#FF6B35]">
+                                        <PhoneIcon className="h-4.5 w-4.5" />
+                                    </span>
+                                    <span className="text-sm font-medium">+254 (705) 336 311</span>
                                 </a>
+
                                 <a
                                     href="tel:+447397549590"
-                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 active:text-[#FF6B35] transition-colors relative z-[96]"
+                                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200"
                                     style={{
                                         WebkitTapHighlightColor: 'transparent',
                                         touchAction: 'manipulation',
-                                        pointerEvents: 'auto',
                                     }}
                                 >
-                                    <PhoneIcon className="h-5 w-5" />
-                                    <span className="text-sm">+44 (7397) 549 590</span>
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FF6B35]/10 text-[#FF6B35]">
+                                        <PhoneIcon className="h-4.5 w-4.5" />
+                                    </span>
+                                    <span className="text-sm font-medium">+44 (7397) 549 590</span>
                                 </a>
+
                                 <a
                                     href="mailto:visionwanservices@gmail.com"
-                                    className="flex items-center gap-3 px-4 py-2 text-gray-600 active:text-[#FF6B35] transition-colors relative z-[96]"
+                                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200"
                                     style={{
                                         WebkitTapHighlightColor: 'transparent',
                                         touchAction: 'manipulation',
-                                        pointerEvents: 'auto',
                                     }}
                                 >
-                                    <EnvelopeIcon className="h-5 w-5 flex-shrink-0" />
-                                    <span className="text-sm break-all">visionwanservices@gmail.com</span>
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FF6B35]/10 text-[#FF6B35] flex-shrink-0">
+                                        <EnvelopeIcon className="h-4.5 w-4.5" />
+                                    </span>
+                                    <span className="text-sm font-medium break-all">
+                                        visionwanservices@gmail.com
+                                    </span>
                                 </a>
                             </div>
                         </div>
                     </div>
                 </>
             )}
+
+            {/* Keyframes for mobile animations */}
+            <style>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideDown {
+                    from { opacity: 0; transform: translateY(-8px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes fadeUp {
+                    from { opacity: 0; transform: translateY(8px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `}</style>
         </>
     );
 };
