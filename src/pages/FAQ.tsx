@@ -208,11 +208,6 @@ const FAQ: React.FC = () => {
         window.location.href = `tel:${phone}`;
     };
 
-    const handleStartLiveChat = () => {
-        // Opens WhatsApp chat with the primary number
-        window.open(`https://wa.me/${primaryPhone.replace(/\D/g, '')}?text=Hello%20Vision%20Wan%20Team,%20I%20need%20assistance%20with%20your%20services.`, '_blank');
-    };
-
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
             {/* Modern Header */}
