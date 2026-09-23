@@ -269,18 +269,23 @@ const Footer: React.FC = () => {
                             <span className="text-gray-400 font-medium">Vision Wan Services</span>. All rights reserved.
                         </p>
 
-                        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 order-1 md:order-2">
+                        <nav
+                            aria-label="Legal and informational links"
+                            className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 order-1 md:order-2"
+                        >
                             {bottomLinks.map(({ to, label }) => (
                                 <Link
                                     key={to}
                                     to={to}
-                                    className="relative text-sm text-gray-500 hover:text-white transition-colors duration-300 group"
+                                    className="relative inline-flex items-center justify-center px-3 py-2.5 text-sm text-gray-500 hover:text-white active:text-white transition-colors duration-300 touch-manipulation min-h-[44px]"
                                 >
-                                    {label}
-                                    <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-gradient-to-r from-primary-400 to-amber-400 group-hover:w-full transition-all duration-300" />
+                                    <span className="relative">
+                                        {label}
+                                        <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-gradient-to-r from-primary-400 to-amber-400 group-hover:w-full transition-all duration-300" />
+                                    </span>
                                 </Link>
                             ))}
-                        </div>
+                        </nav>
                     </div>
                 </div>
             </div>

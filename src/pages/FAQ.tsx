@@ -19,7 +19,6 @@ import {
     StarIcon as StarSolid,
     CheckBadgeIcon as CheckBadgeSolid,
     BoltIcon as BoltSolid,
-    RocketLaunchIcon as RocketSolid,
 } from '@heroicons/react/24/solid';
 
 const FAQ: React.FC = () => {
@@ -405,21 +404,12 @@ const FAQ: React.FC = () => {
                                         </div>
                                     </a>
                                 </div>
-
-                                <button
-                                    onClick={handleStartLiveChat}
-                                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 group/btn"
-                                >
-                                    <ChatBubbleLeftRightIcon className="h-5 w-5 group-hover/btn:scale-110 transition-transform duration-300" />
-                                    Start Live Chat
-                                </button>
                             </div>
                         </div>
 
                         {/* Premium Services */}
                         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-lg">
                             <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
-                                <RocketSolid className="h-5 w-5 text-blue-500" />
                                 Premium Services
                             </h3>
 

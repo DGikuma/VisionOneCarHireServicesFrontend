@@ -87,7 +87,6 @@ const Navbar: React.FC = () => {
         { name: 'Accommodations', href: '/airbnb' },
         { name: 'About', href: '/about' },
         { name: 'Contact', href: '/contact' },
-        { name: 'FAQ', href: '/faq' },
     ];
 
     return (
