@@ -14,7 +14,6 @@ import {
     XMarkIcon,
 } from '@heroicons/react/24/outline';
 import {
-    ExclamationTriangleIcon as ExclamationSolid,
     MapPinIcon as MapPinSolid,
     ChatBubbleLeftRightIcon as ChatSolid,
 } from '@heroicons/react/24/solid';
