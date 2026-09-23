@@ -6,7 +6,6 @@ import {
     XMarkIcon,
     PhoneIcon,
     EnvelopeIcon,
-    ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 
 const Navbar: React.FC = () => {
@@ -291,26 +290,6 @@ const Navbar: React.FC = () => {
                             >
                                 <PhoneIcon className="h-5 w-5" />
                             </a>
-
-                            {/* Compact Book Now — tablet only (hidden on small phones) */}
-                            <Link
-                                to="/booking"
-                                className="hidden sm:inline-flex items-center gap-1.5 px-4 h-10 rounded-xl text-sm font-semibold text-white
-                                           shadow-[0_6px_18px_-6px_rgba(255,107,53,0.55)]
-                                           active:scale-95 transition-all duration-300
-                                           focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50"
-                                style={{
-                                    WebkitTapHighlightColor: 'transparent',
-                                    touchAction: 'manipulation',
-                                }}
-                            >
-                                <span className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#FF7A3D] via-[#FF6B35] to-[#E85A25]" />
-                                <span className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/25 via-transparent to-black/10 opacity-70" />
-                                <span className="relative flex items-center gap-1.5">
-                                    <span>Book</span>
-                                    <ChevronRightIcon className="h-3.5 w-3.5" />
-                                </span>
-                            </Link>
 
                             {/* Menu toggle */}
                             <button
