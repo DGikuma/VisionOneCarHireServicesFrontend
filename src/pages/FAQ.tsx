@@ -460,8 +460,8 @@ const FAQPage: React.FC = () => {
                                                 {resource.name}
                                             </p>
                                             <p className="text-sm text-gray-500">{resource.size}</p>
-                                        </div>
-                                        <ChevronDownIcon className="h-5 w-5 text-gray-400 ml-4 transform rotate-270 group-hover:text-blue-500" />
+                                        </div><ChevronDownIcon className="h-5 w-5 text-gray-400 ml-4 -rotate-90 group-hover:text-blue-500" />
+                                        
                                     </a>
                                 ))}
                             </div>

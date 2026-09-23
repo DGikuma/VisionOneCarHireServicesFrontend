@@ -5,7 +5,8 @@ import {
     Bars3Icon,
     XMarkIcon,
     PhoneIcon,
-    EnvelopeIcon
+    EnvelopeIcon,
+    ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 
 const Navbar: React.FC = () => {
@@ -99,7 +100,7 @@ const Navbar: React.FC = () => {
                 className={`fixed top-0 w-full z-[100] transition-all duration-500 ease-out ${
                     isScrolled
                         ? 'bg-white/95 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border-b border-gray-100'
-                        : 'bg-white/80 backdrop-blur-md border-b border-transparent'
+                        : 'bg-white lg:bg-white/80 lg:backdrop-blur-md border-b border-transparent'
                 }`}
             >
                 {/* ───────────── Executive Top Bar (hidden below lg) ───────────── */}
@@ -174,26 +175,26 @@ const Navbar: React.FC = () => {
 
                 {/* ───────────── Main Navbar ───────────── */}
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16 lg:h-[72px] items-center transition-all duration-500">
-                        {/* Logo */}
+                    <div className="flex justify-between h-16 sm:h-[68px] lg:h-[72px] items-center transition-all duration-500">
+                        {/* Logo — scales nicely on mobile & tablet */}
                         <Link
                             to="/"
-                            className="flex items-center gap-2.5 group flex-shrink-0"
+                            className="flex items-center gap-2 sm:gap-2.5 group flex-shrink-0 min-w-0"
                             onClick={() => setIsOpen(false)}
                         >
-                            <div className="relative">
+                            <div className="relative flex-shrink-0">
                                 <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B35]/20 to-transparent rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                 <img
                                     src="/assets/images/logo.png"
                                     alt="Vision Wan Services logo"
-                                    className="relative h-11 w-11 object-contain rounded-xl transition-transform duration-500 group-hover:scale-105"
+                                    className="relative h-9 w-9 sm:h-10 sm:w-10 lg:h-11 lg:w-11 object-contain rounded-xl transition-transform duration-500 group-hover:scale-105"
                                 />
                             </div>
-                            <div className="leading-tight">
-                                <h1 className="text-lg font-bold text-gray-900 group-hover:text-[#FF6B35] transition-colors duration-300 tracking-tight">
+                            <div className="leading-tight min-w-0">
+                                <h1 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#FF6B35] transition-colors duration-300 tracking-tight truncate">
                                     Vision Wan
                                 </h1>
-                                <p className="text-[11px] text-gray-500 font-medium tracking-[0.15em] uppercase">
+                                <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium tracking-[0.15em] uppercase truncate">
                                     Services
                                 </p>
                             </div>
@@ -272,8 +273,46 @@ const Navbar: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Mobile/Tablet menu button */}
-                        <div className="lg:hidden flex items-center">
+                        {/* ───── Mobile / Tablet right side ───── */}
+                        <div className="lg:hidden flex items-center gap-2">
+                            {/* Compact Call button — mobile & tablet */}
+                            <a
+                                href="tel:+254705336311"
+                                aria-label="Call Vision Wan Services"
+                                className="group flex items-center justify-center h-10 w-10 rounded-xl
+                                           bg-[#FF6B35]/10 text-[#FF6B35]
+                                           hover:bg-[#FF6B35]/15 active:scale-95
+                                           transition-all duration-300
+                                           focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50"
+                                style={{
+                                    WebkitTapHighlightColor: 'transparent',
+                                    touchAction: 'manipulation',
+                                }}
+                            >
+                                <PhoneIcon className="h-5 w-5" />
+                            </a>
+
+                            {/* Compact Book Now — tablet only (hidden on small phones) */}
+                            <Link
+                                to="/booking"
+                                className="hidden sm:inline-flex items-center gap-1.5 px-4 h-10 rounded-xl text-sm font-semibold text-white
+                                           shadow-[0_6px_18px_-6px_rgba(255,107,53,0.55)]
+                                           active:scale-95 transition-all duration-300
+                                           focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50"
+                                style={{
+                                    WebkitTapHighlightColor: 'transparent',
+                                    touchAction: 'manipulation',
+                                }}
+                            >
+                                <span className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#FF7A3D] via-[#FF6B35] to-[#E85A25]" />
+                                <span className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/25 via-transparent to-black/10 opacity-70" />
+                                <span className="relative flex items-center gap-1.5">
+                                    <span>Book</span>
+                                    <ChevronRightIcon className="h-3.5 w-3.5" />
+                                </span>
+                            </Link>
+
+                            {/* Menu toggle */}
                             <button
                                 type="button"
                                 onClick={() => setIsOpen((prev) => !prev)}
@@ -320,7 +359,7 @@ const Navbar: React.FC = () => {
                         style={{ touchAction: 'manipulation' }}
                     />
 
-                    {/* Menu Panel */}
+                    {/* Menu Panel — responsive top offset (64px phone / 68px tablet) */}
                     <div
                         className="lg:hidden fixed left-0 right-0 bottom-0 z-[95] bg-white/98 backdrop-blur-xl shadow-2xl overflow-y-auto animate-[slideDown_0.3s_ease-out]"
                         style={{
@@ -329,14 +368,14 @@ const Navbar: React.FC = () => {
                             touchAction: 'pan-y',
                         }}
                     >
-                        <div className="p-5 space-y-1 pb-28">
+                        <div className="p-5 sm:p-6 space-y-1 pb-28">
                             {navigation.map((item, index) => {
                                 const isActive = activePath === item.href;
                                 return (
                                     <Link
                                         key={item.name}
                                         to={item.href}
-                                        className={`group flex items-center justify-between px-4 py-3.5 rounded-xl font-medium transition-all duration-300 animate-[fadeUp_0.4s_ease-out_both] ${
+                                        className={`group flex items-center justify-between px-4 py-3.5 sm:py-4 rounded-xl font-medium transition-all duration-300 animate-[fadeUp_0.4s_ease-out_both] ${
                                             isActive
                                                 ? 'bg-gradient-to-r from-[#FF6B35]/10 to-[#FF8B35]/5 text-[#FF6B35] shadow-sm'
                                                 : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
@@ -348,7 +387,9 @@ const Navbar: React.FC = () => {
                                             touchAction: 'manipulation',
                                         }}
                                     >
-                                        <span className="tracking-tight">{item.name}</span>
+                                        <span className="tracking-tight text-[15px] sm:text-base">
+                                            {item.name}
+                                        </span>
                                         <span
                                             className={`h-1.5 w-1.5 rounded-full bg-[#FF6B35] transition-all duration-300 ${
                                                 isActive
@@ -374,17 +415,10 @@ const Navbar: React.FC = () => {
                                         touchAction: 'manipulation',
                                     }}
                                 >
-                                    {/* base gradient */}
                                     <span className="absolute inset-0 bg-gradient-to-br from-[#FF7A3D] via-[#FF6B35] to-[#E85A25]" />
-
-                                    {/* inner depth */}
                                     <span className="absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/10 opacity-70" />
-
-                                    {/* animated sheen sweep */}
                                     <span className="pointer-events-none absolute inset-0 -translate-x-[120%] group-active:translate-x-[120%] transition-transform duration-[900ms] ease-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-
-                                    {/* content */}
-                                    <span className="relative flex items-center justify-center gap-2 py-3.5 font-semibold text-white tracking-wide">
+                                    <span className="relative flex items-center justify-center gap-2 py-3.5 sm:py-4 font-semibold text-white tracking-wide">
                                         <span>Book Now</span>
                                         <svg
                                             className="h-4 w-4 transform transition-transform duration-300 ease-out group-hover:translate-x-1"
@@ -401,55 +435,61 @@ const Navbar: React.FC = () => {
                                 </Link>
                             </div>
 
-                            {/* Contact Info */}
+                            {/* Contact Info — stacks neatly on tablet (2 cols) */}
                             <div className="pt-5 mt-4 border-t border-gray-100 space-y-1.5">
                                 <p className="px-4 pb-2 text-[11px] font-semibold tracking-[0.15em] uppercase text-gray-400">
                                     Get in touch
                                 </p>
 
-                                <a
-                                    href="tel:+254705336311"
-                                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200"
-                                    style={{
-                                        WebkitTapHighlightColor: 'transparent',
-                                        touchAction: 'manipulation',
-                                    }}
-                                >
-                                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FF6B35]/10 text-[#FF6B35]">
-                                        <PhoneIcon className="h-4.5 w-4.5" />
-                                    </span>
-                                    <span className="text-sm font-medium">+254 (705) 336 311</span>
-                                </a>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                    <a
+                                        href="tel:+254705336311"
+                                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200"
+                                        style={{
+                                            WebkitTapHighlightColor: 'transparent',
+                                            touchAction: 'manipulation',
+                                        }}
+                                    >
+                                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FF6B35]/10 text-[#FF6B35] flex-shrink-0">
+                                            <PhoneIcon className="h-4.5 w-4.5" />
+                                        </span>
+                                        <span className="text-sm font-medium whitespace-nowrap">
+                                            +254 (705) 336 311
+                                        </span>
+                                    </a>
 
-                                <a
-                                    href="tel:+447397549590"
-                                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200"
-                                    style={{
-                                        WebkitTapHighlightColor: 'transparent',
-                                        touchAction: 'manipulation',
-                                    }}
-                                >
-                                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FF6B35]/10 text-[#FF6B35]">
-                                        <PhoneIcon className="h-4.5 w-4.5" />
-                                    </span>
-                                    <span className="text-sm font-medium">+44 (7397) 549 590</span>
-                                </a>
+                                    <a
+                                        href="tel:+447397549590"
+                                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200"
+                                        style={{
+                                            WebkitTapHighlightColor: 'transparent',
+                                            touchAction: 'manipulation',
+                                        }}
+                                    >
+                                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FF6B35]/10 text-[#FF6B35] flex-shrink-0">
+                                            <PhoneIcon className="h-4.5 w-4.5" />
+                                        </span>
+                                        <span className="text-sm font-medium whitespace-nowrap">
+                                            +44 (7397) 549 590
+                                        </span>
+                                    </a>
 
-                                <a
-                                    href="mailto:visionwanservices@gmail.com"
-                                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200"
-                                    style={{
-                                        WebkitTapHighlightColor: 'transparent',
-                                        touchAction: 'manipulation',
-                                    }}
-                                >
-                                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FF6B35]/10 text-[#FF6B35] flex-shrink-0">
-                                        <EnvelopeIcon className="h-4.5 w-4.5" />
-                                    </span>
-                                    <span className="text-sm font-medium break-all">
-                                        visionwanservices@gmail.com
-                                    </span>
-                                </a>
+                                    <a
+                                        href="mailto:visionwanservices@gmail.com"
+                                        className="sm:col-span-2 flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200"
+                                        style={{
+                                            WebkitTapHighlightColor: 'transparent',
+                                            touchAction: 'manipulation',
+                                        }}
+                                    >
+                                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FF6B35]/10 text-[#FF6B35] flex-shrink-0">
+                                            <EnvelopeIcon className="h-4.5 w-4.5" />
+                                        </span>
+                                        <span className="text-sm font-medium break-all">
+                                            visionwanservices@gmail.com
+                                        </span>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
