@@ -92,20 +92,36 @@
   <script type="module" src="/src/main.tsx"></script>
 
   <!-- PWA Service Worker Registration -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker
-          .register('/sw.js')
-          .then((registration) => {
-            console.log('SW registered:', registration.scope);
-          })
-          .catch((error) => {
-            console.warn('SW registration failed:', error);
-          });
-      });
-    }
-  </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      // Skip SW in local development to avoid caching weirdness
+      const isLocalhost =
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname.startsWith('192.168.');
+
+      if (isLocalhost) {
+        // In dev: unregister any existing SW so it doesn't hijack fetches
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          regs.forEach((reg) => reg.unregister());
+        });
+        console.log('SW disabled in development');
+        return;
+      }
+
+      // Production: register normally
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('SW registered:', registration.scope);
+        })
+        .catch((error) => {
+          console.warn('SW registration failed:', error);
+        });
+    });
+  }
+</script>
 </body>
 
 </html>
