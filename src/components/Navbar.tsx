@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -6,38 +8,56 @@ import {
     XMarkIcon,
     PhoneIcon,
     EnvelopeIcon,
+    ArrowDownTrayIcon,
+    DevicePhoneMobileIcon,
+    ComputerDesktopIcon,
+    PlusIcon,
+    ArrowUpTrayIcon,
 } from '@heroicons/react/24/outline';
+
+/* ─── Type for the deferred install prompt event ─── */
+interface BeforeInstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 const Navbar: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [activePath, setActivePath] = useState('/');
+    const [showInstallTip, setShowInstallTip] = useState(false);
+    const [isIOS, setIsIOS] = useState(false);
+
+    /* Desktop install prompt state */
+    const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+    const [showDesktopInstall, setShowDesktopInstall] = useState(false);
+    const [desktopPlatform, setDesktopPlatform] = useState<'chrome' | 'safari' | 'firefox' | 'other'>('other');
+    const [isDesktop, setIsDesktop] = useState(false);
+
     const location = useLocation();
     const bookButtonRef = useRef<HTMLDivElement>(null);
 
-    /* Close mobile menu on route change */
+    /* ───────────── Route change ───────────── */
     useEffect(() => {
         setActivePath(location.pathname);
         setIsOpen(false);
     }, [location]);
 
-    /* Scroll handler */
+    /* ───────────── Scroll handler ───────────── */
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    /* Close menu only when crossing the lg breakpoint */
+    /* ───────────── Resize handler ───────────── */
     useEffect(() => {
-        let lastIsDesktop = window.innerWidth >= 1024;
         const handleResize = () => {
-            const isDesktopNow = window.innerWidth >= 1024;
-            if (isDesktopNow !== lastIsDesktop) {
-                lastIsDesktop = isDesktopNow;
-                if (isDesktopNow) setIsOpen(false);
-            }
+            const desktop = window.innerWidth >= 1024;
+            setIsDesktop(desktop);
+            if (desktop) setIsOpen(false);
         };
+        handleResize();
         window.addEventListener('resize', handleResize);
         window.addEventListener('orientationchange', handleResize);
         return () => {
@@ -46,7 +66,7 @@ const Navbar: React.FC = () => {
         };
     }, []);
 
-    /* Body scroll lock */
+    /* ───────────── Body scroll lock ───────────── */
     useEffect(() => {
         if (isOpen) {
             const scrollY = window.scrollY;
@@ -70,7 +90,7 @@ const Navbar: React.FC = () => {
         };
     }, [isOpen]);
 
-    /* ESC to close */
+    /* ───────────── ESC to close ───────────── */
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && isOpen) setIsOpen(false);
@@ -78,6 +98,134 @@ const Navbar: React.FC = () => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen]);
+
+    /* ───────────── MOBILE Install Tip (Chrome on Android/iOS) ───────────── */
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const isStandalone =
+            window.matchMedia('(display-mode: standalone)').matches ||
+            (window.navigator as any).standalone === true;
+        if (isStandalone) return;
+
+        const ua = window.navigator.userAgent;
+        const iOSDevice =
+            /iPad|iPhone|iPod/.test(ua) ||
+            (ua.includes('Mac') && 'ontouchend' in document);
+        setIsIOS(iOSDevice);
+    }, []);
+
+    useEffect(() => {
+        if (!isOpen) {
+            if (showInstallTip) {
+                const timer = setTimeout(() => setShowInstallTip(false), 200);
+                return () => clearTimeout(timer);
+            }
+            return;
+        }
+
+        const todayKey = new Date().toISOString().slice(0, 10);
+        const lastShown = localStorage.getItem('vw-install-tip-shown');
+        if (lastShown === todayKey) {
+            setShowInstallTip(false);
+            return;
+        }
+
+        const isStandalone =
+            window.matchMedia('(display-mode: standalone)').matches ||
+            (window.navigator as any).standalone === true;
+        if (isStandalone) {
+            setShowInstallTip(false);
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setShowInstallTip(true);
+            localStorage.setItem('vw-install-tip-shown', todayKey);
+        }, 700);
+
+        return () => clearTimeout(timer);
+    }, [isOpen]);
+
+    const handleDismissInstallTip = () => setShowInstallTip(false);
+
+    /* ───────────── DESKTOP Install Logic ─────────────
+       - Chrome/Edge on desktop support `beforeinstallprompt` → native prompt
+       - Safari/Firefox do NOT → show instructions modal pointing to browser menu
+       - Shown once per day via localStorage
+       - Skipped if already installed (standalone mode)
+    */
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        // Detect browser (for fallback instructions)
+        const ua = window.navigator.userAgent;
+        if (/Edg\//.test(ua) || /Chrome\//.test(ua)) {
+            setDesktopPlatform('chrome');
+        } else if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) {
+            setDesktopPlatform('safari');
+        } else if (/Firefox\//.test(ua)) {
+            setDesktopPlatform('firefox');
+        } else {
+            setDesktopPlatform('other');
+        }
+
+        // Capture the native install prompt event (Chrome/Edge only)
+        const handleBeforeInstall = (e: Event) => {
+            e.preventDefault();
+            setDeferredPrompt(e as BeforeInstallPromptEvent);
+        };
+        window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+
+        // If already installed as PWA, skip entirely
+        const isStandalone =
+            window.matchMedia('(display-mode: standalone)').matches ||
+            (window.navigator as any).standalone === true;
+        if (isStandalone) {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+            return;
+        }
+
+        // Only show on desktop (lg and up) — mobile gets its own popup
+        // Only show once per day
+        const todayKey = new Date().toISOString().slice(0, 10);
+        const lastDesktopShown = localStorage.getItem('vw-desktop-install-shown');
+
+        const shouldShow =
+            window.innerWidth >= 1024 &&
+            lastDesktopShown !== todayKey;
+
+        if (shouldShow) {
+            // Delay so it doesn't fight with page paint
+            const timer = setTimeout(() => {
+                setShowDesktopInstall(true);
+                localStorage.setItem('vw-desktop-install-shown', todayKey);
+            }, 3500); // 3.5s — user has settled, not annoying
+            return () => {
+                clearTimeout(timer);
+                window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+            };
+        }
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+        };
+    }, []);
+
+    /* Trigger native install prompt (Chrome/Edge desktop) */
+    const handleNativeInstall = async () => {
+        if (!deferredPrompt) return;
+        await deferredPrompt.prompt();
+        const choice = await deferredPrompt.userChoice;
+        if (choice.outcome === 'accepted') {
+            setShowDesktopInstall(false);
+            setDeferredPrompt(null);
+        } else {
+            setShowDesktopInstall(false);
+        }
+    };
+
+    const handleDismissDesktopInstall = () => setShowDesktopInstall(false);
 
     const navigation = [
         { name: 'Home', href: '/' },
@@ -92,7 +240,7 @@ const Navbar: React.FC = () => {
     return (
         <>
             {/* ============================================================
-                NAVBAR — z-[100] so toggle always stays above mobile overlay
+                NAVBAR — z-[100]
                 ============================================================ */}
             <nav
                 className={`fixed top-0 w-full z-[100] transition-all duration-500 ease-out ${
@@ -101,7 +249,7 @@ const Navbar: React.FC = () => {
                         : 'bg-white lg:bg-white/80 lg:backdrop-blur-md border-b border-transparent'
                 }`}
             >
-                {/* ───────────── Executive Top Bar (hidden below lg) ───────────── */}
+                {/* ───────────── Executive Top Bar (lg+) ───────────── */}
                 <div
                     className={`w-full hidden lg:block overflow-hidden transition-all duration-500 ease-out ${
                         isScrolled ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100'
@@ -110,7 +258,6 @@ const Navbar: React.FC = () => {
                     <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="flex justify-between items-center h-10 text-xs">
-                                {/* Left: contact cluster */}
                                 <div className="flex items-center gap-5">
                                     <a
                                         href="tel:+254705336311"
@@ -135,7 +282,6 @@ const Navbar: React.FC = () => {
                                     </a>
                                 </div>
 
-                                {/* Right: WhatsApp + availability */}
                                 <div className="flex items-center gap-3">
                                     <a
                                         href="https://wa.me/254705336311"
@@ -174,7 +320,6 @@ const Navbar: React.FC = () => {
                 {/* ───────────── Main Navbar ───────────── */}
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16 sm:h-[68px] lg:h-[72px] items-center transition-all duration-500">
-                        {/* Logo — scales nicely on mobile & tablet */}
                         <Link
                             to="/"
                             className="flex items-center gap-2 sm:gap-2.5 group flex-shrink-0 min-w-0"
@@ -213,8 +358,6 @@ const Navbar: React.FC = () => {
                                         }`}
                                     >
                                         <span className="relative z-10">{item.name}</span>
-
-                                        {/* underline indicator */}
                                         <span
                                             className={`absolute left-3 right-3 -bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-[#FF6B35] to-[#FF8B35] origin-center transition-transform duration-300 ${
                                                 isActive
@@ -222,14 +365,11 @@ const Navbar: React.FC = () => {
                                                     : 'scale-x-0 group-hover:scale-x-100'
                                             }`}
                                         />
-
-                                        {/* soft hover pill */}
                                         <span className="absolute inset-0 rounded-lg bg-[#FF6B35]/[0.06] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                     </Link>
                                 );
                             })}
 
-                            {/* Book Now — Desktop */}
                             <div className="relative ml-3 flex-shrink-0" ref={bookButtonRef}>
                                 <Link
                                     to="/booking"
@@ -240,19 +380,10 @@ const Navbar: React.FC = () => {
                                                hover:-translate-y-[2px] active:translate-y-0 active:scale-[0.985]
                                                focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50 focus-visible:ring-offset-2"
                                 >
-                                    {/* base gradient */}
                                     <span className="absolute inset-0 bg-gradient-to-br from-[#FF7A3D] via-[#FF6B35] to-[#E85A25]" />
-
-                                    {/* subtle inner highlight for depth */}
                                     <span className="absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/10 opacity-70" />
-
-                                    {/* animated sheen sweep */}
                                     <span className="pointer-events-none absolute inset-0 -translate-x-[120%] group-hover:translate-x-[120%] transition-transform duration-[900ms] ease-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-
-                                    {/* soft glow ring on hover */}
                                     <span className="pointer-events-none absolute -inset-[2px] rounded-xl bg-gradient-to-r from-[#FF6B35]/40 via-[#FF8B35]/30 to-[#FF6B35]/40 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                                    {/* content */}
                                     <span className="relative flex items-center gap-1.5 tracking-wide">
                                         <span>Book Now</span>
                                         <svg
@@ -271,9 +402,8 @@ const Navbar: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* ───── Mobile / Tablet right side ───── */}
+                        {/* Mobile / Tablet right side */}
                         <div className="lg:hidden flex items-center gap-2">
-                            {/* Compact Call button — mobile & tablet */}
                             <a
                                 href="tel:+254705336311"
                                 aria-label="Call Vision Wan Services"
@@ -290,7 +420,6 @@ const Navbar: React.FC = () => {
                                 <PhoneIcon className="h-5 w-5" />
                             </a>
 
-                            {/* Menu toggle */}
                             <button
                                 type="button"
                                 onClick={() => setIsOpen((prev) => !prev)}
@@ -329,7 +458,6 @@ const Navbar: React.FC = () => {
                 ============================================================ */}
             {isOpen && (
                 <>
-                    {/* Backdrop */}
                     <div
                         className="lg:hidden fixed inset-0 bg-gray-900/50 z-[90] animate-[fadeIn_0.25s_ease-out]"
                         onClick={() => setIsOpen(false)}
@@ -337,7 +465,6 @@ const Navbar: React.FC = () => {
                         style={{ touchAction: 'manipulation' }}
                     />
 
-                    {/* Menu Panel — solid white, top offset matches navbar height */}
                     <div
                         className="lg:hidden fixed left-0 right-0 bottom-0 z-[95] top-16 sm:top-[68px] bg-white shadow-2xl overflow-y-auto animate-[slideDown_0.3s_ease-out]"
                         style={{
@@ -346,6 +473,87 @@ const Navbar: React.FC = () => {
                         }}
                     >
                         <div className="p-5 sm:p-6 space-y-1 pb-28">
+                            {/* Mobile Install Prompt Popup */}
+                            {showInstallTip && (
+                                <div
+                                    className="relative mb-4 overflow-hidden rounded-2xl border border-[#FF6B35]/20 bg-gradient-to-br from-[#FFF6F1] via-white to-[#FFF0E8] shadow-[0_8px_28px_-10px_rgba(255,107,53,0.35)] animate-[installPop_0.5s_cubic-bezier(0.34,1.56,0.64,1)_both]"
+                                    role="dialog"
+                                    aria-label="Install app tip"
+                                >
+                                    <div className="absolute -top-8 -right-8 w-28 h-28 bg-[#FF6B35]/15 rounded-full blur-2xl pointer-events-none" />
+                                    <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#FF8B35]/10 rounded-full blur-2xl pointer-events-none" />
+
+                                    <button
+                                        type="button"
+                                        onClick={handleDismissInstallTip}
+                                        aria-label="Dismiss install tip"
+                                        className="absolute top-2.5 right-2.5 z-10 p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-white/70 active:scale-90 transition-all duration-200"
+                                        style={{
+                                            WebkitTapHighlightColor: 'transparent',
+                                            touchAction: 'manipulation',
+                                        }}
+                                    >
+                                        <XMarkIcon className="h-4 w-4" />
+                                    </button>
+
+                                    <div className="relative p-4 sm:p-5 flex items-start gap-3.5">
+                                        <div className="relative flex-shrink-0">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B35] to-[#FF8B35] rounded-2xl blur-md opacity-40" />
+                                            <div className="relative h-12 w-12 rounded-2xl bg-white shadow-md flex items-center justify-center overflow-hidden border border-[#FF6B35]/10">
+                                                <img
+                                                    src="/assets/images/logo.png"
+                                                    alt="Vision Wan"
+                                                    className="h-9 w-9 object-contain"
+                                                />
+                                            </div>
+                                            <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#FF6B35] to-[#FF8B35] shadow-md ring-2 ring-white">
+                                                <ArrowDownTrayIcon className="h-3 w-3 text-white" />
+                                            </span>
+                                        </div>
+
+                                        <div className="min-w-0 flex-1 pr-6">
+                                            <div className="flex items-center gap-1.5 mb-1">
+                                                <DevicePhoneMobileIcon className="h-3.5 w-3.5 text-[#FF6B35]" />
+                                                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#FF6B35]">
+                                                    Install App
+                                                </p>
+                                            </div>
+
+                                            <p className="text-[13px] font-semibold text-gray-900 leading-snug mb-1">
+                                                Add Vision Wan to your home screen
+                                            </p>
+                                            <p className="text-[11.5px] text-gray-500 leading-relaxed">
+                                                {isIOS ? (
+                                                    <>
+                                                        Tap{' '}
+                                                        <span className="inline-flex items-center justify-center align-middle mx-0.5 px-1.5 py-0.5 rounded-md bg-[#FF6B35]/10 text-[#FF6B35] font-semibold">
+                                                            <PlusIcon className="h-3 w-3" />
+                                                        </span>{' '}
+                                                        Share, then{' '}
+                                                        <span className="font-semibold text-gray-700">
+                                                            "Add to Home Screen"
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        Tap the{' '}
+                                                        <span className="font-semibold text-gray-700">
+                                                            ⋮ menu
+                                                        </span>{' '}
+                                                        (top right), then{' '}
+                                                        <span className="font-semibold text-gray-700">
+                                                            "Add to Home screen"
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-[3px] w-full bg-gradient-to-r from-[#FF6B35] via-[#FF8B35] to-[#FF6B35] opacity-70" />
+                                </div>
+                            )}
+
                             {navigation.map((item, index) => {
                                 const isActive = activePath === item.href;
                                 return (
@@ -378,7 +586,6 @@ const Navbar: React.FC = () => {
                                 );
                             })}
 
-                            {/* Book Now — Mobile */}
                             <div className="pt-4">
                                 <Link
                                     to="/booking"
@@ -412,7 +619,6 @@ const Navbar: React.FC = () => {
                                 </Link>
                             </div>
 
-                            {/* Contact Info */}
                             <div className="pt-5 mt-4 border-t border-gray-100 space-y-1.5">
                                 <p className="px-4 pb-2 text-[11px] font-semibold tracking-[0.15em] uppercase text-gray-400">
                                     Get in touch
@@ -473,7 +679,130 @@ const Navbar: React.FC = () => {
                 </>
             )}
 
-            {/* Keyframes for mobile animations */}
+            {/* ============================================================
+                DESKTOP / LAPTOP INSTALL PROMPT (bottom-right pill card)
+                ============================================================ */}
+            {showDesktopInstall && isDesktop && (
+                <div
+                    className="fixed bottom-6 right-6 z-[80] w-[360px] max-w-[calc(100vw-3rem)] hidden lg:block animate-[desktopPop_0.55s_cubic-bezier(0.34,1.56,0.64,1)_both]"
+                    role="dialog"
+                    aria-label="Install Vision Wan app on desktop"
+                >
+                    <div className="relative overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_-15px_rgba(15,23,42,0.35)] border border-slate-200/80">
+                        {/* Decorative orbs */}
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FF6B35]/15 rounded-full blur-2xl pointer-events-none" />
+                        <div className="absolute -bottom-12 -left-12 w-36 h-36 bg-[#FF8B35]/10 rounded-full blur-2xl pointer-events-none" />
+
+                        {/* Close button */}
+                        <button
+                            type="button"
+                            onClick={handleDismissDesktopInstall}
+                            aria-label="Dismiss install prompt"
+                            className="absolute top-3 right-3 z-10 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90 transition-all duration-200"
+                        >
+                            <XMarkIcon className="h-4 w-4" />
+                        </button>
+
+                        <div className="relative p-5">
+                            <div className="flex items-start gap-3.5">
+                                {/* Logo with badge */}
+                                <div className="relative flex-shrink-0">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B35] to-[#FF8B35] rounded-2xl blur-md opacity-40" />
+                                    <div className="relative h-14 w-14 rounded-2xl bg-white shadow-md flex items-center justify-center overflow-hidden border border-[#FF6B35]/10">
+                                        <img
+                                            src="/assets/images/logo.png"
+                                            alt="Vision Wan"
+                                            className="h-11 w-11 object-contain"
+                                        />
+                                    </div>
+                                    <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#FF6B35] to-[#FF8B35] shadow-md ring-2 ring-white">
+                                        <ArrowDownTrayIcon className="h-3 w-3 text-white" />
+                                    </span>
+                                </div>
+
+                                <div className="min-w-0 flex-1 pr-6">
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        <ComputerDesktopIcon className="h-3.5 w-3.5 text-[#FF6B35]" />
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#FF6B35]">
+                                            Desktop App
+                                        </p>
+                                    </div>
+
+                                    <p className="text-[14px] font-semibold text-slate-900 leading-snug mb-1">
+                                        Install Vision Wan on this device
+                                    </p>
+                                    <p className="text-[12px] text-slate-500 leading-relaxed">
+                                        Fast access, works offline, and runs in its own window — no browser tabs needed.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="mt-4 flex items-center gap-2">
+                                {deferredPrompt ? (
+                                    <button
+                                        type="button"
+                                        onClick={handleNativeInstall}
+                                        className="group relative flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white overflow-hidden
+                                                   shadow-[0_6px_18px_-6px_rgba(255,107,53,0.55)]
+                                                   hover:shadow-[0_10px_24px_-8px_rgba(255,107,53,0.7)]
+                                                   transition-all duration-300 hover:-translate-y-[1px] active:translate-y-0 active:scale-[0.985]"
+                                    >
+                                        <span className="absolute inset-0 bg-gradient-to-br from-[#FF7A3D] via-[#FF6B35] to-[#E85A25]" />
+                                        <span className="absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/10 opacity-70" />
+                                        <span className="relative flex items-center gap-1.5">
+                                            <ArrowDownTrayIcon className="h-4 w-4" />
+                                            <span>Install Now</span>
+                                        </span>
+                                    </button>
+                                ) : (
+                                    <div className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[12px] text-slate-600 leading-snug">
+                                        {desktopPlatform === 'safari' && (
+                                            <>
+                                                Click{' '}
+                                                <ArrowUpTrayIcon className="inline h-3 w-3 mx-0.5 -mt-0.5" />{' '}
+                                                <span className="font-semibold">Share</span> then{' '}
+                                                <span className="font-semibold">"Add to Dock"</span>
+                                            </>
+                                        )}
+                                        {desktopPlatform === 'firefox' && (
+                                            <>
+                                                Firefox doesn't support one-click install. Open this site in{' '}
+                                                <span className="font-semibold">Chrome</span> or{' '}
+                                                <span className="font-semibold">Edge</span> to install.
+                                            </>
+                                        )}
+                                        {(desktopPlatform === 'chrome' || desktopPlatform === 'other') && (
+                                            <>
+                                                Click the{' '}
+                                                <span className="font-semibold">install icon</span>{' '}
+                                                in the browser's address bar.
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={handleDismissDesktopInstall}
+                                    className="px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors duration-200"
+                                >
+                                    Later
+                                </button>
+                            </div>
+
+                            <p className="mt-3 text-[10.5px] text-slate-400 leading-relaxed">
+                                Free · ~1 MB · No account required
+                            </p>
+                        </div>
+
+                        {/* Bottom accent line */}
+                        <div className="h-[3px] w-full bg-gradient-to-r from-[#FF6B35] via-[#FF8B35] to-[#FF6B35] opacity-70" />
+                    </div>
+                </div>
+            )}
+
+            {/* Keyframes */}
             <style>{`
                 @keyframes fadeIn {
                     from { opacity: 0; }
@@ -486,6 +815,34 @@ const Navbar: React.FC = () => {
                 @keyframes fadeUp {
                     from { opacity: 0; transform: translateY(8px); }
                     to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes installPop {
+                    0% {
+                        opacity: 0;
+                        transform: translateY(14px) scale(0.96);
+                    }
+                    60% {
+                        opacity: 1;
+                        transform: translateY(-2px) scale(1.01);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
+                }
+                @keyframes desktopPop {
+                    0% {
+                        opacity: 0;
+                        transform: translateY(20px) scale(0.94);
+                    }
+                    60% {
+                        opacity: 1;
+                        transform: translateY(-3px) scale(1.01);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
                 }
             `}</style>
         </>
