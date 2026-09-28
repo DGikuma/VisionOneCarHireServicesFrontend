@@ -99,7 +99,9 @@ const Navbar: React.FC = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen]);
 
-    /* ───────────── MOBILE Install Tip (Chrome on Android/iOS) ───────────── */
+    /* ───────────── MOBILE Install Tip ─────────────
+       Detect iOS once (used for instruction copy in the tip).
+    */
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
@@ -115,22 +117,27 @@ const Navbar: React.FC = () => {
         setIsIOS(iOSDevice);
     }, []);
 
+    /* ───────────── MOBILE Install Tip trigger ─────────────
+       Now decoupled from the mobile menu.
+       Shows on the HOME page only, ~4s after landing.
+       Mobile/tablet widths only. Once per day. Skipped if installed.
+    */
     useEffect(() => {
-        if (!isOpen) {
-            if (showInstallTip) {
-                const timer = setTimeout(() => setShowInstallTip(false), 200);
-                return () => clearTimeout(timer);
-            }
-            return;
-        }
+        if (typeof window === 'undefined') return;
 
-        const todayKey = new Date().toISOString().slice(0, 10);
-        const lastShown = localStorage.getItem('vw-install-tip-shown');
-        if (lastShown === todayKey) {
+        // Only on home page
+        if (location.pathname !== '/') {
             setShowInstallTip(false);
             return;
         }
 
+        // Only on mobile/tablet
+        if (window.innerWidth >= 1024) {
+            setShowInstallTip(false);
+            return;
+        }
+
+        // Skip if already installed as PWA
         const isStandalone =
             window.matchMedia('(display-mode: standalone)').matches ||
             (window.navigator as any).standalone === true;
@@ -139,13 +146,22 @@ const Navbar: React.FC = () => {
             return;
         }
 
+        // Once per day
+        const todayKey = new Date().toISOString().slice(0, 10);
+        const lastShown = localStorage.getItem('vw-install-tip-shown');
+        if (lastShown === todayKey) {
+            setShowInstallTip(false);
+            return;
+        }
+
+        // Delay so it doesn't fight with hero paint
         const timer = setTimeout(() => {
             setShowInstallTip(true);
             localStorage.setItem('vw-install-tip-shown', todayKey);
-        }, 700);
+        }, 4000);
 
         return () => clearTimeout(timer);
-    }, [isOpen]);
+    }, [location.pathname]);
 
     const handleDismissInstallTip = () => setShowInstallTip(false);
 
@@ -186,7 +202,7 @@ const Navbar: React.FC = () => {
             return;
         }
 
-        // Only show on desktop (lg and up) — mobile gets its own popup
+        // Only show on desktop (lg and up)
         // Only show once per day
         const todayKey = new Date().toISOString().slice(0, 10);
         const lastDesktopShown = localStorage.getItem('vw-desktop-install-shown');
@@ -196,11 +212,10 @@ const Navbar: React.FC = () => {
             lastDesktopShown !== todayKey;
 
         if (shouldShow) {
-            // Delay so it doesn't fight with page paint
             const timer = setTimeout(() => {
                 setShowDesktopInstall(true);
                 localStorage.setItem('vw-desktop-install-shown', todayKey);
-            }, 3500); // 3.5s — user has settled, not annoying
+            }, 3500);
             return () => {
                 clearTimeout(timer);
                 window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
@@ -473,87 +488,6 @@ const Navbar: React.FC = () => {
                         }}
                     >
                         <div className="p-5 sm:p-6 space-y-1 pb-28">
-                            {/* Mobile Install Prompt Popup */}
-                            {showInstallTip && (
-                                <div
-                                    className="relative mb-4 overflow-hidden rounded-2xl border border-[#FF6B35]/20 bg-gradient-to-br from-[#FFF6F1] via-white to-[#FFF0E8] shadow-[0_8px_28px_-10px_rgba(255,107,53,0.35)] animate-[installPop_0.5s_cubic-bezier(0.34,1.56,0.64,1)_both]"
-                                    role="dialog"
-                                    aria-label="Install app tip"
-                                >
-                                    <div className="absolute -top-8 -right-8 w-28 h-28 bg-[#FF6B35]/15 rounded-full blur-2xl pointer-events-none" />
-                                    <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#FF8B35]/10 rounded-full blur-2xl pointer-events-none" />
-
-                                    <button
-                                        type="button"
-                                        onClick={handleDismissInstallTip}
-                                        aria-label="Dismiss install tip"
-                                        className="absolute top-2.5 right-2.5 z-10 p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-white/70 active:scale-90 transition-all duration-200"
-                                        style={{
-                                            WebkitTapHighlightColor: 'transparent',
-                                            touchAction: 'manipulation',
-                                        }}
-                                    >
-                                        <XMarkIcon className="h-4 w-4" />
-                                    </button>
-
-                                    <div className="relative p-4 sm:p-5 flex items-start gap-3.5">
-                                        <div className="relative flex-shrink-0">
-                                            <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B35] to-[#FF8B35] rounded-2xl blur-md opacity-40" />
-                                            <div className="relative h-12 w-12 rounded-2xl bg-white shadow-md flex items-center justify-center overflow-hidden border border-[#FF6B35]/10">
-                                                <img
-                                                    src="/assets/images/logo.png"
-                                                    alt="Vision Wan"
-                                                    className="h-9 w-9 object-contain"
-                                                />
-                                            </div>
-                                            <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#FF6B35] to-[#FF8B35] shadow-md ring-2 ring-white">
-                                                <ArrowDownTrayIcon className="h-3 w-3 text-white" />
-                                            </span>
-                                        </div>
-
-                                        <div className="min-w-0 flex-1 pr-6">
-                                            <div className="flex items-center gap-1.5 mb-1">
-                                                <DevicePhoneMobileIcon className="h-3.5 w-3.5 text-[#FF6B35]" />
-                                                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#FF6B35]">
-                                                    Install App
-                                                </p>
-                                            </div>
-
-                                            <p className="text-[13px] font-semibold text-gray-900 leading-snug mb-1">
-                                                Add Vision Wan to your home screen
-                                            </p>
-                                            <p className="text-[11.5px] text-gray-500 leading-relaxed">
-                                                {isIOS ? (
-                                                    <>
-                                                        Tap{' '}
-                                                        <span className="inline-flex items-center justify-center align-middle mx-0.5 px-1.5 py-0.5 rounded-md bg-[#FF6B35]/10 text-[#FF6B35] font-semibold">
-                                                            <PlusIcon className="h-3 w-3" />
-                                                        </span>{' '}
-                                                        Share, then{' '}
-                                                        <span className="font-semibold text-gray-700">
-                                                            "Add to Home Screen"
-                                                        </span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Tap the{' '}
-                                                        <span className="font-semibold text-gray-700">
-                                                            ⋮ menu
-                                                        </span>{' '}
-                                                        (top right), then{' '}
-                                                        <span className="font-semibold text-gray-700">
-                                                            "Add to Home screen"
-                                                        </span>
-                                                    </>
-                                                )}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="h-[3px] w-full bg-gradient-to-r from-[#FF6B35] via-[#FF8B35] to-[#FF6B35] opacity-70" />
-                                </div>
-                            )}
-
                             {navigation.map((item, index) => {
                                 const isActive = activePath === item.href;
                                 return (
@@ -677,6 +611,95 @@ const Navbar: React.FC = () => {
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* ============================================================
+                MOBILE INSTALL TIP — floating banner, home page only
+                ============================================================ */}
+            {showInstallTip && !isOpen && !isDesktop && (
+                <div
+                    className="fixed left-3 right-3 bottom-3 z-[105] lg:hidden animate-[installPop_0.5s_cubic-bezier(0.34,1.56,0.64,1)_both]"
+                    role="dialog"
+                    aria-label="Install app tip"
+                >
+                    <div className="relative overflow-hidden rounded-2xl border border-[#FF6B35]/25 bg-white/95 backdrop-blur-xl shadow-[0_18px_50px_-15px_rgba(255,107,53,0.55)]">
+                        {/* Decorative orbs */}
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FF6B35]/15 rounded-full blur-2xl pointer-events-none" />
+                        <div className="absolute -bottom-12 -left-12 w-36 h-36 bg-[#FF8B35]/10 rounded-full blur-2xl pointer-events-none" />
+
+                        {/* Close button */}
+                        <button
+                            type="button"
+                            onClick={handleDismissInstallTip}
+                            aria-label="Dismiss install tip"
+                            className="absolute top-2.5 right-2.5 z-10 p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-white/80 active:scale-90 transition-all duration-200"
+                            style={{
+                                WebkitTapHighlightColor: 'transparent',
+                                touchAction: 'manipulation',
+                            }}
+                        >
+                            <XMarkIcon className="h-4 w-4" />
+                        </button>
+
+                        <div className="relative p-4 flex items-start gap-3.5">
+                            {/* Logo + badge */}
+                            <div className="relative flex-shrink-0">
+                                <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B35] to-[#FF8B35] rounded-2xl blur-md opacity-40" />
+                                <div className="relative h-12 w-12 rounded-2xl bg-white shadow-md flex items-center justify-center overflow-hidden border border-[#FF6B35]/10">
+                                    <img
+                                        src="/assets/images/logo.png"
+                                        alt="Vision Wan"
+                                        className="h-9 w-9 object-contain"
+                                    />
+                                </div>
+                                <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#FF6B35] to-[#FF8B35] shadow-md ring-2 ring-white">
+                                    <ArrowDownTrayIcon className="h-3 w-3 text-white" />
+                                </span>
+                            </div>
+
+                            {/* Text */}
+                            <div className="min-w-0 flex-1 pr-6">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                    <DevicePhoneMobileIcon className="h-3.5 w-3.5 text-[#FF6B35]" />
+                                    <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#FF6B35]">
+                                        Install App
+                                    </p>
+                                </div>
+
+                                <p className="text-[13px] font-semibold text-gray-900 leading-snug mb-1">
+                                    Add Vision Wan to your home screen
+                                </p>
+                                <p className="text-[11.5px] text-gray-500 leading-relaxed">
+                                    {isIOS ? (
+                                        <>
+                                            Tap{' '}
+                                            <span className="inline-flex items-center justify-center align-middle mx-0.5 px-1.5 py-0.5 rounded-md bg-[#FF6B35]/10 text-[#FF6B35] font-semibold">
+                                                <PlusIcon className="h-3 w-3" />
+                                            </span>{' '}
+                                            Share, then{' '}
+                                            <span className="font-semibold text-gray-700">
+                                                "Add to Home Screen"
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            Tap the{' '}
+                                            <span className="font-semibold text-gray-700">
+                                                ⋮ menu
+                                            </span>{' '}
+                                            (top right), then{' '}
+                                            <span className="font-semibold text-gray-700">
+                                                "Add to Home screen"
+                                            </span>
+                                        </>
+                                    )}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="h-[3px] w-full bg-gradient-to-r from-[#FF6B35] via-[#FF8B35] to-[#FF6B35] opacity-70" />
+                    </div>
+                </div>
             )}
 
             {/* ============================================================
