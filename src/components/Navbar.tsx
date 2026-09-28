@@ -50,10 +50,13 @@ const Navbar: React.FC = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    /* ───────────── Resize handler ───────────── */
+    /* ───────────── Resize handler ─────────────
+       Desktop boundary is now 1280 (Tailwind `xl`) so tablets in both
+       portrait AND landscape are treated as mobile for the install tip.
+    */
     useEffect(() => {
         const handleResize = () => {
-            const desktop = window.innerWidth >= 1024;
+            const desktop = window.innerWidth >= 1280;
             setIsDesktop(desktop);
             if (desktop) setIsOpen(false);
         };
@@ -118,9 +121,9 @@ const Navbar: React.FC = () => {
     }, []);
 
     /* ───────────── MOBILE Install Tip trigger ─────────────
-       Now decoupled from the mobile menu.
        Shows on the HOME page only, ~4s after landing.
-       Mobile/tablet widths only. Once per day. Skipped if installed.
+       Mobile + tablet (both orientations). Once per day.
+       Skipped if already installed as PWA.
     */
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -131,8 +134,8 @@ const Navbar: React.FC = () => {
             return;
         }
 
-        // Only on mobile/tablet
-        if (window.innerWidth >= 1024) {
+        // Mobile + tablet — includes iPad in landscape (≤1279px)
+        if (window.innerWidth >= 1280) {
             setShowInstallTip(false);
             return;
         }
@@ -170,6 +173,7 @@ const Navbar: React.FC = () => {
        - Safari/Firefox do NOT → show instructions modal pointing to browser menu
        - Shown once per day via localStorage
        - Skipped if already installed (standalone mode)
+       - Only fires on true desktops (≥1280px)
     */
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -202,13 +206,13 @@ const Navbar: React.FC = () => {
             return;
         }
 
-        // Only show on desktop (lg and up)
+        // Only show on true desktops (≥1280px)
         // Only show once per day
         const todayKey = new Date().toISOString().slice(0, 10);
         const lastDesktopShown = localStorage.getItem('vw-desktop-install-shown');
 
         const shouldShow =
-            window.innerWidth >= 1024 &&
+            window.innerWidth >= 1280 &&
             lastDesktopShown !== todayKey;
 
         if (shouldShow) {
@@ -614,15 +618,16 @@ const Navbar: React.FC = () => {
             )}
 
             {/* ============================================================
-                MOBILE INSTALL TIP — floating banner, home page only
+                MOBILE / TABLET INSTALL TIP — floating banner, home page only
+                Now visible on tablets in both orientations (≤1279px).
                 ============================================================ */}
             {showInstallTip && !isOpen && !isDesktop && (
                 <div
-                    className="fixed left-3 right-3 bottom-3 z-[105] lg:hidden animate-[installPop_0.5s_cubic-bezier(0.34,1.56,0.64,1)_both]"
+                    className="fixed left-3 right-3 bottom-3 z-[105] animate-[installPop_0.5s_cubic-bezier(0.34,1.56,0.64,1)_both]"
                     role="dialog"
                     aria-label="Install app tip"
                 >
-                    <div className="relative overflow-hidden rounded-2xl border border-[#FF6B35]/25 bg-white/95 backdrop-blur-xl shadow-[0_18px_50px_-15px_rgba(255,107,53,0.55)]">
+                    <div className="relative mx-auto max-w-md sm:max-w-lg overflow-hidden rounded-2xl border border-[#FF6B35]/25 bg-white/95 backdrop-blur-xl shadow-[0_18px_50px_-15px_rgba(255,107,53,0.55)]">
                         {/* Decorative orbs */}
                         <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FF6B35]/15 rounded-full blur-2xl pointer-events-none" />
                         <div className="absolute -bottom-12 -left-12 w-36 h-36 bg-[#FF8B35]/10 rounded-full blur-2xl pointer-events-none" />
@@ -641,7 +646,7 @@ const Navbar: React.FC = () => {
                             <XMarkIcon className="h-4 w-4" />
                         </button>
 
-                        <div className="relative p-4 flex items-start gap-3.5">
+                        <div className="relative p-4 sm:p-5 flex items-start gap-3.5">
                             {/* Logo + badge */}
                             <div className="relative flex-shrink-0">
                                 <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B35] to-[#FF8B35] rounded-2xl blur-md opacity-40" />
@@ -666,10 +671,10 @@ const Navbar: React.FC = () => {
                                     </p>
                                 </div>
 
-                                <p className="text-[13px] font-semibold text-gray-900 leading-snug mb-1">
+                                <p className="text-[13px] sm:text-sm font-semibold text-gray-900 leading-snug mb-1">
                                     Add Vision Wan to your home screen
                                 </p>
-                                <p className="text-[11.5px] text-gray-500 leading-relaxed">
+                                <p className="text-[11.5px] sm:text-xs text-gray-500 leading-relaxed">
                                     {isIOS ? (
                                         <>
                                             Tap{' '}
@@ -703,11 +708,12 @@ const Navbar: React.FC = () => {
             )}
 
             {/* ============================================================
-                DESKTOP / LAPTOP INSTALL PROMPT (bottom-right pill card)
+                DESKTOP INSTALL PROMPT (bottom-right pill card)
+                Now only shows on true desktops (≥1280px)
                 ============================================================ */}
             {showDesktopInstall && isDesktop && (
                 <div
-                    className="fixed bottom-6 right-6 z-[80] w-[360px] max-w-[calc(100vw-3rem)] hidden lg:block animate-[desktopPop_0.55s_cubic-bezier(0.34,1.56,0.64,1)_both]"
+                    className="fixed bottom-6 right-6 z-[80] w-[360px] max-w-[calc(100vw-3rem)] hidden xl:block animate-[desktopPop_0.55s_cubic-bezier(0.34,1.56,0.64,1)_both]"
                     role="dialog"
                     aria-label="Install Vision Wan app on desktop"
                 >
