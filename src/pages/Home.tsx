@@ -56,7 +56,7 @@ const slides = [
 const stats = [
     { icon: ClockIcon, value: '24/7', label: 'Premium Support', description: 'Dedicated concierge service available round-the-clock' },
     { icon: ShieldCheckIcon, value: '100%', label: 'Client Satisfaction', description: 'Guaranteed premium experience for every journey' },
-    { icon: TrophyIcon, value: '50+', label: 'Exclusive Locations', description: 'Nationwide network of premium service centers' },
+    { icon: TrophyIcon, value: '2+', label: 'Exclusive Locations', description: 'Nationwide network of premium service centers' },
     { icon: WrenchScrewdriverIcon, value: '100%', label: 'Fleet Maintained', description: 'Every vehicle serviced and inspected before each rental' },
 ];
 
@@ -523,7 +523,7 @@ const Home: React.FC = () => {
                             <div className="flex flex-wrap gap-5">
                                 <div className="flex items-center gap-2.5 text-gray-300">
                                     <div className="h-2.5 w-2.5 bg-[#FF6B35] rounded-full" />
-                                    <span className="font-medium">50+ Cities</span>
+                                    <span className="font-medium">2+ Cities</span>
                                 </div>
                                 <div className="flex items-center gap-2.5 text-gray-300">
                                     <div className="h-2.5 w-2.5 bg-[#FF6B35] rounded-full" />
