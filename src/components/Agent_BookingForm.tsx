@@ -1659,6 +1659,9 @@ const Agent_BookingForm = forwardRef<Agent_BookingFormRef, Agent_BookingFormProp
                                 <div style={{ marginTop: '22px' }}>
                                     <BookingEstimate />
                                 </div>
+                                <div style={{ marginTop: '22px' }}>
+                                    <PaymentCard compact />
+                                </div>
                             </section>
                             <NavigationButtons />
                         </>

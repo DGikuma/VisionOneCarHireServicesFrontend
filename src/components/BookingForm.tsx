@@ -1660,6 +1660,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                 <div style={{ marginTop: '22px' }}>
                                     <BookingEstimate />
                                 </div>
+                                <div style={{ marginTop: '22px' }}>
+                                    <PaymentCard compact />
+                                </div>
                             </section>
                             <NavigationButtons />
                         </>
