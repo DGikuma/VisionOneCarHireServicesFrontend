@@ -74,6 +74,17 @@ const pickupLocations = [
     'Other / delivery requested',
 ];
 
+/* ─── Payment details ─── */
+const PAYMENT_DETAILS = {
+    bankName: 'Vision One Services',
+    sortCode: '04-00-04',
+    accountNumber: '82402928',
+    mpesaNumber: '0794 324 825',
+    mpesaName: 'Lukas Kamau',
+    paybillNumber: '247247',
+    paybillAccount: '195376',
+};
+
 const stepFields: Record<number, (keyof Agent_BookingFormData)[]> = {
     1: ['fullName', 'email', 'phone', 'nationality', 'idNumber', 'idType'],
     2: ['vehicle', 'pickupDate', 'returnDate', 'pickupLocation', 'deliveryAddress', 'notes'],
@@ -952,6 +963,16 @@ const Agent_BookingForm = forwardRef<Agent_BookingFormRef, Agent_BookingFormProp
 
                     <div style={styles.reviewCard}>
                         <div style={styles.reviewCardHeader}>
+                            <span style={styles.reviewCardIcon}>🏦</span>
+                            <h4 style={styles.reviewCardTitle}>Payment Details</h4>
+                        </div>
+                        <div className="bf-review-body" style={styles.reviewCardBody}>
+                            <PaymentCard compact />
+                        </div>
+                    </div>
+
+                    <div style={styles.reviewCard}>
+                        <div style={styles.reviewCardHeader}>
                             <span style={styles.reviewCardIcon}>📎</span>
                             <h4 style={styles.reviewCardTitle}>Uploaded Documents</h4>
                         </div>
@@ -1070,6 +1091,99 @@ const Agent_BookingForm = forwardRef<Agent_BookingFormRef, Agent_BookingFormProp
                             <a href="/terms" style={styles.reviewNoteLink}>Terms & Conditions</a> and{' '}
                             <a href="/privacy" style={styles.reviewNoteLink}>Privacy Policy</a>.
                         </p>
+                    </div>
+                </div>
+            );
+        };
+
+        const PaymentCard = ({ compact = false }: { compact?: boolean }) => {
+            const { bankName, sortCode, accountNumber, mpesaNumber, mpesaName, paybillNumber, paybillAccount } = PAYMENT_DETAILS;
+
+            return (
+                <div style={styles.paymentCardWrap}>
+                    {/* Header band */}
+                    <div style={styles.paymentCardHeader}>
+                        <div style={styles.paymentCardHeaderIcon}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="2" y="5" width="20" height="14" rx="3" />
+                                <path d="M2 10h20" />
+                            </svg>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                            <h4 style={styles.paymentCardTitle}>Payment details</h4>
+                            <p style={styles.paymentCardSubtitle}>
+                                Pay your deposit, then upload the receipt in the next section
+                            </p>
+                        </div>
+                        <span style={styles.paymentCardPill}>Secure</span>
+                    </div>
+
+                    {/* Body */}
+                    <div style={styles.paymentCardBody}>
+                        {/* Bank transfer block */}
+                        <div style={styles.paymentBlock}>
+                            <div style={styles.paymentBlockLabel}>
+                                <span style={styles.paymentBlockDot} />
+                                Bank transfer
+                            </div>
+                            <div style={styles.paymentGrid}>
+                                <div style={styles.paymentRow}>
+                                    <span style={styles.paymentRowLabel}>Account name</span>
+                                    <span style={styles.paymentRowValue}>{bankName}</span>
+                                </div>
+                                <div style={styles.paymentRow}>
+                                    <span style={styles.paymentRowLabel}>Sort code</span>
+                                    <span style={styles.paymentRowValueMono}>{sortCode}</span>
+                                </div>
+                                <div style={styles.paymentRow}>
+                                    <span style={styles.paymentRowLabel}>Account number</span>
+                                    <span style={styles.paymentRowValueMono}>{accountNumber}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* M-Pesa + Paybill side by side on desktop, stacked on mobile */}
+                        <div className={`bf-grid-2`} style={{ ...styles.grid2, gap: '12px' }}>
+                            <div style={styles.paymentBlock}>
+                                <div style={styles.paymentBlockLabel}>
+                                    <span style={{ ...styles.paymentBlockDot, background: '#16a34a' }} />
+                                    M-Pesa
+                                </div>
+                                <div style={styles.paymentGrid}>
+                                    <div style={styles.paymentRow}>
+                                        <span style={styles.paymentRowLabel}>Send to</span>
+                                        <span style={styles.paymentRowValueMono}>{mpesaNumber}</span>
+                                    </div>
+                                    <div style={styles.paymentRow}>
+                                        <span style={styles.paymentRowLabel}>Name</span>
+                                        <span style={styles.paymentRowValue}>{mpesaName}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style={styles.paymentBlock}>
+                                <div style={styles.paymentBlockLabel}>
+                                    <span style={{ ...styles.paymentBlockDot, background: '#0ea5e9' }} />
+                                    Paybill
+                                </div>
+                                <div style={styles.paymentGrid}>
+                                    <div style={styles.paymentRow}>
+                                        <span style={styles.paymentRowLabel}>Paybill no.</span>
+                                        <span style={styles.paymentRowValueMono}>{paybillNumber}</span>
+                                    </div>
+                                    <div style={styles.paymentRow}>
+                                        <span style={styles.paymentRowLabel}>Account no.</span>
+                                        <span style={styles.paymentRowValueMono}>{paybillAccount}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {!compact && (
+                            <div style={styles.paymentNote}>
+                                💡 <strong>Tip:</strong> Use your Booking ID or full name as the payment reference. Keep the receipt — you'll upload it below.
+                            </div>
+                        )}
                     </div>
                 </div>
             );
@@ -1561,6 +1675,9 @@ const Agent_BookingForm = forwardRef<Agent_BookingFormRef, Agent_BookingFormProp
                                 <div style={styles.noteBox}>
                                     All three documents are required. On most phones, tap <strong>Choose File</strong> and select the camera
                                     to photograph the document. Make sure the whole document is visible and readable.
+                                </div>
+                                <div style={{ marginTop: '16px' }}>
+                                    <PaymentCard />
                                 </div>
                                 {isAmendMode && lookupStatus === 'found' && (
                                     <div
@@ -2153,6 +2270,132 @@ const styles: { [key: string]: React.CSSProperties } = {
     reviewNoteIcon: { fontSize: '18px', flexShrink: 0, lineHeight: 1.4 },
     reviewNoteText: { margin: 0, fontSize: '13px', color: '#0c4a6e', lineHeight: '1.5' },
     reviewNoteLink: { color: '#e10b0b', fontWeight: '600', textDecoration: 'underline' },
+
+    /* ===== Payment card ===== */
+    paymentCardWrap: {
+        position: 'relative',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        border: '1px solid #e5e7eb',
+        background: '#ffffff',
+        boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
+    },
+    paymentCardHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '16px 18px',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #0f172a 100%)',
+        color: '#fff',
+    },
+    paymentCardHeaderIcon: {
+        width: '36px',
+        height: '36px',
+        borderRadius: '10px',
+        background: 'rgba(255,255,255,0.10)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#ff8b35',
+        flexShrink: 0,
+    },
+    paymentCardTitle: {
+        margin: 0,
+        fontSize: '15px',
+        fontWeight: 700,
+        letterSpacing: '0.2px',
+        color: '#fff',
+    },
+    paymentCardSubtitle: {
+        margin: '2px 0 0',
+        fontSize: '12px',
+        color: 'rgba(255,255,255,0.65)',
+        lineHeight: 1.4,
+    },
+    paymentCardPill: {
+        display: 'inline-block',
+        padding: '4px 10px',
+        borderRadius: '999px',
+        fontSize: '11px',
+        fontWeight: 700,
+        letterSpacing: '0.4px',
+        background: 'rgba(16,185,129,0.15)',
+        color: '#6ee7b7',
+        border: '1px solid rgba(16,185,129,0.35)',
+        flexShrink: 0,
+    },
+    paymentCardBody: {
+        padding: '16px 18px 18px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+    },
+    paymentBlock: {
+        background: '#f8fafc',
+        border: '1px solid #e5e7eb',
+        borderRadius: '12px',
+        padding: '12px 14px',
+    },
+    paymentBlockLabel: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        fontSize: '11.5px',
+        fontWeight: 700,
+        letterSpacing: '0.6px',
+        textTransform: 'uppercase' as const,
+        color: '#475569',
+        marginBottom: '10px',
+    },
+    paymentBlockDot: {
+        width: '8px',
+        height: '8px',
+        borderRadius: '50%',
+        background: '#e10b0b',
+        boxShadow: '0 0 0 3px rgba(225,11,11,0.12)',
+    },
+    paymentGrid: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+    },
+    paymentRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'baseline',
+        gap: '12px',
+        fontSize: '13.5px',
+        flexWrap: 'wrap' as const,
+    },
+    paymentRowLabel: {
+        color: '#64748b',
+        fontWeight: 500,
+    },
+    paymentRowValue: {
+        color: '#0f172a',
+        fontWeight: 600,
+        textAlign: 'right' as const,
+        wordBreak: 'break-word' as const,
+    },
+    paymentRowValueMono: {
+        color: '#0f172a',
+        fontWeight: 700,
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+        letterSpacing: '0.5px',
+        textAlign: 'right' as const,
+        wordBreak: 'break-word' as const,
+    },
+    paymentNote: {
+        marginTop: '2px',
+        padding: '10px 12px',
+        borderRadius: '10px',
+        background: 'linear-gradient(135deg, #fff7ed, #fff1f2)',
+        border: '1px solid #fed7aa',
+        color: '#7c2d12',
+        fontSize: '12.5px',
+        lineHeight: 1.5,
+    },
 };
 
 export default Agent_BookingForm;
