@@ -1,7 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import FestivePopup from '../components/FestivePopup';
 import {
     ShieldCheckIcon,
     ClockIcon,
@@ -20,73 +21,49 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon as SolidStar } from '@heroicons/react/24/solid';
 
-/* ─────────────────────────── Data ─────────────────────────── */
+/* ─────────────────────────── Data (unchanged) ─────────────────────────── */
 
 const slides = [
-    {
-        image: '/assets/vehicles/prado.jpg',
-        title: 'Toyota Prado',
-        subtitle: 'The ultimate adventure SUV — rugged reliability meets executive comfort for every terrain',
-        gradient: 'from-emerald-900/85 via-emerald-800/60 to-[#FF6B35]/40',
-        badge: 'PREMIUM SUV',
-    },
-    {
-        image: '/assets/vehicles/range-rover.jpg',
-        title: 'Range Rover',
-        subtitle: 'Command the road with unparalleled sophistication and peerless luxury presence',
-        gradient: 'from-gray-900/85 via-gray-800/60 to-[#FF6B35]/40',
-        badge: 'LUXURY CLASS',
-    },
-    {
-        image: '/assets/vehicles/harrier.jpg',
-        title: 'Toyota Harrier',
-        subtitle: 'Refined urban crossover — sleek, efficient, and stylish for city and country',
-        gradient: 'from-blue-900/85 via-blue-800/60 to-[#FF6B35]/40',
-        badge: 'URBAN EXECUTIVE',
-    },
-    {
-        image: '/assets/vehicles/fielder.jpeg',
-        title: 'Toyota Fielder',
-        subtitle: 'Efficient everyday executive — perfect for business and family journeys',
-        gradient: 'from-rose-900/85 via-rose-800/60 to-[#FF6B35]/40',
-        badge: 'EVERYDAY LUXURY',
-    },
+    { image: '/assets/vehicles/prado.jpg',      title: 'Toyota Prado',  subtitle: 'The ultimate adventure SUV — rugged reliability meets executive comfort for every terrain', gradient: 'from-emerald-900/85 via-emerald-800/60 to-[#FF6B35]/40', badge: 'PREMIUM SUV' },
+    { image: '/assets/vehicles/range-rover.jpg', title: 'Range Rover',  subtitle: 'Command the road with unparalleled sophistication and peerless luxury presence',         gradient: 'from-gray-900/85 via-gray-800/60 to-[#FF6B35]/40',    badge: 'LUXURY CLASS' },
+    { image: '/assets/vehicles/harrier.jpg',     title: 'Toyota Harrier', subtitle: 'Refined urban crossover — sleek, efficient, and stylish for city and country',         gradient: 'from-blue-900/85 via-blue-800/60 to-[#FF6B35]/40',    badge: 'URBAN EXECUTIVE' },
+    { image: '/assets/vehicles/fielder.jpeg',    title: 'Toyota Fielder', subtitle: 'Efficient everyday executive — perfect for business and family journeys',             gradient: 'from-rose-900/85 via-rose-800/60 to-[#FF6B35]/40',    badge: 'EVERYDAY LUXURY' },
 ];
 
 const stats = [
-    { icon: ClockIcon, value: '24/7', label: 'Premium Support', description: 'Dedicated concierge service available round-the-clock' },
-    { icon: ShieldCheckIcon, value: '100%', label: 'Client Satisfaction', description: 'Guaranteed premium experience for every journey' },
-    { icon: TrophyIcon, value: '2+', label: 'Exclusive Locations', description: 'Nationwide network of premium service centers' },
-    { icon: WrenchScrewdriverIcon, value: '100%', label: 'Fleet Maintained', description: 'Every vehicle serviced and inspected before each rental' },
+    { icon: ClockIcon,             value: '24/7', label: 'Premium Support',    description: 'Dedicated concierge service available round-the-clock' },
+    { icon: ShieldCheckIcon,       value: '100%', label: 'Client Satisfaction', description: 'Guaranteed premium experience for every journey' },
+    { icon: TrophyIcon,            value: '2+',   label: 'Exclusive Locations', description: 'Nationwide network of premium service centers' },
+    { icon: WrenchScrewdriverIcon, value: '100%', label: 'Fleet Maintained',    description: 'Every vehicle serviced and inspected before each rental' },
 ];
 
 const vehicles = [
-    { name: 'Toyota Prado', tagline: 'The Ultimate Adventure SUV', image: '/assets/vehicles/prado.jpg', specs: ['7 Seats', '4WD', 'Diesel', 'Automatic'], price: 'From KES 12,000/day', accent: 'from-emerald-500 to-teal-600' },
-    { name: 'Range Rover', tagline: 'Peerless Luxury & Presence', image: '/assets/vehicles/range-rover.jpg', specs: ['5 Seats', 'AWD', 'Petrol', 'Automatic'], price: 'From KES 50,000/day', accent: 'from-amber-500 to-orange-600' },
-    { name: 'Toyota Harrier', tagline: 'Refined Urban Crossover', image: '/assets/vehicles/harrier.jpg', specs: ['5 Seats', '2WD', 'Hybrid', 'Automatic'], price: 'From KES 8,000/day', accent: 'from-blue-500 to-indigo-600' },
-    { name: 'Toyota Fielder', tagline: 'Efficient Everyday Executive', image: '/assets/vehicles/fielder.jpeg', specs: ['5 Seats', '2WD', 'Petrol', 'Automatic'], price: 'From KES 4,000/day', accent: 'from-rose-500 to-pink-600' },
-    { name: 'Mazda CX-5', tagline: 'Sporty Sophistication', image: '/assets/vehicles/mazdaCX5.jpeg', specs: ['5 Seats', 'AWD', 'Petrol', 'Automatic'], price: 'From KES 7,000/day', accent: 'from-cyan-500 to-blue-600' },
-    { name: 'Lexus RX', tagline: 'Premium Comfort Redefined', image: '/assets/vehicles/lexus.jpg', specs: ['5 Seats', 'AWD', 'Hybrid', 'Automatic'], price: 'From KES 9,000/day', accent: 'from-slate-500 to-gray-700' },
+    { name: 'Toyota Prado', tagline: 'The Ultimate Adventure SUV',      image: '/assets/vehicles/prado.jpg',      specs: ['7 Seats', '4WD', 'Diesel', 'Automatic'], price: 'From KES 12,000/day', accent: 'from-emerald-500 to-teal-600' },
+    { name: 'Range Rover',  tagline: 'Peerless Luxury & Presence',      image: '/assets/vehicles/range-rover.jpg', specs: ['5 Seats', 'AWD', 'Petrol', 'Automatic'], price: 'From KES 50,000/day', accent: 'from-amber-500 to-orange-600' },
+    { name: 'Toyota Harrier', tagline: 'Refined Urban Crossover',       image: '/assets/vehicles/harrier.jpg',    specs: ['5 Seats', '2WD', 'Hybrid', 'Automatic'], price: 'From KES 8,000/day',  accent: 'from-blue-500 to-indigo-600' },
+    { name: 'Toyota Fielder', tagline: 'Efficient Everyday Executive',  image: '/assets/vehicles/fielder.jpeg',   specs: ['5 Seats', '2WD', 'Petrol', 'Automatic'], price: 'From KES 4,000/day',  accent: 'from-rose-500 to-pink-600' },
+    { name: 'Mazda CX-5',   tagline: 'Sporty Sophistication',            image: '/assets/vehicles/mazdaCX5.jpeg', specs: ['5 Seats', 'AWD', 'Petrol', 'Automatic'], price: 'From KES 7,000/day',  accent: 'from-cyan-500 to-blue-600' },
+    { name: 'Lexus RX',     tagline: 'Premium Comfort Redefined',        image: '/assets/vehicles/lexus.jpg',      specs: ['5 Seats', 'AWD', 'Hybrid', 'Automatic'], price: 'From KES 9,000/day',  accent: 'from-slate-500 to-gray-700' },
 ];
 
 const features = [
     { title: 'Curated Premium Fleet', description: 'Prado, Range Rover, Harrier, Fielder & more — meticulously maintained', features: ['Executive SUVs', 'Luxury Sedans', 'Hybrid Vehicles', '7-Seater Options'], icon: KeyIcon },
-    { title: 'Corporate Excellence', description: 'Tailored solutions for businesses with dedicated account management', features: ['Fleet Management', 'Custom Billing', 'Priority Service', 'Analytics'], icon: BuildingOfficeIcon },
-    { title: 'Service Excellence', description: 'White-glove service with attention to every detail and personalization', features: ['24/7 Concierge', 'Premium Support', 'Personal Assistant', 'Flexible Terms'], icon: HandRaisedIcon },
-    { title: 'Peace of Mind', description: 'Comprehensive coverage and support for complete journey assurance', features: ['Premium Insurance', 'Roadside Assistance', 'Secure Booking', 'Guaranteed Quality'], icon: ShieldCheckIcon },
+    { title: 'Corporate Excellence',  description: 'Tailored solutions for businesses with dedicated account management',  features: ['Fleet Management', 'Custom Billing', 'Priority Service', 'Analytics'], icon: BuildingOfficeIcon },
+    { title: 'Service Excellence',    description: 'White-glove service with attention to every detail and personalization', features: ['24/7 Concierge', 'Premium Support', 'Personal Assistant', 'Flexible Terms'], icon: HandRaisedIcon },
+    { title: 'Peace of Mind',         description: 'Comprehensive coverage and support for complete journey assurance',     features: ['Premium Insurance', 'Roadside Assistance', 'Secure Booking', 'Guaranteed Quality'], icon: ShieldCheckIcon },
 ];
 
 const services = [
     { title: 'Corporate Fleet Management', description: 'Complete fleet solutions with dedicated support and advanced analytics.', link: '/services#corporate', icon: BuildingOfficeIcon },
-    { title: 'Luxury Executive Rentals', description: 'Premium vehicles — Prado, Range Rover, Harrier — for business travel and events.', link: '/fleet', icon: KeyIcon },
-    { title: 'Global Mobility Program', description: 'International vehicle access and support for frequent travelers.', link: '/services#global', icon: GlobeAltIcon },
-    { title: 'Air BnB Luxury Stays', description: 'Handpicked luxury accommodations for business and leisure stays.', link: '/services#airbnb', icon: CalendarDaysIcon },
+    { title: 'Luxury Executive Rentals',   description: 'Premium vehicles — Prado, Range Rover, Harrier — for business travel and events.', link: '/fleet', icon: KeyIcon },
+    { title: 'Global Mobility Program',    description: 'International vehicle access and support for frequent travelers.', link: '/services#global', icon: GlobeAltIcon },
+    { title: 'Air BnB Luxury Stays',       description: 'Handpicked luxury accommodations for business and leisure stays.', link: '/services#airbnb', icon: CalendarDaysIcon },
 ];
 
 const testimonials = [
     { name: 'Michael Anderson', role: 'Chief Executive Officer', comment: 'Vision Wan transformed our corporate travel program. The Prado fleet is impeccable and the service is unmatched.', rating: 5, company: 'TechSphere Inc.' },
-    { name: 'Sarah Mitchell', role: 'Managing Partner', comment: 'From the Range Rover to the Harrier, every vehicle I\'ve rented has been flawless. Truly seamless global mobility.', rating: 5, company: 'Global Ventures' },
-    { name: 'David Richards', role: 'Chief Financial Officer', comment: 'Their attention to detail and premium fleet aligns perfectly with our brand standards. The Fielder is a hidden gem.', rating: 5, company: 'Luxury Brands Group' },
+    { name: 'Sarah Mitchell',   role: 'Managing Partner',        comment: "From the Range Rover to the Harrier, every vehicle I've rented has been flawless. Truly seamless global mobility.", rating: 5, company: 'Global Ventures' },
+    { name: 'David Richards',   role: 'Chief Financial Officer', comment: 'Their attention to detail and premium fleet aligns perfectly with our brand standards. The Fielder is a hidden gem.', rating: 5, company: 'Luxury Brands Group' },
 ];
 
 /* ──────────────────────── Component ───────────────────────── */
@@ -96,47 +73,37 @@ const Home: React.FC = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [activeVehicle, setActiveVehicle] = useState(0);
 
-    /* Independent video modals */
     const [introVideoOpen, setIntroVideoOpen] = useState(false);
     const [globalVideoOpen, setGlobalVideoOpen] = useState(false);
 
+    const navigate = useNavigate();
+    const location = useLocation();
     const heroRef = useRef<HTMLDivElement>(null);
 
-    /* Auto-advance slides */
     useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % slides.length);
-        }, 6000);
+        const interval = setInterval(() => setCurrentSlide((p) => (p + 1) % slides.length), 6000);
         return () => clearInterval(interval);
     }, []);
 
-    /* Auto-rotate vehicles */
     useEffect(() => {
-        const interval = setInterval(() => {
-            setActiveVehicle((prev) => (prev + 1) % vehicles.length);
-        }, 4000);
+        const interval = setInterval(() => setActiveVehicle((p) => (p + 1) % vehicles.length), 4000);
         return () => clearInterval(interval);
     }, []);
 
-    /* Scroll listener */
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 100);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    /* Lock body scroll while ANY modal is open */
     useEffect(() => {
         if (introVideoOpen || globalVideoOpen) {
             const original = document.body.style.overflow;
             document.body.style.overflow = 'hidden';
-            return () => {
-                document.body.style.overflow = original;
-            };
+            return () => { document.body.style.overflow = original; };
         }
     }, [introVideoOpen, globalVideoOpen]);
 
-    /* Close on Escape */
     useEffect(() => {
         const handleKey = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
@@ -152,6 +119,10 @@ const Home: React.FC = () => {
     const closeIntroVideo = useCallback(() => setIntroVideoOpen(false), []);
     const openGlobalVideo = useCallback(() => setGlobalVideoOpen(true), []);
     const closeGlobalVideo = useCallback(() => setGlobalVideoOpen(false), []);
+
+    const goToFestiveBooking = useCallback(() => {
+        navigate('/festive-booking');
+    }, [navigate]);
 
     return (
         <div className="min-h-screen bg-white overflow-x-hidden">
@@ -254,6 +225,7 @@ const Home: React.FC = () => {
                                         ? 'w-14 bg-gradient-to-r from-[#FF6B35] to-[#FF8B35]'
                                         : 'w-3 bg-white/50 hover:bg-white/80'
                                 }`}
+                                aria-label={`Go to slide ${index + 1}`}
                             >
                                 {index === currentSlide && (
                                     <div className="absolute -inset-2 border-2 border-[#FF6B35]/30 rounded-full animate-pulse" />
@@ -300,8 +272,45 @@ const Home: React.FC = () => {
                 </div>
             </div>
 
+            {/* ────────────── FESTIVE BANNER (inline, non-intrusive) ────────────── */}
+            <div className="py-10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-5"
+                        style={{
+                            background: 'linear-gradient(135deg, #0B6E4F 0%, #0a4d38 45%, #C8102E 130%)',
+                            border: '1.5px solid #D4AF37',
+                            boxShadow: '0 20px 50px -20px rgba(200,16,46,0.45)',
+                        }}
+                    >
+                        <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+                        <div className="relative text-white">
+                            <div className="inline-block px-3 py-1 rounded-full text-[11px] font-black tracking-[0.2em] uppercase mb-3"
+                                style={{ background: '#D4AF37', color: '#3a2b00' }}>
+                                🎄 December Only
+                            </div>
+                            <h3 className="text-2xl sm:text-3xl font-black tracking-tight mb-2">
+                                Christmas Festive Offers Are Live
+                            </h3>
+                            <p className="text-white/85 text-sm sm:text-base max-w-xl">
+                                Fielder, Mazda CX5, Harrier, Lexus & Prado — exclusive December rates.
+                            </p>
+                        </div>
+                        <Link
+                            to="/festive-booking"
+                            className="relative whitespace-nowrap px-6 py-3 rounded-xl font-black text-white shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+                            style={{
+                                background: 'linear-gradient(135deg, #C8102E, #8B0000 70%, #D4AF37 140%)',
+                                boxShadow: '0 12px 26px -12px rgba(200,16,46,0.7)',
+                            }}
+                        >
+                            Book Festive Ride →
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
             {/* ────────────── INTRODUCTION ────────────── */}
-            <div className="py-28">
+            <div className="py-24">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-14">
                         <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF6B35]/10 rounded-full mb-6">
@@ -319,7 +328,6 @@ const Home: React.FC = () => {
                         </p>
                     </div>
 
-                    {/* Intro video preview — opens intro modal */}
                     <button
                         type="button"
                         onClick={openIntroVideo}
@@ -329,8 +337,7 @@ const Home: React.FC = () => {
                         <img
                             src="https://img.youtube.com/vi/m12A34xgAQg/maxresdefault.jpg"
                             onError={(e) => {
-                                (e.currentTarget as HTMLImageElement).src =
-                                    'https://img.youtube.com/vi/m12A34xgAQg/hqdefault.jpg';
+                                (e.currentTarget as HTMLImageElement).src = 'https://img.youtube.com/vi/m12A34xgAQg/hqdefault.jpg';
                             }}
                             alt="Vision Wan Experience — watch now"
                             className="w-full h-[420px] object-cover transition-transform duration-700 group-hover:scale-105"
@@ -536,7 +543,6 @@ const Home: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Global video preview — opens global modal */}
                         <button
                             type="button"
                             onClick={openGlobalVideo}
@@ -913,6 +919,11 @@ const Home: React.FC = () => {
                         />
                     </div>
                 </div>
+            )}
+
+            {/* 🎄 FESTIVE POP-UP — only on home route */}
+            {location.pathname === '/' && (
+                <FestivePopup onBookNow={goToFestiveBooking} />
             )}
         </div>
     );

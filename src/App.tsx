@@ -12,6 +12,7 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import Booking from './pages/Booking';
 import Agent_Booking from './pages/Agent_Booking';
+import FestiveBookingPage from './pages/FestiveBooking';
 import Fleet from './pages/Fleet';
 import Services from './pages/Services';
 import About from './pages/About';
@@ -135,6 +136,7 @@ function App() {
                                     <Route path="/" element={<Home />} />
                                     <Route path="/booking" element={<Booking />} />
                                     <Route path="/agent-booking" element={<Agent_Booking />} />
+                                    <Route path="/festive-booking" element={<FestiveBookingPage />} />
                                     <Route path="/fleet" element={<Fleet />} />
                                     <Route path="/services" element={<Services />} />
                                     <Route path="/about" element={<About />} />
