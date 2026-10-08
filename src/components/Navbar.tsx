@@ -37,6 +37,22 @@ const Navbar: React.FC = () => {
     const location = useLocation();
     const bookButtonRef = useRef<HTMLDivElement>(null);
 
+    /* ───────────── Determine if we're on an Air Travel page ───────────── */
+    const isAirTravelPage =
+        location.pathname === '/air-travel' ||
+        location.pathname.startsWith('/air-travel/');
+
+    /* ───────────── Dynamic brand assets ───────────── */
+    const brandLogo = isAirTravelPage
+        ? '/assets/images/visionWan_travels.png'
+        : '/assets/images/logo.png';
+
+    const brandLogoAlt = isAirTravelPage
+        ? 'Vision Wan Travels logo'
+        : 'Vision Wan Services logo';
+
+    const brandSubLabel = isAirTravelPage ? 'Travels' : 'Services';
+
     /* ───────────── Route change ───────────── */
     useEffect(() => {
         setActivePath(location.pathname);
@@ -50,10 +66,7 @@ const Navbar: React.FC = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    /* ───────────── Resize handler ─────────────
-       Desktop boundary is now 1280 (Tailwind `xl`) so tablets in both
-       portrait AND landscape are treated as mobile for the install tip.
-    */
+    /* ───────────── Resize handler ───────────── */
     useEffect(() => {
         const handleResize = () => {
             const desktop = window.innerWidth >= 1280;
@@ -102,9 +115,7 @@ const Navbar: React.FC = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen]);
 
-    /* ───────────── MOBILE Install Tip ─────────────
-       Detect iOS once (used for instruction copy in the tip).
-    */
+    /* ───────────── MOBILE Install Tip - iOS detect ───────────── */
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
@@ -120,27 +131,20 @@ const Navbar: React.FC = () => {
         setIsIOS(iOSDevice);
     }, []);
 
-    /* ───────────── MOBILE Install Tip trigger ─────────────
-       Shows on the HOME page only, ~4s after landing.
-       Mobile + tablet (both orientations). Once per day.
-       Skipped if already installed as PWA.
-    */
+    /* ───────────── MOBILE Install Tip trigger ───────────── */
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
-        // Only on home page
         if (location.pathname !== '/') {
             setShowInstallTip(false);
             return;
         }
 
-        // Mobile + tablet — includes iPad in landscape (≤1279px)
         if (window.innerWidth >= 1280) {
             setShowInstallTip(false);
             return;
         }
 
-        // Skip if already installed as PWA
         const isStandalone =
             window.matchMedia('(display-mode: standalone)').matches ||
             (window.navigator as any).standalone === true;
@@ -149,7 +153,6 @@ const Navbar: React.FC = () => {
             return;
         }
 
-        // Once per day
         const todayKey = new Date().toISOString().slice(0, 10);
         const lastShown = localStorage.getItem('vw-install-tip-shown');
         if (lastShown === todayKey) {
@@ -157,7 +160,6 @@ const Navbar: React.FC = () => {
             return;
         }
 
-        // Delay so it doesn't fight with hero paint
         const timer = setTimeout(() => {
             setShowInstallTip(true);
             localStorage.setItem('vw-install-tip-shown', todayKey);
@@ -168,17 +170,10 @@ const Navbar: React.FC = () => {
 
     const handleDismissInstallTip = () => setShowInstallTip(false);
 
-    /* ───────────── DESKTOP Install Logic ─────────────
-       - Chrome/Edge on desktop support `beforeinstallprompt` → native prompt
-       - Safari/Firefox do NOT → show instructions modal pointing to browser menu
-       - Shown once per day via localStorage
-       - Skipped if already installed (standalone mode)
-       - Only fires on true desktops (≥1280px)
-    */
+    /* ───────────── DESKTOP Install Logic ───────────── */
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
-        // Detect browser (for fallback instructions)
         const ua = window.navigator.userAgent;
         if (/Edg\//.test(ua) || /Chrome\//.test(ua)) {
             setDesktopPlatform('chrome');
@@ -190,14 +185,12 @@ const Navbar: React.FC = () => {
             setDesktopPlatform('other');
         }
 
-        // Capture the native install prompt event (Chrome/Edge only)
         const handleBeforeInstall = (e: Event) => {
             e.preventDefault();
             setDeferredPrompt(e as BeforeInstallPromptEvent);
         };
         window.addEventListener('beforeinstallprompt', handleBeforeInstall);
 
-        // If already installed as PWA, skip entirely
         const isStandalone =
             window.matchMedia('(display-mode: standalone)').matches ||
             (window.navigator as any).standalone === true;
@@ -206,8 +199,6 @@ const Navbar: React.FC = () => {
             return;
         }
 
-        // Only show on true desktops (≥1280px)
-        // Only show once per day
         const todayKey = new Date().toISOString().slice(0, 10);
         const lastDesktopShown = localStorage.getItem('vw-desktop-install-shown');
 
@@ -231,7 +222,6 @@ const Navbar: React.FC = () => {
         };
     }, []);
 
-    /* Trigger native install prompt (Chrome/Edge desktop) */
     const handleNativeInstall = async () => {
         if (!deferredPrompt) return;
         await deferredPrompt.prompt();
@@ -261,6 +251,7 @@ const Navbar: React.FC = () => {
         <>
             {/* ============================================================
                 NAVBAR — z-[100]
+                Logo encapsulated in a white circle on Air Travel pages.
                 ============================================================ */}
             <nav
                 className={`fixed top-0 w-full z-[100] transition-all duration-500 ease-out ${
@@ -304,7 +295,7 @@ const Navbar: React.FC = () => {
 
                                 <div className="flex items-center gap-3">
                                     <a
-                                        href="https://wa.me/254705336311"
+                                        href="https://wa.me/447397549590"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         aria-label="Chat on WhatsApp Kenya"
@@ -339,26 +330,60 @@ const Navbar: React.FC = () => {
 
                 {/* ───────────── Main Navbar ───────────── */}
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16 sm:h-[68px] lg:h-[72px] items-center transition-all duration-500">
+                    {/* Taller navbar to accommodate bigger logo */}
+                    <div className="flex justify-between h-[68px] sm:h-[76px] lg:h-[84px] items-center transition-all duration-500">
                         <Link
                             to="/"
-                            className="flex items-center gap-2 sm:gap-2.5 group flex-shrink-0 min-w-0"
+                            className="flex items-center gap-3 sm:gap-3.5 group flex-shrink-0 min-w-0"
                             onClick={() => setIsOpen(false)}
                         >
+                            {/* ─── Brand logo — circular on Air Travel, rounded square elsewhere ─── */}
                             <div className="relative flex-shrink-0">
-                                <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B35]/20 to-transparent rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                <img
-                                    src="/assets/images/logo.png"
-                                    alt="Vision Wan Services logo"
-                                    className="relative h-9 w-9 sm:h-10 sm:w-10 lg:h-11 lg:w-11 object-contain rounded-xl transition-transform duration-500 group-hover:scale-105"
+                                {/* Soft warm glow behind the logo on hover */}
+                                <div
+                                    className={`absolute -inset-1 bg-gradient-to-br from-[#FF6B35]/25 via-[#FF8B35]/15 to-transparent blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
+                                        isAirTravelPage ? 'rounded-full' : 'rounded-2xl'
+                                    }`}
                                 />
+
+                                {/* White backdrop — circle on Air Travel, rounded square elsewhere */}
+                                <div
+                                    className={`relative flex items-center justify-center bg-white transition-all duration-500
+                                        ${
+                                            isAirTravelPage
+                                                ? 'rounded-full shadow-[0_4px_16px_-6px_rgba(212,175,55,0.45)] ring-2 ring-[#D4AF37]/40 group-hover:shadow-[0_8px_26px_-8px_rgba(255,107,53,0.55)] group-hover:ring-[#FF6B35]/60'
+                                                : 'rounded-2xl shadow-[0_4px_14px_-6px_rgba(15,23,42,0.25)] ring-1 ring-slate-200/70 group-hover:shadow-[0_8px_24px_-8px_rgba(255,107,53,0.45)] group-hover:ring-[#FF6B35]/30'
+                                        }
+                                        h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 ${
+                                            isAirTravelPage
+                                                ? 'p-1 sm:p-1.5'
+                                                : 'p-1.5 sm:p-2'
+                                        }`}
+                                >
+                                    <img
+                                        src={brandLogo}
+                                        alt={brandLogoAlt}
+                                        className={`h-full w-full object-contain transition-transform duration-500 group-hover:scale-105 ${
+                                            isAirTravelPage ? 'rounded-full' : 'rounded-xl'
+                                        }`}
+                                    />
+
+                                    {/* Subtle inner hairline ring on Air Travel — deepens the badge feel */}
+                                    {isAirTravelPage && (
+                                        <span
+                                            aria-hidden
+                                            className="pointer-events-none absolute inset-1 rounded-full ring-1 ring-[#FF6B35]/15"
+                                        />
+                                    )}
+                                </div>
                             </div>
+
                             <div className="leading-tight min-w-0">
-                                <h1 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#FF6B35] transition-colors duration-300 tracking-tight truncate">
+                                <h1 className="text-[17px] sm:text-xl lg:text-[22px] font-bold text-gray-900 group-hover:text-[#FF6B35] transition-colors duration-300 tracking-tight truncate">
                                     Vision Wan
                                 </h1>
-                                <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium tracking-[0.15em] uppercase truncate">
-                                    Services
+                                <p className="text-[10px] sm:text-[11px] lg:text-xs text-gray-500 font-semibold tracking-[0.18em] uppercase truncate mt-0.5">
+                                    {brandSubLabel}
                                 </p>
                             </div>
                         </Link>
@@ -427,7 +452,7 @@ const Navbar: React.FC = () => {
                             <a
                                 href="tel:+254705336311"
                                 aria-label="Call Vision Wan Services"
-                                className="group flex items-center justify-center h-10 w-10 rounded-xl
+                                className="group flex items-center justify-center h-11 w-11 rounded-xl
                                            bg-[#FF6B35]/10 text-[#FF6B35]
                                            hover:bg-[#FF6B35]/15 active:scale-95
                                            transition-all duration-300
@@ -451,16 +476,16 @@ const Navbar: React.FC = () => {
                                     touchAction: 'manipulation',
                                 }}
                             >
-                                <span className="relative block h-6 w-6">
+                                <span className="relative block h-7 w-7">
                                     <Bars3Icon
-                                        className={`absolute inset-0 h-6 w-6 transition-all duration-300 ${
+                                        className={`absolute inset-0 h-7 w-7 transition-all duration-300 ${
                                             isOpen
                                                 ? 'opacity-0 rotate-90 scale-50'
                                                 : 'opacity-100 rotate-0 scale-100'
                                         }`}
                                     />
                                     <XMarkIcon
-                                        className={`absolute inset-0 h-6 w-6 transition-all duration-300 ${
+                                        className={`absolute inset-0 h-7 w-7 transition-all duration-300 ${
                                             isOpen
                                                 ? 'opacity-100 rotate-0 scale-100'
                                                 : 'opacity-0 -rotate-90 scale-50'
@@ -486,7 +511,7 @@ const Navbar: React.FC = () => {
                     />
 
                     <div
-                        className="lg:hidden fixed left-0 right-0 bottom-0 z-[95] top-16 sm:top-[68px] bg-white shadow-2xl overflow-y-auto animate-[slideDown_0.3s_ease-out]"
+                        className="lg:hidden fixed left-0 right-0 bottom-0 z-[95] top-[68px] sm:top-[76px] bg-white shadow-2xl overflow-y-auto animate-[slideDown_0.3s_ease-out]"
                         style={{
                             WebkitOverflowScrolling: 'touch',
                             touchAction: 'pan-y',
@@ -619,8 +644,7 @@ const Navbar: React.FC = () => {
             )}
 
             {/* ============================================================
-                MOBILE / TABLET INSTALL TIP — floating banner, home page only
-                Now visible on tablets in both orientations (≤1279px).
+                MOBILE / TABLET INSTALL TIP — home page only
                 ============================================================ */}
             {showInstallTip && !isOpen && !isDesktop && (
                 <div
@@ -629,11 +653,9 @@ const Navbar: React.FC = () => {
                     aria-label="Install app tip"
                 >
                     <div className="relative mx-auto max-w-md sm:max-w-lg overflow-hidden rounded-2xl border border-[#FF6B35]/25 bg-white/95 backdrop-blur-xl shadow-[0_18px_50px_-15px_rgba(255,107,53,0.55)]">
-                        {/* Decorative orbs */}
                         <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FF6B35]/15 rounded-full blur-2xl pointer-events-none" />
                         <div className="absolute -bottom-12 -left-12 w-36 h-36 bg-[#FF8B35]/10 rounded-full blur-2xl pointer-events-none" />
 
-                        {/* Close button */}
                         <button
                             type="button"
                             onClick={handleDismissInstallTip}
@@ -648,7 +670,6 @@ const Navbar: React.FC = () => {
                         </button>
 
                         <div className="relative p-4 sm:p-5 flex items-start gap-3.5">
-                            {/* Logo + badge */}
                             <div className="relative flex-shrink-0">
                                 <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B35] to-[#FF8B35] rounded-2xl blur-md opacity-40" />
                                 <div className="relative h-12 w-12 rounded-2xl bg-white shadow-md flex items-center justify-center overflow-hidden border border-[#FF6B35]/10">
@@ -663,7 +684,6 @@ const Navbar: React.FC = () => {
                                 </span>
                             </div>
 
-                            {/* Text */}
                             <div className="min-w-0 flex-1 pr-6">
                                 <div className="flex items-center gap-1.5 mb-1">
                                     <DevicePhoneMobileIcon className="h-3.5 w-3.5 text-[#FF6B35]" />
@@ -709,8 +729,7 @@ const Navbar: React.FC = () => {
             )}
 
             {/* ============================================================
-                DESKTOP INSTALL PROMPT (bottom-right pill card)
-                Now only shows on true desktops (≥1280px)
+                DESKTOP INSTALL PROMPT
                 ============================================================ */}
             {showDesktopInstall && isDesktop && (
                 <div
@@ -719,11 +738,9 @@ const Navbar: React.FC = () => {
                     aria-label="Install Vision Wan app on desktop"
                 >
                     <div className="relative overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_-15px_rgba(15,23,42,0.35)] border border-slate-200/80">
-                        {/* Decorative orbs */}
                         <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FF6B35]/15 rounded-full blur-2xl pointer-events-none" />
                         <div className="absolute -bottom-12 -left-12 w-36 h-36 bg-[#FF8B35]/10 rounded-full blur-2xl pointer-events-none" />
 
-                        {/* Close button */}
                         <button
                             type="button"
                             onClick={handleDismissDesktopInstall}
@@ -735,7 +752,6 @@ const Navbar: React.FC = () => {
 
                         <div className="relative p-5">
                             <div className="flex items-start gap-3.5">
-                                {/* Logo with badge */}
                                 <div className="relative flex-shrink-0">
                                     <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B35] to-[#FF8B35] rounded-2xl blur-md opacity-40" />
                                     <div className="relative h-14 w-14 rounded-2xl bg-white shadow-md flex items-center justify-center overflow-hidden border border-[#FF6B35]/10">
@@ -767,7 +783,6 @@ const Navbar: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Action buttons */}
                             <div className="mt-4 flex items-center gap-2">
                                 {deferredPrompt ? (
                                     <button
@@ -826,7 +841,6 @@ const Navbar: React.FC = () => {
                             </p>
                         </div>
 
-                        {/* Bottom accent line */}
                         <div className="h-[3px] w-full bg-gradient-to-r from-[#FF6B35] via-[#FF8B35] to-[#FF6B35] opacity-70" />
                     </div>
                 </div>

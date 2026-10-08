@@ -24,6 +24,7 @@ interface Agent_BookingFormData {
     nationality: string;
     idNumber: string;
     idType: 'id' | 'passport';
+    agentReferenceCode: string;
     vehicle: string;
     pickupDate: string;
     returnDate: string;
@@ -86,14 +87,14 @@ const PAYMENT_DETAILS = {
 };
 
 const stepFields: Record<number, (keyof Agent_BookingFormData)[]> = {
-    1: ['fullName', 'email', 'phone', 'nationality', 'idNumber', 'idType'],
+    1: ['fullName', 'email', 'phone', 'nationality', 'idNumber', 'idType', 'agentReferenceCode',],
     2: ['vehicle', 'pickupDate', 'returnDate', 'pickupLocation', 'deliveryAddress', 'notes'],
     3: ['drivingLicense', 'idDocument', 'depositProof'],
     4: [],
 };
 
 const allRequiredFields: (keyof Agent_BookingFormData)[] = [
-    'fullName', 'email', 'phone', 'idNumber', 'idType',
+    'fullName', 'email', 'phone', 'idNumber', 'idType',  'agentReferenceCode',
     'vehicle', 'pickupDate', 'returnDate', 'pickupLocation',
     'drivingLicense', 'idDocument', 'depositProof', 'consent'
 ];
@@ -173,6 +174,7 @@ const Agent_BookingForm = forwardRef<Agent_BookingFormRef, Agent_BookingFormProp
                 nationality: '',
                 idNumber: '',
                 idType: 'id',
+                agentReferenceCode: '',
                 vehicle: '',
                 pickupDate: '',
                 returnDate: '',
@@ -533,6 +535,10 @@ const Agent_BookingForm = forwardRef<Agent_BookingFormRef, Agent_BookingFormProp
                 mappedData.append('idNumber', data.idNumber);
                 mappedData.append('idType', data.idType);
                 mappedData.append('termsAccepted', 'true');
+                mappedData.append(
+                    'agentReferenceCode',
+                    data.agentReferenceCode.trim().toUpperCase()
+                );
                 mappedData.append('drivingLicense', dlFile);
                 mappedData.append('idDocument', idFile);
                 mappedData.append('depositProof', proofFile);
@@ -1405,6 +1411,51 @@ const Agent_BookingForm = forwardRef<Agent_BookingFormRef, Agent_BookingFormProp
                                 <h2 className="bf-card-title" style={styles.cardTitle}>Your details</h2>
                                 <p className="bf-card-subtitle" style={styles.cardSubtitle}>Enter the primary driver's contact and identification information.</p>
                                 <div className="bf-grid-2" style={styles.grid2}>
+                                <div style={{ gridColumn: '1 / -1' }}>
+                                    <label style={styles.label} htmlFor="agentReferenceCode">
+                                        Agent Reference Code <span style={styles.required}>*</span>
+                                    </label>
+                                    <input
+                                        id="agentReferenceCode"
+                                        type="text"
+                                        placeholder="e.g. AG-2026-0042"
+                                        {...register('agentReferenceCode', {
+                                            required: 'Agent reference code is required',
+                                            minLength: {
+                                                value: 4,
+                                                message: 'Must be at least 4 characters',
+                                            },
+                                            maxLength: {
+                                                value: 32,
+                                                message: 'Must be 32 characters or fewer',
+                                            },
+                                            pattern: {
+                                                value: /^[A-Za-z0-9-]+$/,
+                                                message:
+                                                    'Only letters, numbers, and dashes are allowed',
+                                            },
+                                        })}
+                                        style={{
+                                            ...styles.input,
+                                            fontFamily:
+                                                'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                                            letterSpacing: '0.04em',
+                                            fontWeight: 700,
+                                        }}
+                                        autoComplete="off"
+                                        spellCheck={false}
+                                        data-form-type="other"
+                                    />
+                                    <div style={styles.helpText}>
+                                        Use your agency's internal reference for this booking — our trade
+                                        desk will quote it in all correspondence.
+                                    </div>
+                                    {errors.agentReferenceCode && (
+                                        <p style={styles.errorText}>
+                                            {errors.agentReferenceCode.message}
+                                        </p>
+                                    )}
+                                </div>
                                     <div>
                                         <label style={styles.label} htmlFor="fullName">
                                             Full name <span style={styles.required}>*</span>
