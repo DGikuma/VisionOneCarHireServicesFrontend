@@ -386,7 +386,7 @@ const AirTravelBooking: React.FC = () => {
                 <div style={styles.heroOverlayB} aria-hidden />
                 <div style={styles.heroGlow} aria-hidden />
 
-                <div style={styles.heroInner}>
+                <div className="ab-hero-inner" style={styles.heroInner}>
                     <button
                         type="button"
                         onClick={handleBack}
@@ -528,8 +528,6 @@ const AirTravelBooking: React.FC = () => {
                                     title={
                                         tripType === 'safari'
                                             ? 'Safari details'
-                                            : tripType === 'flight-hotel'
-                                            ? 'Trip details'
                                             : 'Trip details'
                                     }
                                     subtitle={
@@ -864,6 +862,8 @@ const AirTravelBooking: React.FC = () => {
                     from { opacity: 0; transform: translateY(14px); }
                     to   { opacity: 1; transform: translateY(0); }
                 }
+
+                /* ── Back pill ── */
                 .ab-back-pill {
                     transition: transform 0.15s ease, box-shadow 0.15s ease,
                         background 0.2s ease;
@@ -880,6 +880,26 @@ const AirTravelBooking: React.FC = () => {
                 .ab-back-pill:hover span:last-child {
                     color: #0F172A;
                 }
+
+                /* ── Push hero content below the fixed navbar ── */
+                .ab-hero-inner {
+                    padding-top: 96px;   /* desktop base — matches inline fallback */
+                }
+
+                @media (max-width: 1023px) {
+                    .ab-hero-inner {
+                        padding-top: 108px;   /* tablet: navbar 68px + gap */
+                    }
+                }
+
+                @media (max-width: 640px) {
+                    .ab-hero-inner {
+                        /* mobile: navbar 64px + safe-area-inset + breathing room */
+                        padding-top: calc(88px + env(safe-area-inset-top, 0px));
+                    }
+                }
+
+                /* ── Container / form card ── */
                 @media (max-width: 640px) {
                     .ab-container { padding: 0 14px !important; }
                     .ab-form-card {
@@ -1291,6 +1311,11 @@ const TravellerCounter: React.FC<{
     );
 };
 
+/**
+ * CounterRow — uses a single `border` shorthand computed per render,
+ * which eliminates React's "Removing a style property during rerender
+ * (borderColor) when a conflicting property is set (border)" warning.
+ */
 const CounterRow: React.FC<{
     label: string;
     hint: string;
@@ -1304,6 +1329,22 @@ const CounterRow: React.FC<{
     const canDec = !disabled && value > min;
     const canInc = !disabled && value < max;
 
+    const stepBtnStyle = (enabled: boolean): React.CSSProperties => ({
+        width: 34,
+        height: 34,
+        borderRadius: 10,
+        border: `1.5px solid ${enabled ? BRAND.coral : '#cbd5e1'}`,
+        background: '#fff',
+        color: enabled ? BRAND.coral : '#94a3b8',
+        cursor: enabled ? 'pointer' : 'not-allowed',
+        opacity: enabled ? 1 : 0.4,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.15s',
+        padding: 0,
+    });
+
     return (
         <div style={styles.tcRow}>
             <div style={styles.tcRowInfo}>
@@ -1316,10 +1357,7 @@ const CounterRow: React.FC<{
                     onClick={onDec}
                     disabled={!canDec}
                     aria-label={`Remove one ${label.toLowerCase()}`}
-                    style={{
-                        ...styles.tcStepBtn,
-                        ...(canDec ? {} : styles.tcStepBtnDisabled),
-                    }}
+                    style={stepBtnStyle(canDec)}
                 >
                     <MinusIcon className="h-4 w-4" />
                 </button>
@@ -1329,10 +1367,7 @@ const CounterRow: React.FC<{
                     onClick={onInc}
                     disabled={!canInc}
                     aria-label={`Add one ${label.toLowerCase()}`}
-                    style={{
-                        ...styles.tcStepBtn,
-                        ...(canInc ? {} : styles.tcStepBtnDisabled),
-                    }}
+                    style={stepBtnStyle(canInc)}
                 >
                     <PlusIcon className="h-4 w-4" />
                 </button>
@@ -1509,12 +1544,19 @@ const styles: { [k: string]: React.CSSProperties } = {
         pointerEvents: 'none',
         zIndex: 2,
     },
+    /**
+     * heroInner uses longhand padding so the scoped `.ab-hero-inner`
+     * media query can override padding-top responsively.
+     */
     heroInner: {
         position: 'relative',
         zIndex: 3,
         maxWidth: 1080,
         margin: '0 auto',
-        padding: '26px 22px 96px',
+        paddingTop: '96px',
+        paddingRight: '22px',
+        paddingBottom: '96px',
+        paddingLeft: '22px',
     },
     backPill: {
         display: 'inline-flex',
@@ -1916,6 +1958,9 @@ const styles: { [k: string]: React.CSSProperties } = {
         gap: 8,
         flexShrink: 0,
     },
+    /* NOTE: tcStepBtn / tcStepBtnDisabled retained for backward compat
+       but no longer used — CounterRow now computes its own single-style
+       buttons to avoid the shorthand/longhand React warning. */
     tcStepBtn: {
         width: 34,
         height: 34,
@@ -1933,7 +1978,7 @@ const styles: { [k: string]: React.CSSProperties } = {
     tcStepBtnDisabled: {
         opacity: 0.4,
         cursor: 'not-allowed',
-        borderColor: '#cbd5e1',
+        border: '1.5px solid #cbd5e1',
         color: '#94a3b8',
     },
     tcRowValue: {
