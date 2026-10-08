@@ -94,9 +94,18 @@ const AirTravel: React.FC = () => {
 
     return (
         <div style={styles.page}>
-            <Hero onStartEnquiry={() => navigate('/air-travel/book', { state: { tripType: 'flight' } })} />
+            <Hero
+                onStartEnquiry={() =>
+                    navigate('/air-travel/book', {
+                        state: { tripType: 'flight-hotel' },
+                    })
+                }
+            />
 
-            <PopularRoutesGrid routes={NAIROBI_ROUTES} onSelect={handleSelectRoute} />
+            <PopularRoutesGrid
+                routes={NAIROBI_ROUTES}
+                onSelect={handleSelectRoute}
+            />
 
             <SafariShowcase onSelect={handleSelectTour} />
 
@@ -134,7 +143,7 @@ const AirTravel: React.FC = () => {
 };
 
 /* ═════════════════════════════════════════════════════════════════
-   Hero
+   Hero — tagline removed
    ═════════════════════════════════════════════════════════════════ */
 const Hero: React.FC<{ onStartEnquiry: () => void }> = ({ onStartEnquiry }) => (
     <div style={styles.hero}>
@@ -149,7 +158,7 @@ const Hero: React.FC<{ onStartEnquiry: () => void }> = ({ onStartEnquiry }) => (
         <div style={styles.heroOverlayA} aria-hidden />
         <div style={styles.heroOverlayB} aria-hidden />
         <div style={styles.heroInner}>
-            <div style={styles.ribbon}>Air Travel · Safaris · Executive Mobility</div>
+            <div style={styles.ribbon}>Flights · Hotels · Safaris</div>
             <h1 style={styles.heroTitle}>
                 Vision Wan{' '}
                 <span style={styles.heroTitleAccent}>Air Travel &amp; Safaris</span>
@@ -219,9 +228,16 @@ const PopularRoutesGrid: React.FC<{
                         aria-label={`Enquire about flights from ${route.from} to ${route.to}`}
                     >
                         <div style={styles.prImageWrap}>
-                            <img src={route.image} alt={route.to} style={styles.prImage} loading="lazy" />
+                            <img
+                                src={route.image}
+                                alt={route.to}
+                                style={styles.prImage}
+                                loading="lazy"
+                            />
                             <div style={styles.prImageOverlay} />
-                            {route.badge && <div style={styles.prBadge}>{route.badge}</div>}
+                            {route.badge && (
+                                <div style={styles.prBadge}>{route.badge}</div>
+                            )}
                             <div style={styles.prPricePill}>{route.price}</div>
                         </div>
                         <div style={styles.prBody}>
@@ -233,7 +249,12 @@ const PopularRoutesGrid: React.FC<{
                                 <div style={styles.prRouteArrow}>
                                     <ArrowRightIcon className="h-4 w-4" />
                                 </div>
-                                <div style={{ ...styles.prRouteCity, textAlign: 'right' }}>
+                                <div
+                                    style={{
+                                        ...styles.prRouteCity,
+                                        textAlign: 'right',
+                                    }}
+                                >
                                     <span style={styles.prCityName}>{route.to}</span>
                                     <span style={styles.prCityCode}>{route.toCode}</span>
                                 </div>
@@ -273,8 +294,15 @@ const SafariShowcase: React.FC<{ onSelect: (id: string) => void }> = ({ onSelect
                 {SAFARI_TOURS.map((tour) => (
                     <div key={tour.id} style={styles.safariCard}>
                         <div style={styles.safariImageWrap}>
-                            <img src={tour.image} alt={tour.name} style={styles.safariImage} />
-                            <div className={`bg-gradient-to-r ${tour.accent}`} style={styles.safariBadge}>
+                            <img
+                                src={tour.image}
+                                alt={tour.name}
+                                style={styles.safariImage}
+                            />
+                            <div
+                                className={`bg-gradient-to-r ${tour.accent}`}
+                                style={styles.safariBadge}
+                            >
                                 {tour.badge}
                             </div>
                         </div>
@@ -581,7 +609,8 @@ const styles: { [k: string]: React.CSSProperties } = {
     /* Popular Routes */
     prSection: {
         padding: '80px 0',
-        background: 'radial-gradient(60% 40% at 50% 0%, rgba(255,107,53,0.06), transparent), linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
+        background:
+            'radial-gradient(60% 40% at 50% 0%, rgba(255,107,53,0.06), transparent), linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
     },
     prInner: { maxWidth: 1200, margin: '0 auto', padding: '0 20px' },
     prHeader: { textAlign: 'center', marginBottom: 44 },
@@ -616,7 +645,11 @@ const styles: { [k: string]: React.CSSProperties } = {
         lineHeight: 1.65,
         color: '#475569',
     },
-    prGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 22 },
+    prGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: 22,
+    },
     prCard: {
         display: 'flex',
         flexDirection: 'column',
@@ -635,7 +668,8 @@ const styles: { [k: string]: React.CSSProperties } = {
     prImageOverlay: {
         position: 'absolute',
         inset: 0,
-        background: 'linear-gradient(180deg, rgba(2,6,23,0.05) 0%, rgba(2,6,23,0.55) 100%)',
+        background:
+            'linear-gradient(180deg, rgba(2,6,23,0.05) 0%, rgba(2,6,23,0.55) 100%)',
     },
     prBadge: {
         position: 'absolute',
@@ -663,8 +697,19 @@ const styles: { [k: string]: React.CSSProperties } = {
         boxShadow: '0 8px 18px -8px rgba(0,0,0,0.4)',
         backdropFilter: 'blur(4px)',
     },
-    prBody: { padding: '16px 18px 18px', display: 'flex', flexDirection: 'column', flex: 1 },
-    prRouteRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 },
+    prBody: {
+        padding: '16px 18px 18px',
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+    },
+    prRouteRow: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 10,
+        marginBottom: 14,
+    },
     prRouteCity: { display: 'flex', flexDirection: 'column', minWidth: 0 },
     prCityName: {
         fontSize: 14.5,
@@ -675,7 +720,13 @@ const styles: { [k: string]: React.CSSProperties } = {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
     },
-    prCityCode: { fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: 1.4, marginTop: 2 },
+    prCityCode: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: '#94a3b8',
+        letterSpacing: 1.4,
+        marginTop: 2,
+    },
     prRouteArrow: {
         width: 30,
         height: 30,
@@ -703,7 +754,8 @@ const styles: { [k: string]: React.CSSProperties } = {
     /* Safari showcase */
     safariSection: {
         padding: '80px 0',
-        background: 'radial-gradient(60% 40% at 50% 0%, rgba(255,107,53,0.08), transparent), linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
+        background:
+            'radial-gradient(60% 40% at 50% 0%, rgba(255,107,53,0.08), transparent), linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
     },
     safariSectionInner: { maxWidth: 1200, margin: '0 auto', padding: '0 20px' },
     safariHeader: { textAlign: 'center', marginBottom: 44 },
@@ -738,7 +790,11 @@ const styles: { [k: string]: React.CSSProperties } = {
         lineHeight: 1.65,
         color: '#475569',
     },
-    safariGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 22 },
+    safariGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+        gap: 22,
+    },
     safariCard: {
         background: '#fff',
         borderRadius: 20,
@@ -762,11 +818,35 @@ const styles: { [k: string]: React.CSSProperties } = {
         borderRadius: 6,
         boxShadow: '0 6px 16px -8px rgba(0,0,0,0.5)',
     },
-    safariBody: { padding: '18px 18px 20px', display: 'flex', flexDirection: 'column', flex: 1 },
+    safariBody: {
+        padding: '18px 18px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+    },
     safariName: { margin: 0, fontSize: 17, fontWeight: 900, color: BRAND.slate },
-    safariPark: { display: 'inline-flex', alignItems: 'center', gap: 6, margin: '6px 0 12px', fontSize: 13, color: '#64748b' },
-    safariHighlights: { listStyle: 'none', padding: 0, margin: '0 0 16px', display: 'grid', gap: 6 },
-    safariHighlightItem: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#334155' },
+    safariPark: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        margin: '6px 0 12px',
+        fontSize: 13,
+        color: '#64748b',
+    },
+    safariHighlights: {
+        listStyle: 'none',
+        padding: 0,
+        margin: '0 0 16px',
+        display: 'grid',
+        gap: 6,
+    },
+    safariHighlightItem: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        fontSize: 13,
+        color: '#334155',
+    },
     bullet: {
         width: 6,
         height: 6,
@@ -783,7 +863,14 @@ const styles: { [k: string]: React.CSSProperties } = {
         borderTop: '1px solid #eef2f7',
         marginTop: 'auto',
     },
-    safariDays: { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#475569', fontWeight: 700 },
+    safariDays: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        fontSize: 13,
+        color: '#475569',
+        fontWeight: 700,
+    },
     safariPrice: { fontSize: 14, fontWeight: 900, color: BRAND.coral },
     safariCta: {
         marginTop: 14,
@@ -815,8 +902,19 @@ const styles: { [k: string]: React.CSSProperties } = {
         border: `1px dashed ${BRAND.gold}`,
     },
     fcHeader: { textAlign: 'center' },
-    fcHeading: { margin: 0, fontSize: 18, fontWeight: 900, color: BRAND.slate, letterSpacing: -0.3 },
-    fcSubtext: { margin: '6px 0 0', fontSize: 13, color: '#64748b', fontWeight: 600 },
+    fcHeading: {
+        margin: 0,
+        fontSize: 18,
+        fontWeight: 900,
+        color: BRAND.slate,
+        letterSpacing: -0.3,
+    },
+    fcSubtext: {
+        margin: '6px 0 0',
+        fontSize: 13,
+        color: '#64748b',
+        fontWeight: 600,
+    },
     fcBoxes: { display: 'inline-flex', alignItems: 'center', gap: 8 },
     fcBox: {
         display: 'inline-flex',
@@ -838,8 +936,21 @@ const styles: { [k: string]: React.CSSProperties } = {
         fontVariantNumeric: 'tabular-nums',
         lineHeight: 1.1,
     },
-    fcBoxLabel: { marginTop: 4, fontSize: 10, fontWeight: 900, letterSpacing: 1.4, textTransform: 'uppercase', color: '#94a3b8' },
-    fcColon: { fontSize: 22, fontWeight: 900, color: BRAND.gold, lineHeight: 1, paddingBottom: 14 },
+    fcBoxLabel: {
+        marginTop: 4,
+        fontSize: 10,
+        fontWeight: 900,
+        letterSpacing: 1.4,
+        textTransform: 'uppercase',
+        color: '#94a3b8',
+    },
+    fcColon: {
+        fontSize: 22,
+        fontWeight: 900,
+        color: BRAND.gold,
+        lineHeight: 1,
+        paddingBottom: 14,
+    },
     fcExpiredPill: {
         padding: '8px 16px',
         borderRadius: 999,
@@ -851,7 +962,10 @@ const styles: { [k: string]: React.CSSProperties } = {
     },
 
     /* Why us */
-    whySection: { padding: '80px 0', background: 'linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%)' },
+    whySection: {
+        padding: '80px 0',
+        background: 'linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%)',
+    },
     whyInner: { maxWidth: 1200, margin: '0 auto', padding: '0 20px' },
     whyHead: { textAlign: 'center', marginBottom: 40 },
     whyChip: {
@@ -868,8 +982,18 @@ const styles: { [k: string]: React.CSSProperties } = {
         textTransform: 'uppercase',
         marginBottom: 14,
     },
-    whyTitle: { margin: 0, fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 900, color: BRAND.slate, letterSpacing: -1 },
-    whyGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 20 },
+    whyTitle: {
+        margin: 0,
+        fontSize: 'clamp(26px, 4vw, 40px)',
+        fontWeight: 900,
+        color: BRAND.slate,
+        letterSpacing: -1,
+    },
+    whyGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+        gap: 20,
+    },
     whyCard: {
         background: '#fff',
         padding: '26px 22px',
@@ -888,7 +1012,12 @@ const styles: { [k: string]: React.CSSProperties } = {
         marginBottom: 14,
         boxShadow: '0 12px 26px -14px rgba(255,107,53,0.75)',
     },
-    whyCardTitle: { margin: '0 0 6px', fontSize: 15.5, fontWeight: 900, color: BRAND.slate },
+    whyCardTitle: {
+        margin: '0 0 6px',
+        fontSize: 15.5,
+        fontWeight: 900,
+        color: BRAND.slate,
+    },
     whyCardDesc: { margin: 0, fontSize: 13.5, color: '#475569', lineHeight: 1.6 },
 
     /* Contact strip */
@@ -907,7 +1036,12 @@ const styles: { [k: string]: React.CSSProperties } = {
         justifyContent: 'space-between',
         gap: 20,
     },
-    contactTitle: { margin: '0 0 6px', fontSize: 22, fontWeight: 900, letterSpacing: -0.4 },
+    contactTitle: {
+        margin: '0 0 6px',
+        fontSize: 22,
+        fontWeight: 900,
+        letterSpacing: -0.4,
+    },
     contactSub: { margin: 0, fontSize: 14, color: 'rgba(255,255,255,0.75)' },
     contactActions: { display: 'flex', gap: 10, flexWrap: 'wrap' },
     contactBtn: {
