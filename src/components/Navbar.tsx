@@ -252,6 +252,7 @@ const Navbar: React.FC = () => {
         { name: 'Fleet', href: '/fleet' },
         { name: 'Services', href: '/services' },
         { name: 'Accommodations', href: '/airbnb' },
+        { name: 'Air Travel', href: '/air-travel' },
         { name: 'About', href: '/about' },
         { name: 'Contact', href: '/contact' },
     ];

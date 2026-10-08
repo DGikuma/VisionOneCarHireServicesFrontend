@@ -18,6 +18,8 @@ import Services from './pages/Services';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Airbnb from './pages/Airbnb';
+import AirTravel from './pages/AirTravel'
+import AirTravelBooking from './pages/AirTravelBooking';
 import FAQ from './pages/FAQ';
 import Terms from './pages/Terms';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -142,6 +144,8 @@ function App() {
                                     <Route path="/about" element={<About />} />
                                     <Route path="/contact" element={<Contact />} />
                                     <Route path="/airbnb" element={<Airbnb />} />
+                                    <Route path="/air-travel" element={<AirTravel />} />
+                                    <Route path="/air-travel/book" element={<AirTravelBooking />} />
                                     <Route path="/locations" element={<Locations />} />
                                     <Route path="/blog" element={<Blog />} />
                                     <Route path="/blog/:id" element={<SingleBlog />} />
