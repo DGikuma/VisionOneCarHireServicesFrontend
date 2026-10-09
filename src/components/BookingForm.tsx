@@ -106,6 +106,47 @@ const getPeriodFromDays = (days: number): PeriodCategory => {
     return 'long';
 };
 
+/* ───────────── December block helpers ─────────────
+   The standard booking form is for Jan–Nov only.
+   December has its own festive rate card on /festive-booking.
+*/
+const FESTIVE_MONTH = 11; // December (0-indexed)
+
+const currentFestiveYear = new Date().getFullYear();
+
+/* Last bookable day on this form = 30 November of the current festive year */
+const lastStandardDateStr = `${currentFestiveYear}-11-30`;
+
+const isDecemberDate = (dateStr: string): boolean => {
+    if (!dateStr) return false;
+    const d = new Date(`${dateStr}T00:00:00`);
+    if (isNaN(d.getTime())) return false;
+    return d.getMonth() === FESTIVE_MONTH && d.getFullYear() === currentFestiveYear;
+};
+
+const decemberDateErrorMessage = `December ${currentFestiveYear} has separate festive rates. Please use the Festive Booking page instead.`;
+
+/* Returns true for any date that falls in December of the current festive year */
+const isBlockedDecemberDate = (dateStr: string): boolean => {
+    if (!dateStr) return false;
+    const d = new Date(`${dateStr}T00:00:00`);
+    if (isNaN(d.getTime())) return false;
+    return d.getMonth() === FESTIVE_MONTH && d.getFullYear() === currentFestiveYear;
+};
+
+/* ───────────── Format helpers ───────────── */
+const formatHuman = (dateStr: string) => {
+    if (!dateStr) return '';
+    const d = new Date(`${dateStr}T00:00:00`);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
+};
+
 const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
     ({ activeStep, onNextStep, onPrevStep, onComplete }, ref) => {
         const [isSubmitting, setIsSubmitting] = useState(false);
@@ -350,6 +391,19 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                 return;
             }
 
+            // Do not compute festive estimate on the standard form —
+            // December dates are blocked anyway.
+            if (isDecemberDate(pickupDate) || isDecemberDate(returnDate)) {
+                setEstimate({
+                    days: null,
+                    rate: null,
+                    total: null,
+                    error: null,
+                    autoPeriod: null,
+                });
+                return;
+            }
+
             const p = new Date(pickupDate + 'T00:00:00');
             const d = new Date(returnDate + 'T00:00:00');
             const days = Math.ceil((d.getTime() - p.getTime()) / (1000 * 60 * 60 * 24));
@@ -448,6 +502,25 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                     }
                 }
 
+                // ✅ December block — applies to Step 2 dates
+                if (activeStep === 2) {
+                    const pickup = (watch('pickupDate') || '').toString();
+                    const ret = (watch('returnDate') || '').toString();
+
+                    if (pickup && isDecemberDate(pickup)) {
+                        toast.error(
+                            `🚫 Pickup date falls in December ${currentFestiveYear}. ${decemberDateErrorMessage}`
+                        );
+                        return false;
+                    }
+                    if (ret && isDecemberDate(ret)) {
+                        toast.error(
+                            `🚫 Return date falls in December ${currentFestiveYear}. ${decemberDateErrorMessage}`
+                        );
+                        return false;
+                    }
+                }
+
                 const fieldsToValidate = stepFields[activeStep] || [];
                 if (fieldsToValidate.length === 0) {
                     return true;
@@ -479,6 +552,14 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
         }));
 
         const onSubmit = async (data: BookingFormData) => {
+            // ✅ Final gate — December never allowed
+            if (isDecemberDate(data.pickupDate) || isDecemberDate(data.returnDate)) {
+                toast.error(
+                    `🚫 December ${currentFestiveYear} uses festive rates. ${decemberDateErrorMessage}`
+                );
+                return;
+            }
+
             const dlFile = data.drivingLicense?.[0];
             const idFile = data.idDocument?.[0];
             const proofFile = data.depositProof?.[0];
@@ -611,6 +692,72 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                         {isAmendMode ? 'Amend Mode' : 'Special Offer Rates'}
                     </span>
                 </div>
+            </div>
+        );
+
+        /* ───────────── December notice (Step 2 only) ───────────── */
+        const DecemberNotice = () => (
+            <div
+                style={{
+                    marginBottom: '18px',
+                    padding: '14px 16px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #FFF8E7, #FFFDF7)',
+                    border: '1.5px dashed #D4AF37',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                }}
+            >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <span style={{ fontSize: '18px', flexShrink: 0 }}>🎄</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <p
+                            style={{
+                                margin: 0,
+                                fontWeight: 800,
+                                color: '#7c2d12',
+                                fontSize: '14px',
+                                letterSpacing: '0.2px',
+                            }}
+                        >
+                            December {currentFestiveYear} has separate festive rates
+                        </p>
+                        <p
+                            style={{
+                                margin: '4px 0 0',
+                                fontSize: '13px',
+                                color: '#78350f',
+                                lineHeight: 1.55,
+                            }}
+                        >
+                            This form handles <strong>January – November</strong> bookings only.
+                            For <strong>December {currentFestiveYear}</strong>, please use our
+                            dedicated festive booking page.
+                        </p>
+                    </div>
+                </div>
+                <a
+                    href="/festive-booking"
+                    style={{
+                        alignSelf: 'flex-start',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 14px',
+                        borderRadius: '10px',
+                        background:
+                            'linear-gradient(135deg, #C8102E 0%, #8B0000 65%, #D4AF37 140%)',
+                        color: '#fff',
+                        fontWeight: 800,
+                        fontSize: '13px',
+                        textDecoration: 'none',
+                        boxShadow: '0 10px 22px -12px rgba(200,16,46,0.75)',
+                        letterSpacing: '0.2px',
+                    }}
+                >
+                    Go to Festive Booking →
+                </a>
             </div>
         );
 
@@ -1546,6 +1693,9 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                 <h2 className="bf-card-title" style={styles.cardTitle}>Rental details</h2>
                                 <p className="bf-card-subtitle" style={styles.cardSubtitle}>Select dates and the vehicle you would like to book.</p>
 
+                                {/* ✅ Festive December notice */}
+                                <DecemberNotice />
+
                                 <div className="bf-grid-3" style={styles.grid3}>
                                     <div>
                                         <label style={styles.label} htmlFor="pickupDate">
@@ -1556,9 +1706,26 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                             type="date"
                                             {...register('pickupDate', {
                                                 required: 'Pickup date is required',
-                                                validate: value => value >= todayStr || 'Pickup date must be today or in the future',
+                                                validate: (value) => {
+                                                    if (!value || value < todayStr) {
+                                                        return 'Pickup date must be today or in the future';
+                                                    }
+                                                    if (isDecemberDate(value)) {
+                                                        return `December ${currentFestiveYear} uses festive rates — please use the Festive Booking page.`;
+                                                    }
+                                                    return true;
+                                                },
                                             })}
                                             min={todayStr}
+                                            max={lastStandardDateStr}
+                                            onInput={(e) => {
+                                                const input = e.currentTarget;
+                                                const v = input.value;
+                                                if (v && isBlockedDecemberDate(v)) {
+                                                    input.value = '';
+                                                    setValue('pickupDate', '', { shouldValidate: false });
+                                                }
+                                            }}
                                             style={styles.input}
                                         />
                                         {errors.pickupDate && <p style={styles.errorText}>{errors.pickupDate.message}</p>}
@@ -1572,12 +1739,27 @@ const BookingForm = forwardRef<BookingFormRef, BookingFormProps>(
                                             type="date"
                                             {...register('returnDate', {
                                                 required: 'Return date is required',
-                                                validate: value => {
+                                                validate: (value) => {
                                                     if (!pickupDate) return true;
-                                                    return value >= pickupDate || 'Return date must be after pickup date';
+                                                    if (value < pickupDate) {
+                                                        return 'Return date must be after pickup date';
+                                                    }
+                                                    if (isDecemberDate(value)) {
+                                                        return `December ${currentFestiveYear} uses festive rates — please use the Festive Booking page.`;
+                                                    }
+                                                    return true;
                                                 },
                                             })}
                                             min={pickupDate || todayStr}
+                                            max={lastStandardDateStr}
+                                            onInput={(e) => {
+                                                const input = e.currentTarget;
+                                                const v = input.value;
+                                                if (v && isBlockedDecemberDate(v)) {
+                                                    input.value = '';
+                                                    setValue('returnDate', '', { shouldValidate: false });
+                                                }
+                                            }}
                                             style={styles.input}
                                         />
                                         {errors.returnDate && <p style={styles.errorText}>{errors.returnDate.message}</p>}
